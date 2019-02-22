@@ -2,7 +2,7 @@
 
 # "Hóquei Clube Penafiel" Mobile Application
 
-This mobile app is being developed in [React Native](https://facebook.github.io/react-native/).
+This mobile app is being developed using [React Native](https://facebook.github.io/react-native/).
 
 Web App version can be found [here](https://github.com/git-antoniosousa/hcp-1), although this repository is **private**.
 
@@ -11,6 +11,7 @@ Web App version can be found [here](https://github.com/git-antoniosousa/hcp-1), 
 ## Linux Requirements
 
 ```bash
+sudo apt-get install -y postgresql
 sudo apt-get install -y nodejs
 sudo apt-get install -y libssl1.0-dev
 sudo apt-get install -y nodejs-dev
