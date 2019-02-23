@@ -22,8 +22,10 @@ sudo apt-get install -y nodejs-dev
 sudo apt-get install -y node-gyp
 sudo apt-get install -y npm
 
-# Install The React Native Comand Line Interface
-npm install -g react-native-cli
+# Install the React Native Command Line Interface
+sudo npm install -g react-native-cli
+# Install the Expo Command Line Interface
+sudo npm install -g expo-cli
 ```
 ___
 Install Java SE Development Kit 8 (Java JDK).
