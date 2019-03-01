@@ -11,15 +11,16 @@ Web App version can be found [here](https://github.com/git-antoniosousa/hcp-1), 
 
 <br >
 
-# Odoo Installation
+## Odoo Installation
 
 Download Odoo 11:
 
 ```bash
 wget https://nightly.odoocdn.com/11.0/nightly/src/odoo_11.0.latest.tar.gz
 mkdir ~/odoo
-tar -xvzf odoo_11.0.latest.tar.gz --directory ~/odoo
+tar -xvzf odoo_11.0.latest.tar.gz -C ~/odoo --strip 1
 ```
+___
 Install Python 3 and Virtual Environment
 
 ```bash
@@ -28,7 +29,7 @@ sudo apt-get install -y python3-pip
 sudo pip install --upgrade pip
 pip install virtualenv
 ```
-
+___
 Install dependencies
 
 ```bash
@@ -37,7 +38,7 @@ sudo apt-get install -y libsasl2-dev libldap2-dev libssl-dev
 sudo apt-get install -y wkhtmltopdf
 sudo apt-get install -y node-less
 ```
-
+___
 Install and run Odoo 11
 
 ```bash
@@ -51,6 +52,7 @@ pip install phonenumbers
 odoo --addons-path=~/.virtualenvs/hcpwebapp/lib/python3.6/site-packages/odoo-11.0.post20190227-py3.6.egg/odoo/addons/
 ```
 
+<br >
 
 
 ## Requirements (Linux)
