@@ -49,7 +49,14 @@ pip install -r requirements.txt
 python setup.py install
 pip install validate_email
 pip install phonenumbers
-odoo --addons-path=~/.virtualenvs/hcpwebapp/lib/python3.6/site-packages/odoo-11.0.post20190227-py3.6.egg/odoo/addons/
+```
+___
+Run Odoo 11
+```bash
+# Let's assume that you have the "gestao_equipas" folder in the following directory:
+ls $HOME/hcp-1/addons
+# To run Odoo web server, just run the following command:
+odoo --addons-path=~/.virtualenvs/hcpwebapp/lib/python3.6/site-packages/odoo-11.0.post20190227-py3.6.egg/odoo/addons/,$HOME/hcp-1/addons
 ```
 
 <br >
