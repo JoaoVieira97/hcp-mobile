@@ -8,16 +8,14 @@ import {
 
 import {
   createAppContainer,
-  createStackNavigator,
-  createSwitchNavigator
+  createSwitchNavigator,
 } from 'react-navigation';
 
-import { fromLeft } from 'react-navigation-transitions';
+
 import { Font } from 'expo';
-import AuthLoadingScreen from './src/components/authentication/AuthLoadingScreen';
 import LoginScreen from './src/components/authentication/LoginScreen';
 import HomeScreen from './src/components/HomeScreen';
-import OtherScreen from './src/components/OtherScreen';
+import OdooConnection from "./src/components/authentication/OdooConnection";
 
 
 export default class App extends React.Component {
@@ -61,6 +59,10 @@ const styles = StyleSheet.create({
   },
 });
 
+
+
+
+/*
 // Authentication stack navigator
 const AuthStack = createSwitchNavigator({
   Login: LoginScreen
@@ -78,19 +80,70 @@ const AppStack = createStackNavigator({
   transitionConfig: () => fromLeft(1000),
 });
 
+
+class Feed extends React.Component {
+  render() {
+    return (
+        <View>
+          <Text>Feed</Text>
+        </View>
+    );
+  }
+}
+
+class Profile extends React.Component {
+  render() {
+    return (
+        <View>
+          <Text>Profile</Text>
+        </View>
+    );
+  }
+}
+
+class Settings extends React.Component {
+  render() {
+    return (
+        <View>
+          <Text>Settings</Text>
+        </View>
+    );
+  }
+}
+
+
+const DashboardTabNavigator = createBottomTabNavigator({
+  Feed,
+  Profile,
+  Settings
+});
+
+const DashboardTabNavigator2 = createBottomTabNavigator({
+  Feed,
+  Settings
+});
+
+const AppDrawerNavigator = createDrawerNavigator({
+  Dashboard: {
+    screen: HomeScreen
+  },
+  Other: {
+    screen: OtherScreen
+  }
+});
+
+*/
+
+
+
 // Application switch navigator
-const SwitchNavigator = createSwitchNavigator({
-  AuthLoading: AuthLoadingScreen,
-  Auth: AuthStack,
-  App: AppStack,
+const AppSwitchNavigator = createSwitchNavigator({
+  AuthLoading: { screen: OdooConnection},
+  Auth: { screen: LoginScreen },
+  Home: { screen: HomeScreen },
 }, {
   initialRouteName: 'AuthLoading',
 });
 
 // Application container
-const AppContainer = createAppContainer(SwitchNavigator);
-
-
-/*
-echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf && sudo sysctl -p
- */
+const AppContainer = createAppContainer(AppSwitchNavigator);

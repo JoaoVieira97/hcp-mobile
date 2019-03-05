@@ -31,7 +31,7 @@ const styles = StyleSheet.create({
         height: 90,
     },
     bigLogo: {
-        width: 130,
-        height: 130,
+        width: 120,
+        height: 120,
     },
 });

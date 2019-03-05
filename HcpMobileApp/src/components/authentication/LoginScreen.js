@@ -4,19 +4,18 @@ import {
     AsyncStorage,
     StyleSheet,
     Text,
-    TextInput,
     Button,
     View,
     KeyboardAvoidingView,
-    ActivityIndicator
+    ActivityIndicator,
+    ScrollView
 } from 'react-native';
+
+import { TextField } from 'react-native-material-textfield';
+
 
 import Logo from '../Logo';
 import Odoo from 'react-native-odoo-promise-based';
-
-
-const ACCESS_TOKEN = 'access_token';
-
 
 
 export default class LoginScreen extends React.Component {
@@ -27,33 +26,15 @@ export default class LoginScreen extends React.Component {
         this.state = {
             username: "",
             password: "",
+            error: "",
             isLoading: false
         }
     }
 
-    _storeToken = async (token) => {
-        try {
-            await AsyncStorage.setItem(ACCESS_TOKEN, token);
-        } catch (error) {
-            console.log(error);
-        }
-    };
+    async _onLoginPressed() {
 
-    _retrieveToken = async () => {
-        try {
-            return await AsyncStorage.getItem(ACCESS_TOKEN, (err, res) => {
-                console.log(res);
-            });
-
-        } catch (error) {
-            console.log(error);
-        }
-    };
-
-    async onLoginPressed() {
-
-        this.setState({isLoading: true});
-        try {
+        if(this.state.username && this.state.password) {
+            this.setState({isLoading: true});
 
             const odoo = new Odoo({
                 host: '10.0.2.2',
@@ -70,8 +51,15 @@ export default class LoginScreen extends React.Component {
 
                 if(response.data.uid) {
                     const session_token = response.data.session_id.toString();
-                    await this._storeToken(session_token);
-                    this.props.navigation.navigate('App');
+
+                    // Save data
+                    await AsyncStorage.setItem('username', this.state.username);
+                    await AsyncStorage.setItem('password', this.state.password);
+                    await AsyncStorage.setItem('access_token', session_token);
+
+                    // Go to Home Screen
+                    this.props.navigation.navigate('Home', {odoo: odoo});
+
                 } else {
                     Alert.alert("Erro","As credenciais estão erradas!");
                 }
@@ -79,12 +67,15 @@ export default class LoginScreen extends React.Component {
             } else {
                 Alert.alert("Erro",response.error.toString());
             }
-
-        } catch (error) {
-            Alert.alert("Erro",error);
-            this.setState({isLoading: false});
+        }
+        else {
+            this.setState({error: "Preencha todos os campos."});
         }
     }
+
+    _next = () => {
+        this._passwordInput && this._passwordInput.focus();
+    };
 
     render() {
 
@@ -99,25 +90,41 @@ export default class LoginScreen extends React.Component {
                 <Text style={styles.textBottom}>
                     faça login para continuar.
                 </Text>
-                <TextInput
-                    onChangeText={(text) => this.setState({username: text})}
-                    style={styles.inputText}
-                    placeholder={'Username'}
-                    placeholderTextColor="#0000e5"
+                <TextField style={{paddingBottom: 5}}
+                    onChangeText={(text) => this.setState({username: text, error: ""})}
+                    value={this.state.username}
+                    label={'Nome de utilizador'}
+                    //placeholder={'nome123'}
+                    textColor={'#0000e5'}
+                    lineWidth={1}
+                    baseColor={'#a2a2a2'}
+                    tintColor={'#0000e5'}
+                    animationDuration={225}
+                    autoFocus={false}
+                    error={this.state.error}
+                    errorColor={'#ad2e53'}
+                    onSubmitEditing={this._next}
                 />
-                <TextInput
-                    onChangeText={(text) => this.setState({password: text})}
-                    style={styles.inputText}
-                    placeholder={'Password'}
-                    placeholderTextColor="#0000e5"
+                <TextField
+                    onChangeText={(text) => this.setState({password: text, error: ""})}
+                    ref={ref => {this._passwordInput = ref}}
+                    value={this.state.password}
+                    label={'Palavra-passe'}
+                    //placeholder={'muitosegura'}
+                    textColor={'#0000e5'}
+                    lineWidth={1}
+                    baseColor={'#a2a2a2'}
+                    tintColor={'#0000e5'}
+                    animationDuration={225}
+                    error={this.state.error}
+                    errorColor={'#ad2e53'}
                     secureTextEntry={true}
+                    returnKeyType="send"
+                    onSubmitEditing={this._onLoginPressed.bind(this)}
                 />
-                <Text style={styles.error}>
-                    {this.state.error}
-                </Text>
                 <View style={styles.loginButton}>
                     <Button
-                        onPress={this.onLoginPressed.bind(this)}
+                        onPress={this._onLoginPressed.bind(this)}
                         title="Login"
                         color="#ad2e53"
                         accessibilityLabel="Learn more about this purple button"
@@ -142,12 +149,11 @@ const styles = StyleSheet.create({
         height: "100%",
         paddingLeft: 25,
         paddingRight: 25,
-
         backgroundColor: '#fff1c2',
     },
     imageTop: {
         alignItems: 'center',
-        marginBottom: 25
+        marginBottom: 15
     },
     textTop: {
         fontFamily: 'Montserrat-Bold',
@@ -158,15 +164,7 @@ const styles = StyleSheet.create({
     textBottom: {
         fontFamily: 'Montserrat-Regular',
         fontSize: 18,
-        marginBottom: 20
-    },
-    inputText: {
-        fontFamily: 'Montserrat-Regular',
-        fontSize: 16,
-        color: '#0000e5',
-        borderColor: '#0000e5',
-        borderBottomWidth: 2,
-        marginBottom: 16
+        marginBottom: 10
     },
     loginButton: {
         marginTop: 35,

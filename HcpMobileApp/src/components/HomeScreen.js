@@ -1,14 +1,66 @@
 import React from 'react';
 import {
-    StyleSheet,
-    TouchableOpacity,
-    View,
-    KeyboardAvoidingView,
-    Text} from 'react-native';
+    AsyncStorage,
+    Button,
+    StyleSheet, View
+} from 'react-native';
 
-import Logo from '../components/Logo';
+
+import Icon from 'react-native-vector-icons/FontAwesome';
+import { BottomNavigation, Text } from 'react-native-paper';
 
 export default class HomeScreen extends React.Component {
+
+    constructor(props) {
+        super(props);
+        this.state  = {
+            index: 0,
+            routes: [
+                { key: 'music', title: 'Music', icon: 'queue-music', color: '#3F51B5' },
+                { key: 'albums', title: 'Albums', icon: 'album', color: '#009688' },
+                { key: 'recents', title: 'Recents', icon: 'history', color: '#795548' },
+                { key: 'purchased', title: 'Purchased', icon: 'shopping-cart', color: '#607D8B' },
+            ]
+        };
+    }
+
+    MusicRoute = () => (<View style={{flex: 1, justifyContent: 'center'}}>
+        <Button
+            onPress={this.handlePress.bind(this)}
+            title="Logout"
+            color="#ad2e53"
+            accessibilityLabel="Learn more about this purple button"
+        />
+    </View>);
+
+    _handleIndexChange = index => this.setState({ index });
+
+    _renderScene = BottomNavigation.SceneMap({
+        music: this.MusicRoute,
+        albums: AlbumsRoute,
+        recents: RecentsRoute,
+        purchased: PurchasedRoute
+    });
+
+
+    async handlePress () {
+
+        const odoo = this.props.navigation.getParam('odoo', null);
+
+        if(odoo) {
+            const  params = {
+                ids: [1,2,3,4,5],
+                fields: [ 'name' ],
+            };
+
+            await odoo.get('res.partner', params)
+                .then(response => { console.log(response) })
+                .catch(e => {});
+        }
+
+        await AsyncStorage.clear();
+        this.props.navigation.navigate('Auth');
+    };
 
     render() {
 
@@ -16,20 +68,14 @@ export default class HomeScreen extends React.Component {
             this.props.navigation.navigate('Other');
         };
 
+        const myIcon = <Icon name="rocket" size={30} color="#900" />;
+
         return (
-            <KeyboardAvoidingView style={styles.container} behavior="padding" enabled>
-                <Logo size={"big"}/>
-                <View style={{marginTop: 20}}>
-                    <TouchableOpacity
-                        style={styles.loginButton}
-                        onPress={handlePress}>
-                        <Text
-                            style={styles.loginText}>
-                            {'Continue'.toUpperCase()}
-                        </Text>
-                    </TouchableOpacity>
-                </View>
-            </KeyboardAvoidingView>
+            <BottomNavigation
+                navigationState={this.state}
+                onIndexChange={this._handleIndexChange}
+                renderScene={this._renderScene}
+            />
         );
     }
 }
@@ -63,3 +109,10 @@ const styles = StyleSheet.create({
         color: "#fff"
     }
 });
+
+
+const AlbumsRoute = () => <Text>Albums</Text>;
+
+const RecentsRoute = () => <Text>Recents</Text>;
+
+const PurchasedRoute = () => <Text>Purchased</Text>;
