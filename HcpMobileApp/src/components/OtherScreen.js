@@ -11,6 +11,7 @@ export default class AgendaScreen extends Component {
     super(props);
     this.state = {
       items: {
+        /*
         '2019-03-06': [
             {name: 'Treino sub-13', height: 50},
             {name: 'Jogo', height: 100}
@@ -24,10 +25,49 @@ export default class AgendaScreen extends Component {
         '2019-03-10': [
             {name: 'Treino sub-19', height: 100},
             {name: 'Jogo Treino', height: 60}
-        ],
+        ],*/
       }
     };
   }
+
+  async componentDidMount() {
+
+    if(global.odoo) {
+        const params = {
+            ids: [286],
+            fields: ['start_datetime','equipa_adversaria','description','evento_desportivo'],
+        };
+        let jogo = await global.odoo.get('ges.jogo', params);
+        let desc = jogo.data[0].description;
+        let oponent = jogo.data[0].equipa_adversaria[1];
+        let event_type = jogo.data[0].evento_desportivo[1];
+        let time_hour = jogo.data[0].start_datetime;
+        let times = time_hour.split(" ");
+        
+        this.state.items[times[0]] = [];
+        this.state.items[times[0]].push({type: 0, title: desc, time: 'Hours: ' + times[1], description: 'VS  ' + oponent});
+
+
+        const params2 = {
+            ids: [23],
+            fields: [ 'start_datetime', 'description', 'evento_desportivo', 'duracao'],
+        };
+        let treino = await global.odoo.get('ges.treino', params2);
+        desc = treino.data[0].description;
+        event_type = treino.data[0].evento_desportivo[1];
+        let duration = treino.data[0].duracao;
+        time_hour = treino.data[0].start_datetime;
+        times = time_hour.split(" ");
+
+        this.state.items['2019-03-07'].push({type: 1, title: desc, time: 'Hours: ' + times[1], description: 'Duration: ' + duration});
+        
+    }
+};
+
+//type JOGO / TREINO
+//title
+//time
+//description
 
   render() {
     return (
@@ -41,8 +81,18 @@ export default class AgendaScreen extends Component {
     );
   }
   renderItem(item) {
+    
+    let bgColor = "#fab1a0";
+    if(item.type === 1) {
+        bgColor = "#81ecec";
+    }
+
     return (
-      <View style={[styles.item, {height: item.height}]}><Text>{item.name}</Text></View>
+        <View style={[styles.item, {backgroundColor: bgColor}]}>
+            <Text style={{fontWeight: '600'}}>{item.title}</Text>
+            <Text>{item.time}</Text>
+            <Text>{item.description}</Text>
+        </View>
     );
   }
 
@@ -60,10 +110,9 @@ export default class AgendaScreen extends Component {
 
 const styles = StyleSheet.create({
   item: {
-    backgroundColor: 'white',
     flex: 1,
     borderRadius: 5,
-    padding: 10,
+    padding: 15,
     marginRight: 10,
     marginTop: 17
   },
