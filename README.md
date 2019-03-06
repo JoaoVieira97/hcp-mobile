@@ -39,7 +39,7 @@ sudo apt-get install -y wkhtmltopdf
 sudo apt-get install -y node-less
 ```
 ___
-Install and run Odoo 11
+Install Odoo 11
 
 ```bash
 virtualenv -p python3 ~/.virtualenvs/hcpwebapp
@@ -116,3 +116,15 @@ Preparing the Android device:
     * Open AVD (`Tools > AVD Manager`)
     * Create a new AVD > Create Virtual Device > Select the Pie API Level 28 image
     * You can now launch it
+    
+___
+Run the React Native project
+  * Inside the folder `HcpMobileApp`
+    * Install dependencies
+    ```
+    npm install
+    ```
+    * Run the app
+    ```
+    npm run start
+    ```
