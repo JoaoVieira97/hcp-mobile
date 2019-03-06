@@ -59,6 +59,7 @@ export default class LoginScreen extends React.Component {
                     const session_token = response.data.session_id.toString();
 
                     // Save data
+                    await AsyncStorage.setItem('userid', response.data.uid.toString());
                     await AsyncStorage.setItem('username', this.state.username);
                     await AsyncStorage.setItem('password', this.state.password);
                     await AsyncStorage.setItem('access_token', session_token);
@@ -95,12 +96,12 @@ export default class LoginScreen extends React.Component {
                     <Logo size={"big"}/>
                 </View>
                 <Text style={styles.textTop}>
-                    Bem-vindo de volta,
+                    Bem-vindo,
                 </Text>
                 <Text style={styles.textBottom}>
                     faça login para continuar.
                 </Text>
-                <TextField style={{paddingBottom: 5}}
+                <TextField
                     onChangeText={(text) => this.setState({username: text, error: ""})}
                     value={this.state.username}
                     label={'Nome de utilizador'}
@@ -131,6 +132,8 @@ export default class LoginScreen extends React.Component {
                     secureTextEntry={true}
                     returnKeyType="send"
                     onSubmitEditing={this._onLoginPressed.bind(this)}
+
+                    labelHeight={15}
                 />
                 <View style={styles.loginButton}>
                     <Button
@@ -159,7 +162,8 @@ const styles = StyleSheet.create({
         height: "100%",
         paddingLeft: 25,
         paddingRight: 25,
-        backgroundColor: '#fff1c2',
+        backgroundColor: '#d7e8ff',
+        //backgroundColor: '#fff1c2',
     },
     imageTop: {
         alignItems: 'center',

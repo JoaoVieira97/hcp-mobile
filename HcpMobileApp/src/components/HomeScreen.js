@@ -3,6 +3,8 @@ import {
     AsyncStorage,
     Button,
     View,
+    Image,
+    StyleSheet,
     Text
 } from 'react-native';
 
@@ -14,39 +16,82 @@ export default class HomeScreen extends React.Component {
 
     constructor(props) {
         super(props);
+        this.state = {
+            username: '',
+            image: null
+        }
     }
 
-    async handlePress () {
+    async componentDidMount() {
 
-        //const odoo = this.props.navigation.getParam('odoo', null);
-
+        // Get User image
         if(global.odoo) {
+
+            const userID = await AsyncStorage.getItem('userid');
+
             const  params = {
-                ids: [1,2,3,4,5],
-                fields: [ 'name' ],
+                ids: [parseInt(userID)],
+                fields: [ 'image', 'name' ],
             };
 
-            await global.odoo.get('res.partner', params)
-                .then(response => { console.log(response) })
-                .catch(e => {console.log(e)});
+            let response = await odoo.get('res.users', params );
+            if(response.success) {
+
+                this.setState({
+                    'image': response.data[0].image,
+                    'name': response.data[0].name
+                });
+            }
+        }
+    }
+
+    async handlePress() {
+
+        if (global.odoo) {
+
+            let params = {
+                domain: [['id', '>=', '0']],
+                fields: ['id'],
+            };
+
+            const allGroupsIDs = await global.odoo.search('res.groups', params);
+
+            params = {
+                ids: allGroupsIDs.data,
+                fields: ['id', 'full_name'],
+            };
+
+            const allGroupsNames = await global.odoo.get('res.groups', params);
+            console.log(allGroupsNames.data);
         }
 
-        await AsyncStorage.clear();
-        this.props.navigation.navigate('Auth');
+        //await AsyncStorage.clear();
+        //this.props.navigation.navigate('Auth');
     };
 
     render() {
 
         return (
 
-            <View style={{flex: 1, justifyContent: 'center'}}>
+            <View style={styles.container}>
+                <Text style={{fontWeight: '600', fontSize: 18}}>{this.state.name}</Text>
+                <Image style={{ width: 250, height: 200, marginBottom: 20}}
+                       source={{uri: `data:image/png;base64,${this.state.image}`}}/>
                 <Button
                     onPress={this.handlePress.bind(this)}
                     title="Logout"
                     color="#ad2e53"
                 />
-                <Text>OLA</Text>
             </View>
         );
     }
 }
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        justifyContent: 'center',
+        paddingLeft: 25,
+        paddingRight: 25,
+    }
+});

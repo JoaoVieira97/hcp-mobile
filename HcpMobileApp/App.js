@@ -11,10 +11,11 @@ import {
     createAppContainer,
     createSwitchNavigator,
     createStackNavigator,
+    createDrawerNavigator
 } from 'react-navigation';
 
 import {createMaterialBottomTabNavigator} from "react-navigation-material-bottom-tabs";
-import Icon from 'react-native-vector-icons/MaterialIcons';
+import Icon from "react-native-vector-icons/Ionicons";
 
 import {Font} from 'expo';
 import LoginScreen from './src/components/authentication/LoginScreen';
@@ -68,43 +69,34 @@ const HomeNavigator = createMaterialBottomTabNavigator({
     Home: {screen: HomeScreen, navigationOptions:{
             title: 'Início',
             tabBarIcon: ({ tintColor }) => (
-                <Icon name={"home"} color={tintColor} size={24}/>
+                <Icon name={"ios-home"} color={tintColor} size={26}/>
             ),
             tabBarColor: "#efefef"
         }},
-    OtherScreen: {screen: OtherScreen, navigationOptions:{
-            title: 'Perfil',
+    Calendar: {screen: OtherScreen, navigationOptions:{
+            title: 'Calendário',
             tabBarIcon: ({ tintColor }) => (
-                <Icon name={"person"} color={tintColor} size={24}/>
+                <Icon name={"ios-calendar"} color={tintColor} size={26}/>
             ),
             tabBarColor: "#efefef"
         }},
 }, {
     initialRouteName: 'Home',
-    order: ['Home', 'OtherScreen'],
+    order: ['Home', 'Calendar'],
     shifting: true,
     activeColor: '#ad2e53',
     inactiveColor: 'grey',
     navigationOptions: ({navigation}) => {
         const { routeName } = navigation.state.routes[navigation.state.index];
+
+        let header = 'Início';
+        if (routeName === 'Calendar')
+            header = 'Calendário';
+
         return {
-            headerTitle: routeName
+            headerTitle: header
         }
     }
-    /*
-    tabBarPosition: 'bottom',
-    tabBarOptions: {
-        activeTintColor: 'orange',
-        inactiveTintColor: 'grey',
-        style: {
-            backgroundColor: '#f2f2f2'
-        },
-        indicatorStyle: {
-            height: 0
-        },
-        showIcon: true,
-    }
-    */
 });
 
 
@@ -114,9 +106,19 @@ const AppStackNavigator = createStackNavigator({
     defaultNavigationOptions: ({navigation}) => {
 
         return {
-            headerLeft: <Icon style={{paddingLeft: 10}} name={"menu"} size={32}/>
+            headerLeft: <Icon
+                style={{paddingLeft: 10}}
+                name={"ios-menu"}
+                size={30}
+                onPress = {() => navigation.openDrawer()}
+            />
         }
     }
+});
+
+
+const AppDrawerNavigator = createDrawerNavigator({
+    AppDrawer: {screen: AppStackNavigator}
 });
 
 
@@ -124,7 +126,7 @@ const AppStackNavigator = createStackNavigator({
 const AppSwitchNavigator = createSwitchNavigator({
     AuthLoading: {screen: OdooConnection},
     Auth: {screen: LoginScreen},
-    AppStack: {screen: AppStackNavigator},
+    AppStack: {screen: AppDrawerNavigator},
 }, {
     initialRouteName: 'AuthLoading',
     /* transitionConfig: () => fromLeft(1000), */
