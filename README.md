@@ -126,5 +126,5 @@ Run the React Native project
     ```
     * Run the app
     ```
-    nmp run start
+    npm run start
     ```
