@@ -11,6 +11,11 @@ import {
     ScrollView
 } from 'react-native';
 
+import {
+    NavigationActions
+} from 'react-navigation';
+
+
 import { TextField } from 'react-native-material-textfield';
 
 
@@ -58,7 +63,11 @@ export default class LoginScreen extends React.Component {
                     await AsyncStorage.setItem('access_token', session_token);
 
                     // Go to Home Screen
-                    this.props.navigation.navigate('Home', {odoo: odoo});
+                    //this.props.navigation.navigate('Home', {odoo: odoo});
+                    this.props.navigation.dispatch(
+                        NavigationActions.navigate(
+                            { routeName: 'Home', params: { odoo: odoo }}
+                            ));
 
                 } else {
                     Alert.alert("Erro","As credenciais estão erradas!");
