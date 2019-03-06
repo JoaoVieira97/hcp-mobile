@@ -42,7 +42,8 @@ export default class OdooConnection extends React.Component {
                 password: password,
                 // sid: userToken
             });
-
+            global.odoo = odoo;
+                
             let response = await odoo.connect();
             if (response.success) {
 

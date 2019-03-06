@@ -48,6 +48,7 @@ export default class LoginScreen extends React.Component {
                 username: this.state.username,
                 password: this.state.password
             });
+            global.odoo = odoo;
 
             let response = await odoo.connect();
             this.setState({isLoading: false});

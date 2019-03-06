@@ -18,17 +18,17 @@ export default class HomeScreen extends React.Component {
 
     async handlePress () {
 
-        const odoo = this.props.navigation.getParam('odoo', null);
+        //const odoo = this.props.navigation.getParam('odoo', null);
 
-        if(odoo) {
+        if(global.odoo) {
             const  params = {
                 ids: [1,2,3,4,5],
                 fields: [ 'name' ],
             };
 
-            await odoo.get('res.partner', params)
+            await global.odoo.get('res.partner', params)
                 .then(response => { console.log(response) })
-                .catch(e => {});
+                .catch(e => {console.log(e)});
         }
 
         await AsyncStorage.clear();
