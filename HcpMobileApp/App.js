@@ -3,28 +3,14 @@ import React from 'react';
 import {
     ActivityIndicator,
     View,
-    Text,
-    Platform
+    StyleSheet
 } from 'react-native';
 
-import {
-    createAppContainer,
-    createSwitchNavigator,
-    createStackNavigator,
-    createDrawerNavigator
-} from 'react-navigation';
-
-import {createMaterialBottomTabNavigator} from "react-navigation-material-bottom-tabs";
-import Icon from "react-native-vector-icons/Ionicons";
-
 import {Font} from 'expo';
-import LoginScreen from './src/components/authentication/LoginScreen';
-import HomeScreen from './src/components/HomeScreen';
-import OdooConnection from "./src/components/authentication/OdooConnection";
-import OtherScreen from "./src/components/OtherScreen";
+import AppNavigator from './src/components/navigation/AppNavigator';
 
-
-
+import store  from './src/redux/store';
+import {Provider} from 'react-redux';
 
 
 export default class App extends React.Component {
@@ -48,23 +34,30 @@ export default class App extends React.Component {
     }
 
     render() {
-
         return (
-            /*
-            paddingTop: Platform.OS === 'android' ? 25 : 0
-             */
-            <View style={{flex: 1, justifyContent: 'center'}}>
-                {
-                    this.state.isLoading ?
-                        (<AppContainer/>) : <ActivityIndicator/>
-                }
-            </View>
+            <Provider store={store}>
+                <View style={styles.container}>
+                    {
+                        /* <Text type={'bold'}>OLA</Text>*/
+                        this.state.isLoading ?
+                            (<AppNavigator />) : <ActivityIndicator/>
+                    }
+                </View>
+            </Provider>
         );
     }
 }
 
 
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: '#fff',
+    }
+});
 
+
+/*
 const HomeNavigator = createMaterialBottomTabNavigator({
     Home: {screen: HomeScreen, navigationOptions:{
             title: 'Início',
@@ -129,8 +122,8 @@ const AppSwitchNavigator = createSwitchNavigator({
     AppStack: {screen: AppDrawerNavigator},
 }, {
     initialRouteName: 'AuthLoading',
-    /* transitionConfig: () => fromLeft(1000), */
 });
 
 // Application container
 const AppContainer = createAppContainer(AppSwitchNavigator);
+*/

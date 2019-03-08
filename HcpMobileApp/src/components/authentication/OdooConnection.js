@@ -35,7 +35,7 @@ export default class OdooConnection extends React.Component {
         if (userToken)
         {
             const odoo = new Odoo({
-                host: '10.0.2.2',
+                host: 'hugo-host.ddns.net', //10.0.2.2
                 port: 8069,
                 database: 'hcp',
                 username: username,
@@ -52,11 +52,13 @@ export default class OdooConnection extends React.Component {
                 await AsyncStorage.setItem('access_token', session_token);
 
                 // Go to Home Screen
-                //this.props.navigation.navigate('Home', {odoo: odoo});
+                this.props.navigation.navigate('AppStack');
+                /*
                 this.props.navigation.dispatch(
                     NavigationActions.navigate(
                         { routeName: 'Home', params: { odoo: odoo }}
                     ));
+                */
 
             } else {
                 Alert.alert("Erro", response.error.toString());

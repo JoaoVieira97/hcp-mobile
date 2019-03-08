@@ -22,6 +22,10 @@ export default class HomeScreen extends React.Component {
         }
     }
 
+    static navigationOptions = {
+        headerTitle: 'Início',
+    };
+
     async componentDidMount() {
 
         // Get User image
@@ -65,8 +69,7 @@ export default class HomeScreen extends React.Component {
             console.log(allGroupsNames.data);
         }
 
-        //await AsyncStorage.clear();
-        //this.props.navigation.navigate('Auth');
+        // this.props.navigation.navigate('TestScreen');
     };
 
     render() {
@@ -79,7 +82,7 @@ export default class HomeScreen extends React.Component {
                        source={{uri: `data:image/png;base64,${this.state.image}`}}/>
                 <Button
                     onPress={this.handlePress.bind(this)}
-                    title="Logout"
+                    title="GET DATA"
                     color="#ad2e53"
                 />
             </View>

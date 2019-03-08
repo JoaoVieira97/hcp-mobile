@@ -42,7 +42,7 @@ export default class LoginScreen extends React.Component {
             this.setState({isLoading: true});
 
             const odoo = new Odoo({
-                host: '10.0.2.2',
+                host: 'hugo-host.ddns.net', //10.0.2.2
                 port: 8069,
                 database: 'hcp',
                 username: this.state.username,
@@ -65,11 +65,13 @@ export default class LoginScreen extends React.Component {
                     await AsyncStorage.setItem('access_token', session_token);
 
                     // Go to Home Screen
-                    //this.props.navigation.navigate('Home', {odoo: odoo});
+                    this.props.navigation.navigate('AppStack');
+                    /*
                     this.props.navigation.dispatch(
                         NavigationActions.navigate(
                             { routeName: 'Home', params: { odoo: odoo }}
-                            ));
+                        ));
+                    */
 
                 } else {
                     Alert.alert("Erro","As credenciais estão erradas!");
@@ -106,6 +108,7 @@ export default class LoginScreen extends React.Component {
                     value={this.state.username}
                     label={'Nome de utilizador'}
                     //placeholder={'nome123'}
+                    autoCapitalize={'none'}
                     textColor={'#0000e5'}
                     lineWidth={1}
                     baseColor={'#a2a2a2'}
@@ -121,6 +124,7 @@ export default class LoginScreen extends React.Component {
                     ref={ref => {this._passwordInput = ref}}
                     value={this.state.password}
                     label={'Palavra-passe'}
+                    autoCapitalize={'none'}s
                     //placeholder={'muitosegura'}
                     textColor={'#0000e5'}
                     lineWidth={1}

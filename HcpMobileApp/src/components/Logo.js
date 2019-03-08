@@ -9,12 +9,12 @@ export default class Logo extends React.Component {
         if(this.props.size === 'big') {
             image =  <Image
                 style={styles.bigLogo}
-                source={require('../img/logo.png')}
+                source={require('./img/logo.png')}
             />;
         } else {
             image =  <Image
                 style={styles.smallLogo}
-                source={require('../img/logo.png')}
+                source={require('./img/logo.png')}
             />;
         }
 
