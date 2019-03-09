@@ -1,24 +1,23 @@
 import React from 'react';
 import {
-    AsyncStorage,
     Button,
     View,
     Image,
     StyleSheet,
-    Text
+    Text,
 } from 'react-native';
 
+import {connect} from 'react-redux';
 
 
-
-
-export default class HomeScreen extends React.Component {
+class HomeScreen extends React.Component {
 
     constructor(props) {
         super(props);
         this.state = {
-            username: '',
-            image: null
+            name: null,
+            image: null,
+            roles: []
         }
     }
 
@@ -26,53 +25,72 @@ export default class HomeScreen extends React.Component {
         headerTitle: 'Início',
     };
 
+
     async componentDidMount() {
 
-        // Get User image
-        if(global.odoo) {
+        this.setState({
+            'name': this.props.user.name,
+            'image': this.props.user.image,
+            'roles': []
+        });
 
-            const userID = await AsyncStorage.getItem('userid');
+        const params = {
+            ids: this.props.user.roles,
+            fields: ['id', 'full_name'],
+        };
 
-            const  params = {
-                ids: [parseInt(userID)],
-                fields: [ 'image', 'name' ],
-            };
+        const userRoles = await this.props.odoo.get(
+            'res.groups',
+            params
+        );
 
-            let response = await odoo.get('res.users', params );
-            if(response.success) {
+        for (let i = 0; i < userRoles.data.length; i++) {
+
+            //if (userRoles.data[i].id >= 24 && userRoles.data[i].id <= 35) {
+
+                const info = userRoles.data[i].full_name.split(" / ");
 
                 this.setState({
-                    'image': response.data[0].image,
-                    'name': response.data[0].name
+                    roles: [...this.state.roles, {name: info[1]}]
                 });
-            }
+            //}
         }
     }
 
     async handlePress() {
 
-        if (global.odoo) {
+        let params = {
+            domain: [['id', '>=', '0']],
+            fields: ['id'],
+        };
 
-            let params = {
-                domain: [['id', '>=', '0']],
-                fields: ['id'],
-            };
+        const allGroupsIDs = await this.props.odoo.search(
+            'res.groups',
+            params
+        );
 
-            const allGroupsIDs = await global.odoo.search('res.groups', params);
+        params = {
+            ids: allGroupsIDs.data,
+            fields: ['id', 'full_name'],
+        };
 
-            params = {
-                ids: allGroupsIDs.data,
-                fields: ['id', 'full_name'],
-            };
+        const allGroupsNames = await this.props.odoo.get(
+            'res.groups',
+            params
+        );
 
-            const allGroupsNames = await global.odoo.get('res.groups', params);
-            console.log(allGroupsNames.data);
-        }
-
-        // this.props.navigation.navigate('TestScreen');
+        console.log(allGroupsNames.data);
     };
 
     render() {
+
+        const displayRoles = this.state.roles.map((data, index) => {
+            return (
+                <Text key={index}>
+                    {data.name}
+                </Text>
+            );
+        });
 
         return (
 
@@ -85,10 +103,27 @@ export default class HomeScreen extends React.Component {
                     title="GET DATA"
                     color="#ad2e53"
                 />
+                <View style={{paddingTop: 20}}>
+                    {displayRoles}
+                </View>
             </View>
         );
     }
 }
+
+
+const mapStateToProps = state => ({
+
+    odoo: state.odoo.odoo,
+    user: state.user
+});
+
+const mapDispatchToProps = dispatch => ({
+
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(HomeScreen);
+
 
 const styles = StyleSheet.create({
     container: {

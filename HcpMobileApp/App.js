@@ -9,8 +9,11 @@ import {
 import {Font} from 'expo';
 import AppNavigator from './src/components/navigation/AppNavigator';
 
-import store  from './src/redux/store';
+// provide data/store to all nested components
 import {Provider} from 'react-redux';
+// main store
+import store  from './src/redux/store';
+
 
 
 export default class App extends React.Component {
@@ -117,7 +120,7 @@ const AppDrawerNavigator = createDrawerNavigator({
 
 // Application switch navigator
 const AppSwitchNavigator = createSwitchNavigator({
-    AuthLoading: {screen: OdooConnection},
+    AuthLoading: {screen: AuthenticationLoading},
     Auth: {screen: LoginScreen},
     AppStack: {screen: AppDrawerNavigator},
 }, {

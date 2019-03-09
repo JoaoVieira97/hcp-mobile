@@ -22,7 +22,7 @@ import {
 import { fromRight } from 'react-navigation-transitions';
 import { Ionicons } from '@expo/vector-icons';
 
-import OdooConnection from "../authentication/OdooConnection";
+import AuthenticationLoading from "../authentication/AuthenticationLoading";
 import LoginScreen from '../authentication/LoginScreen';
 import HomeScreen from '../screens/HomeScreen';
 import CalendarScreen from '../screens/CalendarScreen';
@@ -262,7 +262,7 @@ const CustomDrawerContentComponent = (props) => {
 
     async function _logout() {
         await AsyncStorage.clear();
-        props.navigation.navigate('Auth');
+        props.navigation.navigate('Authentication');
     }
 
     return (
@@ -328,11 +328,11 @@ const AppDrawerNavigator = createDrawerNavigator({
 
 // Application switch navigator
 const AppSwitchNavigator = createSwitchNavigator({
-    AuthLoading: {screen: OdooConnection},
-    Auth: {screen: LoginScreen},
+    AuthenticationLoading: {screen: AuthenticationLoading},
+    Authentication: {screen: LoginScreen},
     AppStack: {screen: AppDrawerNavigator},
 }, {
-    initialRouteName: 'AuthLoading',
+    initialRouteName: 'AuthenticationLoading',
 });
 
 export default createAppContainer(AppSwitchNavigator);
