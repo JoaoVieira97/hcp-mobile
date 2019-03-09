@@ -7,6 +7,7 @@
     "eject": "expo eject"
   },
   "dependencies": {
+    "@expo/vector-icons": "latest",
     "expo": "^32.0.0",
     "react": "16.5.0",
     "react-native": "https://github.com/expo/react-native/archive/sdk-32.0.0.tar.gz",
@@ -15,13 +16,13 @@
     "react-native-material-textfield": "^0.12.0",
     "react-native-odoo-promise-based": "^0.6.3",
     "react-native-paper": "^2.12.0",
+    "react-native-super-grid": "^3.0.3",
     "react-native-vector-icons": "^6.3.0",
     "react-navigation": "^3.3.2",
     "react-navigation-material-bottom-tabs": "^1.0.0",
     "react-navigation-transitions": "^1.0.8",
     "react-redux": "^6.0.1",
-    "redux": "^4.0.1",
-    "@expo/vector-icons": "latest"
+    "redux": "^4.0.1"
   },
   "devDependencies": {
     "babel-preset-expo": "^5.0.0"
