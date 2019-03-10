@@ -19,7 +19,7 @@ import {
     DrawerItems
 } from 'react-navigation';
 
-import { fromRight } from 'react-navigation-transitions';
+import { fromRight, fromBottom } from 'react-navigation-transitions';
 import { Ionicons } from '@expo/vector-icons';
 
 import AuthenticationLoading from "../authentication/AuthenticationLoading";
@@ -30,6 +30,9 @@ import ProfileScreen from '../screens/ProfileScreen';
 import TrainingScreen from "../screens/TrainingScreen";
 import GameScreen from "../screens/GameScreen";
 import AthletesScreen from "../screens/AthletesScreen";
+import AthleteScreen from '../screens/AthleteScreen';
+
+
 
 const styles = StyleSheet.create({
     container: {
@@ -217,7 +220,6 @@ const ManagementStackNavigator = createStackNavigator({
     navigationOptions: ({navigation}) => {
 
         return {
-            headerTitle: 'Gestão',
             title: 'Gestão',
             drawerIcon: <Ionicons
                 name="md-clipboard"
@@ -231,8 +233,10 @@ const ManagementStackNavigator = createStackNavigator({
 // PROFILE STACK
 const AthletesStackNavigator = createStackNavigator({
     AthletesScreen: {screen: AthletesScreen},
+    AthleteScreen: {screen: AthleteScreen}
 }, {
-    transitionConfig: () => fromRight(600),
+    initialRouteName: 'AthletesScreen',
+    transitionConfig: () => fromBottom(600),
     defaultNavigationOptions: ({navigation}) => {
         return {
             headerLeft: <Ionicons
@@ -246,7 +250,6 @@ const AthletesStackNavigator = createStackNavigator({
     navigationOptions: ({navigation}) => {
 
         return {
-            headerTitle: 'Atletas',
             title: 'Atletas',
             drawerIcon: <Ionicons
                 name="md-people"
@@ -276,7 +279,6 @@ const ProfileStackNavigator = createStackNavigator({
     navigationOptions: ({navigation}) => {
 
         return {
-            headerTitle: 'Perfil',
             title: 'Perfil',
             drawerIcon: <Ionicons
                 name="md-person"

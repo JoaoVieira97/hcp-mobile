@@ -16,8 +16,11 @@ class AthletesScreen extends Component {
         }
     };
 
-    static navigationOptions = {
-        headerTitle: 'Atletas',
+    static navigationOptions = ({navigation}) => {
+
+        return ({
+            headerTitle: 'Atletas',
+        });
     };
 
     async componentDidMount() {
@@ -46,7 +49,6 @@ class AthletesScreen extends Component {
                 const aux = response.data[i];
                 if (aux.escalao[0] === 8) {
 
-                    console.log(aux);
                     const athlete = {
                         'name': aux.display_name,
                         'image': aux.image,
@@ -84,8 +86,7 @@ class AthletesScreen extends Component {
                         value={squad_number}
                         status="primary"
                         badgeStyle={{backgroundColor: '#000' }}
-                        containerStyle={{ position: 'absolute', bottom: 4, right: -4 }}
-
+                        containerStyle={{ position: 'absolute', bottom: -4, right: -4 }}
                     />
                 </View>
             );
@@ -93,17 +94,20 @@ class AthletesScreen extends Component {
 
         return (
             <View>
-                <Ionicons name="md-person" color={'#979797'} size={65} />
+                <Ionicons name="md-person" color={'#c1c1c1'} size={64} />
                 <Badge
                     value={squad_number}
                     status="primary"
                     badgeStyle={{backgroundColor: '#000' }}
-                    containerStyle={{ position: 'absolute', bottom: 4, right: -4 }}
-
+                    containerStyle={{ position: 'absolute', bottom: -4, right: -4 }}
                 />
             </View>
         );
     };
+
+    chevron = () => (
+        <Ionicons name="ios-arrow-up" color={'#c7c7c7'} size={13} />
+    );
 
     renderItem = ({ item }) => {
 
@@ -112,6 +116,10 @@ class AthletesScreen extends Component {
                 title={item.name}
                 subtitle={item.echelon}
                 leftAvatar={this.leftAvatar(item.image, item.squad_number.toString())}
+                chevron={this.chevron()}
+                onPress={() => (
+                    this.props.navigation.navigate('AthleteScreen', {name: item.name})
+                )}
             />
         );
     };
