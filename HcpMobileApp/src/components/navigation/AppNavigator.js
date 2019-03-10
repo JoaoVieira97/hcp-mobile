@@ -29,7 +29,7 @@ import CalendarScreen from '../screens/CalendarScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import TrainingScreen from "../screens/TrainingScreen";
 import GameScreen from "../screens/GameScreen";
-
+import AthletesScreen from "../screens/AthletesScreen";
 
 const styles = StyleSheet.create({
     container: {
@@ -229,6 +229,36 @@ const ManagementStackNavigator = createStackNavigator({
 });
 
 // PROFILE STACK
+const AthletesStackNavigator = createStackNavigator({
+    AthletesScreen: {screen: AthletesScreen},
+}, {
+    transitionConfig: () => fromRight(600),
+    defaultNavigationOptions: ({navigation}) => {
+        return {
+            headerLeft: <Ionicons
+                name="md-menu"
+                size={30}
+                color="black"
+                style={{paddingLeft: 20}}
+                onPress = {() => navigation.openDrawer()}/>
+        }
+    },
+    navigationOptions: ({navigation}) => {
+
+        return {
+            headerTitle: 'Atletas',
+            title: 'Atletas',
+            drawerIcon: <Ionicons
+                name="md-people"
+                size={30}
+                color="black"
+            />
+        }
+    }
+});
+
+
+// PROFILE STACK
 const ProfileStackNavigator = createStackNavigator({
     ProfileScreen: {screen: ProfileScreen},
 }, {
@@ -297,14 +327,17 @@ const CustomDrawerContentComponent = (props) => {
     )
 };
 
+
+
 const AppDrawerNavigator = createDrawerNavigator({
     HomeStack: { screen: HomeStackNavigator },
     CalendarStack: {screen: CalendarStackNavigator},
     ManagementStack: {screen: ManagementStackNavigator},
     ProfileStack: {screen: ProfileStackNavigator},
+    AthletesStack: {screen: AthletesStackNavigator}
 }, {
-    initialRouteName: 'ManagementStack',
-    order: ['HomeStack', 'CalendarStack', 'ManagementStack', 'ProfileStack'],
+    initialRouteName: 'AthletesStack',
+    order: ['HomeStack', 'CalendarStack', 'ManagementStack', 'AthletesStack', 'ProfileStack'],
     //drawerBackgroundColor: '#c9ff59',
     drawerWidth: WIDTH*0.75,
     contentComponent: CustomDrawerContentComponent,

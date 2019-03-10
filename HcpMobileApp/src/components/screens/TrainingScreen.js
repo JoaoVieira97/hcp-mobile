@@ -1,15 +1,35 @@
 import React, { Component } from 'react';
-import {Text, View, Button, StyleSheet, FlatList, Alert} from 'react-native';
+import {View, StyleSheet, FlatList } from 'react-native';
 import {connect} from 'react-redux';
 //import { FlatGrid } from 'react-native-super-grid';
 
 
-import { ListItem } from 'react-native-elements'
+import {ListItem} from 'react-native-elements';
 import {Ionicons} from "@expo/vector-icons";
 
 
 
 class TrainingScreen extends Component {
+
+    constructor(props) {
+        super(props);
+
+        this.state = {
+            number_trainings_without_presences: 0,
+            number_trainings_need_to_close: 0,
+        };
+    }
+
+    async componentDidMount() {
+
+        const number_1 = await this.getAllTrainingsWithoutPresences();
+        const number_2 = await this.getAllTrainingsNeedToClose();
+
+        this.setState({
+            number_trainings_without_presences: number_1,
+            number_trainings_need_to_close: number_2
+        });
+    }
 
     async getAllTrainings() {
 
@@ -131,24 +151,61 @@ class TrainingScreen extends Component {
             domain: [
                 ['state', '=', 'aberto'],
                 ['n_presentes', '=', '0']],
-            fields: ['id', 'state', 'n_presentes', 'evento_ref'],
+            fields: ['id', 'evento_ref'],
         };
 
         let response = await this.props.odoo.search_read('ges.evento_desportivo', params);
         if (response.success) {
 
-            /*
-            let finalArray = [];
-            const size = response.success.data.length;
-            
+            let counter = 0;
+            const size = response.data.length;
+
             for (let i = 0; i < size; i++) {
-                if(response.success.data[i].)
+
+                const aux = response.data[i].evento_ref.split(',');
+
+                if(aux[0] === 'ges.treino') {
+                    counter = counter + 1;
+                }
             }
-            */
 
             //console.log(response.data);
-            Alert.alert("Total", response.data.length.toString());
+            //Alert.alert("Total", counter.toString());
+            return counter;
         }
+
+        return 0;
+    }
+
+    async getAllTrainingsNeedToClose() {
+
+        const params = {
+            domain: [
+                ['state', '=', 'convocatorias_fechadas']],
+            fields: ['id', 'evento_ref'],
+        };
+
+        let response = await this.props.odoo.search_read('ges.evento_desportivo', params);
+        if (response.success) {
+
+            let counter = 0;
+            const size = response.data.length;
+
+            for (let i = 0; i < size; i++) {
+
+                const aux = response.data[i].evento_ref.split(',');
+
+                if(aux[0] === 'ges.treino') {
+                    counter = counter + 1;
+                }
+            }
+
+            //console.log(response.data);
+            //Alert.alert("Total", counter.toString());
+            return counter;
+        }
+
+        return 0;
     }
 
     async handlePress() {
@@ -161,7 +218,7 @@ class TrainingScreen extends Component {
         await this.getAllTrainingsWithoutPresences();
     }
 
-    icon = (type) => (<Ionicons name={type} size={30}/>);
+    icon = (type) => (<Ionicons name={type} size={27} style={{paddingBottom: 5}}/>);
 
     renderItem = ({ item }) => {
 
@@ -172,7 +229,9 @@ class TrainingScreen extends Component {
                     subtitle={item.subtitle}
                     leftAvatar={this.icon(item.icon)}
                     badge={item.badge}
-                    chevron
+                    onPress={() => (
+                        this.props.navigation.navigate('GameScreen')
+                    )}
                 />
             );
         }
@@ -182,7 +241,6 @@ class TrainingScreen extends Component {
                 title={item.name}
                 subtitle={item.subtitle}
                 leftAvatar={this.icon(item.icon)}
-                chevron
             />
         );
     };
@@ -194,19 +252,28 @@ class TrainingScreen extends Component {
                 name: 'Criar treino',
                 icon: 'md-add',
                 subtitle: '',
-                badge: false
+                badge: false,
+                chevron: false
             },
             {
                 name: 'Registar presenças',
                 icon: 'md-list-box',
                 subtitle: 'Controlar disponibilidade dos atletas e registar presenças.',
-                badge: { value: 100, textStyle: { color: 'orange' }}
+                badge: {
+                    value: this.state.number_trainings_without_presences,
+                    status: "warning"
+                },
+                chevron: false
             },
             {
                 name: 'Fechar treino',
                 icon: 'md-log-out',
                 subtitle: 'Concluir ou eliminar treinos.',
-                badge: { value: 32, textStyle: { color: 'orange' }}
+                badge: {
+                    value: this.state.number_trainings_need_to_close,
+                    status: "warning"
+                },
+                chevron: false
             },
         ];
 
@@ -228,11 +295,6 @@ class TrainingScreen extends Component {
                     />
                      */
                 }
-                <Button
-                    onPress={this.handlePress.bind(this)}
-                    title="GET DATA"
-                    color="#ad2e53"
-                />
             </View>
         )
     }
