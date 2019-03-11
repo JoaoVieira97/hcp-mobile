@@ -2,7 +2,9 @@ import React, {Component} from 'react';
 import {
     Text,
     View,
-    StyleSheet
+    StyleSheet,
+    Image,
+    Dimensions
 } from 'react-native';
 
 import {connect} from 'react-redux';
@@ -11,6 +13,8 @@ import {Agenda} from 'react-native-calendars';
 
 const gameMark = {key:'game', color: '#fab1a0'};
 const trainingMark = {key:'training', color: '#81ecec'};
+
+const WIDTH = Dimensions.get('window').width;
 
 class CalendarScreen extends Component {
 
@@ -282,17 +286,27 @@ class CalendarScreen extends Component {
 
 function renderItem(item) {
 
-    let bgColor = "#fab1a0";
+    let bgColor = '#fab1a0';
+    let hoquei_Logo = require('../img/hoquei-icon-black.png');
     if (item.type === 1) {
-        bgColor = "#81ecec";
+        bgColor = '#81ecec';
+        hoquei_Logo = require('../img/hoquei-icon-white.png');
     }
 
     return (
-        <View style={[styles.item, {backgroundColor: bgColor}]}>
-            <Text style={{fontWeight: '600'}}>{item.title}</Text>
-            <Text>{item.time}</Text>
-            <Text>{item.description}</Text>
-        </View>
+            <View style={[styles.item, {backgroundColor: bgColor, flexDirection: 'row'}]}>
+                <View style={{width: WIDTH*0.60}}>
+                    <Text style={{fontWeight: '600'}}>{item.title}</Text>
+                    <Text>{item.time}</Text>
+                    <Text>{item.description}</Text>
+                </View>
+                <View style={{width: 50}}>
+                    <Image
+                        source={hoquei_Logo}
+                        style={{width: 50,height: 50,flex: 1}}
+                    />
+                </View>
+            </View>
     );
 }
 
