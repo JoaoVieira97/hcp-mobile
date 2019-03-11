@@ -60,16 +60,16 @@ class CalendarScreen extends Component {
 
         let allTrainings = await this.getAllTrainings();
         
-        for (let i = 0; i < 10; i++){
+        for (let i = 20; i < 40; i++){
         //for (let i = 0; i < allTrainings.data.length; i++){
             
-            let event = await this.getTraining(allTrainings.data[i]);
+            let training = await this.getTraining(allTrainings.data[i]);
 
-            // get games data
-            if (event.success) {
+            // get training data
+            if (training.success) {
             
                 // get data object
-                const data = event.data[0];
+                const data = training.data[0];
 
                 // parse data
                 const description = data.description;
@@ -79,19 +79,38 @@ class CalendarScreen extends Component {
                 const startTimeDate = (startTime.split(" "))[0];
                 const startTimeHour = (startTime.split(" "))[1];
 
-                const finalObject = {
-                    [startTimeDate]: [{
-                        type: 1,
-                        title: description,
-                        time: 'Início: ' + startTimeHour,
-                        description: 'Duração: ' + duration + ' min'
-                    }]
+                let finalObject = {
+                    type: 1,
+                    title: description,
+                    time: 'Início: ' + startTimeHour,
+                    description: 'Duração: ' + duration + ' min'
                 };
 
+                //Update this.state.items -> concat to array if necessary
+                if (!(startTimeDate in this.state.items)){
+                    this.state.items[startTimeDate] = [];
+                }
+                this.state.items[startTimeDate].push(finalObject);
+
+                /*
                 this.setState(state => ({
                     items: {...state.items, ...finalObject}
                 }));
+                */
 
+                if (!(startTimeDate in this.state.markedDates)){
+                    this.state.markedDates[startTimeDate] = {
+                        dots: [trainingMark],
+                        selectedColor: '#e6e6e6'
+                    }
+                }
+                else{
+                    if (!(this.state.markedDates[startTimeDate].dots.includes(trainingMark))){
+                        this.state.markedDates[startTimeDate].dots.push(trainingMark)
+                    }
+                }
+
+                /*
                 let finalMarkedDates = {
                     [startTimeDate] : {
                         dots: [trainingMark],
@@ -102,6 +121,7 @@ class CalendarScreen extends Component {
                 this.setState(state => ({
                     markedDates: {...state.markedDates, ...finalMarkedDates}
                 }));
+                */
             }
         }
     }
@@ -159,19 +179,37 @@ class CalendarScreen extends Component {
                 const startTimeHour = (startTime.split(" "))[1];
 
                 let finalObject = {
-                    [startTimeDate]: [{
                         type: 0,
                         title: description,
                         time: 'Início ' + startTimeHour,
                         description: 'Adversário: ' + opponent
-                    }]
                 };
 
+                //Update this.state.items -> concat to array if necessary
+                if (!(startTimeDate in this.state.items)){
+                    this.state.items[startTimeDate] = [];
+                }
+                this.state.items[startTimeDate].push(finalObject);
+
+                /*
                 this.setState(state => ({
                     items: {...state.items, ...finalObject}
                 }));
+                */
 
-                let finalMarkedDates = {
+                if (!(startTimeDate in this.state.markedDates)){
+                    this.state.markedDates[startTimeDate] = {
+                        dots: [gameMark],
+                        selectedColor: '#e6e6e6'
+                    }
+                }
+                else{
+                    if (!(this.state.markedDates[startTimeDate].dots.includes(gameMark))){
+                        this.state.markedDates[startTimeDate].dots.push(gameMark)
+                    }
+                }
+
+                /*let finalMarkedDates = {
                     [startTimeDate] : {
                         dots: [gameMark],
                         selectedColor: '#e6e6e6'
@@ -180,7 +218,7 @@ class CalendarScreen extends Component {
 
                 this.setState(state => ({
                     markedDates: {...state.markedDates, ...finalMarkedDates}
-                }));
+                }));*/
             }
         }
     }
@@ -212,8 +250,19 @@ class CalendarScreen extends Component {
             items: {...state.items, ...finalObject}
         }));
 
+        const finalMark = {
+            '2019-03-10': {
+                dots: [trainingMark, gameMark],
+                selectedColor: '#e6e6e6',
+            }
+        };
+
+        this.setState(state => ({
+            markedDates: {...state.markedDates, ...finalMark}
+        }));
+
         //console.log(this.state.items);
-        console.log(this.state.markedDates);
+        //console.log(this.state.markedDates);
     };
 
     render() {
@@ -224,10 +273,6 @@ class CalendarScreen extends Component {
                 renderItem = {renderItem}
                 renderEmptyDate = {renderEmptyDate}
                 rowHasChanged = {rowHasChanged}
-                /*markedDates = {{
-                    '2019-03-11': {dots: [gameMark, trainingMark],selectedColor: '#e6e6e6'},
-                    '2019-03-12': {dots: [gameMark],selectedColor: '#e6e6e6'},
-                  }}*/
                 markedDates = {this.state.markedDates}
                 markingType={'multi-dot'}
             />
