@@ -4,7 +4,10 @@ import {
     View,
     StyleSheet,
     Image,
-    Dimensions
+    Dimensions,
+    TouchableHighlight,
+    TouchableOpacity,
+    Alert
 } from 'react-native';
 
 import {connect} from 'react-redux';
@@ -294,20 +297,24 @@ function renderItem(item) {
     }
 
     return (
-            <View style={[styles.item, {backgroundColor: bgColor, flexDirection: 'row'}]}>
-                <View style={{width: WIDTH*0.60}}>
-                    <Text style={{fontWeight: '600'}}>{item.title}</Text>
-                    <Text>{item.time}</Text>
-                    <Text>{item.description}</Text>
-                </View>
-                <View style={{width: 50}}>
-                    <Image
-                        source={hoquei_Logo}
-                        style={{width: 50,height: 50,flex: 1}}
-                    />
-                </View>
+        <TouchableOpacity onPress={showAlert.bind(this,item)} style={[styles.item, {backgroundColor: bgColor, flexDirection: 'row'}]}>
+            <View style={{width: WIDTH*0.60}}>
+                <Text style={{fontWeight: '600'}}>{item.title}</Text>
+                <Text>{item.time}</Text>
+                <Text>{item.description}</Text>
             </View>
+            <View style={{width: 50}}>
+                <Image
+                    source={hoquei_Logo}
+                    style={{width: 50,height: 50,flex: 1}}
+                />
+            </View>
+        </TouchableOpacity>
     );
+}
+
+const showAlert = (item) =>{
+    Alert.alert('You just touched the event "' + item.title + '" !')
 }
 
 function renderEmptyDate() {
