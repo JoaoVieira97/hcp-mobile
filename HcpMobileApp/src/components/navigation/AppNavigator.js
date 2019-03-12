@@ -31,6 +31,7 @@ import TrainingScreen from "../screens/TrainingScreen";
 import GameScreen from "../screens/GameScreen";
 import AthletesScreen from "../screens/AthletesScreen";
 import AthleteScreen from '../screens/AthleteScreen';
+import OpenedTrainings from "../screens/Trainings/OpenedTrainings";
 
 
 
@@ -164,20 +165,8 @@ const CalendarStackNavigator = createStackNavigator({
 
 // MANAGEMENT NAVIGATOR
 const ManagementNavigator = createMaterialTopTabNavigator({
-    TrainingScreen: {screen: TrainingScreen, navigationOptions:{
-            title: 'Treinos',
-            tabBarIcon: ({ tintColor }) => (
-                <Ionicons name={"md-fitness"} color={tintColor} size={26}/>
-            ),
-            tabBarColor: "#efefef"
-        }},
-    GameScreen: {screen: GameScreen, navigationOptions:{
-            title: 'Jogos',
-            tabBarIcon: ({ tintColor }) => (
-                <Ionicons name={"md-trophy"} color={tintColor} size={26}/>
-            ),
-            tabBarColor: "#efefef"
-        }},
+    TrainingScreen: { screen: TrainingScreen },
+    GameScreen: { screen: GameScreen },
 }, {
     initialRouteName: 'TrainingScreen',
     order: ['TrainingScreen', 'GameScreen'],
@@ -192,20 +181,54 @@ const ManagementNavigator = createMaterialTopTabNavigator({
         indicatorStyle: {
             backgroundColor: '#ad2e53'
         }
-    },
+    }
+});
+
+
+const ManagementSwitchNavigator = createSwitchNavigator({
+    ManagementNavigator: {screen: ManagementNavigator},
+    OpenedTrainings: {screen: OpenedTrainings}
+}, {
+    initialRouteName: 'ManagementNavigator',
     navigationOptions: ({navigation}) => {
 
-        //const { routeName } = navigation.state.routes[navigation.state.index];
-        return {
-            headerTitle: 'Gestão'
+        const { routeName } = navigation.state.routes[navigation.state.index];
+
+        switch (routeName) {
+
+            case 'ManagementNavigator':
+            {
+                return {
+                    headerTitle: 'Gestão'
+                }
+            }
+            case 'OpenedTrainings':
+            {
+                return {
+                    headerTitle: 'Treinos em aberto',
+                    headerLeft: <Ionicons
+                        name="md-arrow-back"
+                        size={30}
+                        color="black"
+                        style={{paddingLeft: 20}}
+                        onPress = {() => navigation.navigate('ManagementNavigator')}
+                    />
+                }
+            }
+            default:
+                return {
+                    headerTitle: 'Gestão'
+                }
         }
     }
 });
 
 // MANAGEMENT STACK
 const ManagementStackNavigator = createStackNavigator({
-    ManagementNavigator: {screen: ManagementNavigator},
+    ManagementSwitchNavigator: {screen: ManagementSwitchNavigator}
 }, {
+    initialRouteName: 'ManagementSwitchNavigator',
+
     transitionConfig: () => fromRight(600),
     defaultNavigationOptions: ({navigation}) => {
         return {
@@ -338,7 +361,7 @@ const AppDrawerNavigator = createDrawerNavigator({
     ProfileStack: {screen: ProfileStackNavigator},
     AthletesStack: {screen: AthletesStackNavigator}
 }, {
-    initialRouteName: 'AthletesStack',
+    initialRouteName: 'ManagementStack',
     order: ['HomeStack', 'CalendarStack', 'ManagementStack', 'AthletesStack', 'ProfileStack'],
     //drawerBackgroundColor: '#c9ff59',
     drawerWidth: WIDTH*0.75,

@@ -30,7 +30,7 @@ class AuthenticationLoading extends React.Component {
         if(token) {
             // odoo connection parameters
             const odoo = new Odoo({
-                host: 'hugo-host.ddns.net', //10.0.2.2
+                host: '10.0.2.2',
                 port: 8069,
                 database: 'hcp',
                 sid: token,

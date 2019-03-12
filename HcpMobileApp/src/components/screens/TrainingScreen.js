@@ -1,12 +1,9 @@
 import React, { Component } from 'react';
 import {View, StyleSheet, FlatList } from 'react-native';
-import {connect} from 'react-redux';
-//import { FlatGrid } from 'react-native-super-grid';
-
-
 import {ListItem} from 'react-native-elements';
 import {Ionicons} from "@expo/vector-icons";
 
+import {connect} from 'react-redux';
 
 
 class TrainingScreen extends Component {
@@ -15,18 +12,27 @@ class TrainingScreen extends Component {
         super(props);
 
         this.state = {
+            openedTrainingsIds: [],
+            needToCloseIds: [],
             number_trainings_without_presences: 0,
             number_trainings_need_to_close: 0,
         };
     }
 
+    static navigationOptions = {
+        title: 'Treinos',
+        tabBarIcon: ({ tintColor }) => (
+            <Ionicons name={"md-fitness"} color={tintColor} size={26}/>
+        ),
+        tabBarColor: "#efefef",
+    };
+
     async componentDidMount() {
 
-        const number_1 = await this.getAllTrainingsWithoutPresences();
+        await this.getAllOpenedTrainings();
         const number_2 = await this.getAllTrainingsNeedToClose();
 
         this.setState({
-            number_trainings_without_presences: number_1,
             number_trainings_need_to_close: number_2
         });
     }
@@ -144,37 +150,37 @@ class TrainingScreen extends Component {
         }
     }
 
-
-    async getAllTrainingsWithoutPresences() {
+    async getAllOpenedTrainings() {
 
         const params = {
-            domain: [
-                ['state', '=', 'aberto'],
-                ['n_presentes', '=', '0']],
-            fields: ['id', 'evento_ref'],
+            domain: [['state', '=', 'aberto']],
+            fields: ['id', 'evento_ref', 'n_presentes', 'display_start'],
+            order:  'display_start DESC',
         };
 
         let response = await this.props.odoo.search_read('ges.evento_desportivo', params);
         if (response.success) {
 
-            let counter = 0;
-            const size = response.data.length;
+            const data = response.data;
+            const size = data.length;
+
+            let events_id = [];
 
             for (let i = 0; i < size; i++) {
 
-                const aux = response.data[i].evento_ref.split(',');
+                const aux = data[i].evento_ref.split(',');
 
                 if(aux[0] === 'ges.treino') {
-                    counter = counter + 1;
+
+                    events_id.push(data[i].id);
                 }
             }
 
-            //console.log(response.data);
-            //Alert.alert("Total", counter.toString());
-            return counter;
+            this.setState({
+                openedTrainingsIds: events_id,
+                number_trainings_without_presences: events_id.length,
+            });
         }
-
-        return 0;
     }
 
     async getAllTrainingsNeedToClose() {
@@ -230,7 +236,7 @@ class TrainingScreen extends Component {
                     leftAvatar={this.icon(item.icon)}
                     badge={item.badge}
                     onPress={() => (
-                        this.props.navigation.navigate('GameScreen')
+                        this.props.navigation.navigate(item.onPress, {ids: this.state.openedTrainingsIds })
                     )}
                 />
             );
@@ -256,24 +262,29 @@ class TrainingScreen extends Component {
                 chevron: false
             },
             {
-                name: 'Registar presenças',
+                name: 'Treinos em aberto',
                 icon: 'md-list-box',
-                subtitle: 'Controlar disponibilidade dos atletas e registar presenças.',
+                subtitle: 'Editar dados | ' +
+                    'Controlar a disponibilidade dos atletas | ' +
+                    'Fechar o período de convocatórias',
                 badge: {
                     value: this.state.number_trainings_without_presences,
                     status: "warning"
                 },
-                chevron: false
+                chevron: false,
+                onPress: 'OpenedTrainings'
             },
             {
-                name: 'Fechar treino',
+                name: 'Convocatórias fechadas',
                 icon: 'md-log-out',
-                subtitle: 'Concluir ou eliminar treinos.',
+                subtitle: 'Editar presenças e atrasos | ' +
+                    'Concluir ou eliminar treinos',
                 badge: {
                     value: this.state.number_trainings_need_to_close,
                     status: "warning"
                 },
-                chevron: false
+                chevron: false,
+                onPress: 'ManagementNavigator'
             },
         ];
 
@@ -286,15 +297,6 @@ class TrainingScreen extends Component {
                     data={list}
                     renderItem={this.renderItem}
                 />
-                {
-                    /*
-                    <Button
-                        onPress={this.handlePress.bind(this)}
-                        title="GET DATA"
-                        color="#ad2e53"
-                    />
-                     */
-                }
             </View>
         )
     }
