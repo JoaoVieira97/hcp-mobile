@@ -113,8 +113,8 @@ class OpenedTrainings extends Component {
 
     subtitle = (local, echelon) => (
         <View>
-            <Text>{local}</Text>
-            <Text>{echelon}</Text>
+            <Text style={{color: '#919391'}}>{local}</Text>
+            <Text style={{color: '#919391'}}>{echelon}</Text>
         </View>
     );
 
@@ -144,21 +144,7 @@ class OpenedTrainings extends Component {
                         onRefresh={() => (console.log("Refreshed!"))}
                         onEndReached={() => (console.log("End Reached"))}
                         onEndReachedThreshold={0.5}
-                        ListFooterComponent={(
-                            <View style={{paddingHorizontal: 20}}>
-                                <Button
-                                    type="clear"
-                                    icon={
-                                        <Ionicons
-                                            name={"md-add"}
-                                            size={35}
-                                            style={{marginRight: 10}}
-                                        />
-                                    }
-                                    title="Mais"
-                                />
-                            </View>
-                        )}
+                        //ListFooterComponent={}
                     />
                 </View>
             );
@@ -166,7 +152,10 @@ class OpenedTrainings extends Component {
 
         return (
             <View style={styles.container}>
-                <ActivityIndicator size={'large'}/>
+                <ActivityIndicator
+                    size={'large'}
+                    color={'#ced0ce'}
+                />
             </View>
         )
     }

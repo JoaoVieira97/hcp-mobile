@@ -326,7 +326,7 @@ const CustomDrawerContentComponent = (props) => {
                 <View style={styles.header}>
                     <View style={styles.headerLogo}>
                         <View style={styles.imgView}>
-                            <Image style={styles.img} source={require('../img/logo.png')} />
+                            <Image style={styles.img} source={require('../../../assets/logo.png')} />
                         </View>
                         {
                             /*
@@ -361,7 +361,7 @@ const AppDrawerNavigator = createDrawerNavigator({
     ProfileStack: {screen: ProfileStackNavigator},
     AthletesStack: {screen: AthletesStackNavigator}
 }, {
-    initialRouteName: 'ManagementStack',
+    initialRouteName: 'HomeStack',
     order: ['HomeStack', 'CalendarStack', 'ManagementStack', 'AthletesStack', 'ProfileStack'],
     //drawerBackgroundColor: '#c9ff59',
     drawerWidth: WIDTH*0.75,

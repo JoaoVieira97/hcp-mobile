@@ -214,16 +214,6 @@ class TrainingScreen extends Component {
         return 0;
     }
 
-    async handlePress() {
-
-        //await this.getEvent(1302);
-        //await this.getConvocation(13332);
-
-        //await this.registerAvailabilities([13332, 13333, 13332, 13334, 13335, 13336 ], false);
-
-        await this.getAllTrainingsWithoutPresences();
-    }
-
     icon = (type) => (<Ionicons name={type} size={27} style={{paddingBottom: 5}}/>);
 
     renderItem = ({ item }) => {
@@ -262,7 +252,7 @@ class TrainingScreen extends Component {
                 chevron: false
             },
             {
-                name: 'Treinos em aberto',
+                name: 'Convocatórias em aberto',
                 icon: 'md-list-box',
                 subtitle: 'Editar dados | ' +
                     'Controlar a disponibilidade dos atletas | ' +

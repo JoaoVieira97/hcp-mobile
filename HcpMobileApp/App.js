@@ -41,9 +41,15 @@ export default class App extends React.Component {
             <Provider store={store}>
                 <View style={styles.container}>
                     {
-                        /* <Text type={'bold'}>OLA</Text>*/
                         this.state.isLoading ?
-                            (<AppNavigator />) : <ActivityIndicator/>
+                            (
+                                <AppNavigator />
+                            ) : (
+                                <ActivityIndicator
+                                    size={'large'}
+                                    color={'#ced0ce'}
+                                />
+                            )
                     }
                 </View>
             </Provider>
