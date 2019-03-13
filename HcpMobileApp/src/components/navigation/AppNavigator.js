@@ -361,7 +361,7 @@ const AppDrawerNavigator = createDrawerNavigator({
     ProfileStack: {screen: ProfileStackNavigator},
     AthletesStack: {screen: AthletesStackNavigator}
 }, {
-    initialRouteName: 'HomeStack',
+    initialRouteName: 'ManagementStack',
     order: ['HomeStack', 'CalendarStack', 'ManagementStack', 'AthletesStack', 'ProfileStack'],
     //drawerBackgroundColor: '#c9ff59',
     drawerWidth: WIDTH*0.75,

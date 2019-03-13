@@ -13,7 +13,6 @@ class OpenedTrainings extends Component {
         super(props);
 
         this.state = {
-            trainingIds: [],
             trainingInfoList: [],
             trainingsFetched: 0,
             isLoaded: false,
