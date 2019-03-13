@@ -32,8 +32,7 @@ import GameScreen from "../screens/GameScreen";
 import AthletesScreen from "../screens/AthletesScreen";
 import AthleteScreen from '../screens/AthleteScreen';
 import OpenedTrainings from "../screens/Trainings/OpenedTrainings";
-
-
+import EventScreen from "../screens/EventScreen";
 
 const styles = StyleSheet.create({
     container: {
@@ -138,6 +137,7 @@ const HomeStackNavigator = createStackNavigator({
 // CALENDAR STACK
 const CalendarStackNavigator = createStackNavigator({
     CalendarScreen: {screen: CalendarScreen},
+    EventScreen: { screen: EventScreen },
 }, {
     transitionConfig: () => fromRight(600),
     defaultNavigationOptions: ({navigation}) => {

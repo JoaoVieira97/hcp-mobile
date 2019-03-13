@@ -5,7 +5,6 @@ import {
     StyleSheet,
     Image,
     Dimensions,
-    TouchableHighlight,
     TouchableOpacity,
     Alert
 } from 'react-native';
@@ -13,6 +12,8 @@ import {
 import {connect} from 'react-redux';
 
 import {Agenda} from 'react-native-calendars';
+
+import EventScreen from "../screens/EventScreen";
 
 const gameMark = {key:'game', color: '#fab1a0'};
 const trainingMark = {key:'training', color: '#81ecec'};
@@ -271,13 +272,12 @@ class CalendarScreen extends Component {
         //console.log(this.state.items);
         //console.log(this.state.markedDates);
     };
-
     render() {
         return (
             <Agenda
                 items = {this.state.items}
                 //selected={'2019-03-06'}
-                renderItem = {renderItem}
+                renderItem = {renderItem.bind(this)}
                 renderEmptyDate = {renderEmptyDate}
                 rowHasChanged = {rowHasChanged}
                 markedDates = {this.state.markedDates}
@@ -297,7 +297,10 @@ function renderItem(item) {
     }
 
     return (
-        <TouchableOpacity onPress={showAlert.bind(this,item)} style={[styles.item, {backgroundColor: bgColor, flexDirection: 'row'}]}>
+        <TouchableOpacity 
+        onPress={() => this.props.navigation.navigate('EventScreen')}
+        //onPress={showAlert.bind(this,item)}
+        style={[styles.item, {backgroundColor: bgColor, flexDirection: 'row'}]}>
             <View style={{width: WIDTH*0.60}}>
                 <Text style={{fontWeight: '600'}}>{item.title}</Text>
                 <Text>{item.time}</Text>
@@ -311,10 +314,6 @@ function renderItem(item) {
             </View>
         </TouchableOpacity>
     );
-}
-
-const showAlert = (item) =>{
-    Alert.alert('You just touched the event "' + item.title + '" !')
 }
 
 function renderEmptyDate() {

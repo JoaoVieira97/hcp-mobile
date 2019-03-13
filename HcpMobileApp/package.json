@@ -14,6 +14,7 @@
     "react-native": "https://github.com/expo/react-native/archive/sdk-32.0.0.tar.gz",
     "react-native-calendars": "^1.22.0",
     "react-native-elements": "^1.0.0",
+    "react-native-google-maps-directions": "^2.0.0",
     "react-native-material-textfield": "^0.12.0",
     "react-native-odoo-promise-based": "^0.6.3",
     "react-native-paper": "^2.12.0",
