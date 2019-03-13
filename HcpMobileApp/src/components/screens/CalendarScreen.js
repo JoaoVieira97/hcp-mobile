@@ -291,15 +291,14 @@ function renderItem(item) {
 
     let bgColor = '#fab1a0';
     let hoquei_Logo = require('../img/hoquei-icon-black.png');
-    if (item.type === 1) {
+    if (item.type === 1) { // Training
         bgColor = '#81ecec';
         hoquei_Logo = require('../img/hoquei-icon-white.png');
     }
 
     return (
         <TouchableOpacity 
-        onPress={() => this.props.navigation.navigate('EventScreen')}
-        //onPress={showAlert.bind(this,item)}
+        onPress={() => this.props.navigation.navigate('EventScreen',{item})}
         style={[styles.item, {backgroundColor: bgColor, flexDirection: 'row'}]}>
             <View style={{width: WIDTH*0.60}}>
                 <Text style={{fontWeight: '600'}}>{item.title}</Text>
