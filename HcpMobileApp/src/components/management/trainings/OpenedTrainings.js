@@ -3,7 +3,7 @@ import {View, FlatList, ActivityIndicator, Text} from 'react-native';
 import {ListItem} from 'react-native-elements';
 
 import {connect} from 'react-redux';
-import {Ionicons, MaterialIcons} from "@expo/vector-icons";
+import {Ionicons} from "@expo/vector-icons";
 
 
 class TrainingItem extends React.PureComponent {
@@ -27,7 +27,7 @@ class TrainingItem extends React.PureComponent {
                 title={(
                     <View style={{flex: 1, flexDirection: 'row'}}>
                         <Text style={{fontSize: 16, fontWeight: '700'}}>
-                            {this.props.training.escalao[1] + ' | '}
+                            {'Treino ' + this.props.training.escalao[1] + ' | '}
                         </Text>
                         <Text style={{fontSize: 16, fontWeight: '400'}}>
                             {date_hour[0]}
@@ -54,6 +54,12 @@ class TrainingItem extends React.PureComponent {
                 containerStyle={{
                     backgroundColor: color
                 }}
+                onPress={() => {
+                    this.props.navigation.navigate(
+                        'OpenedTraining',
+                        {id: this.props.training.id}
+                    );
+                }}
             />
         )
     }
@@ -75,7 +81,12 @@ class OpenedTrainings extends Component {
     componentDidMount() {
 
         this.willFocus = this.props.navigation.addListener('willFocus', () => {
-            this.fetchTrainings();
+            this.setState({
+                trainingsList: [],
+                lastIDFetched: false,
+            }, () => {
+                this.fetchTrainings();
+            });
         });
     }
 
@@ -83,6 +94,20 @@ class OpenedTrainings extends Component {
 
         this.willFocus.remove();
     }
+
+    /**
+     * Definir as opções da barra de navegação no topo.
+     */
+    static navigationOptions = ({navigation}) => ({
+        headerTitle: 'Convocatórias em aberto',
+        headerLeft: <Ionicons
+            name="md-arrow-back"
+            size={28}
+            color={'#ffffff'}
+            style={{paddingLeft: 20}}
+            onPress = {() => navigation.goBack()}
+        />
+    });
 
     /**
      * Buscar treinos com convocatória em aberto.
@@ -189,7 +214,9 @@ class OpenedTrainings extends Component {
      * Retorna o componente que representa um item da lista.
      * @param item
      */
-    renderItem = ({ item, index }) => (<TrainingItem training={item} index={index} />);
+    renderItem = ({ item, index }) => (
+        <TrainingItem training={item} index={index} navigation={this.props.navigation} />
+    );
 
     render() {
 

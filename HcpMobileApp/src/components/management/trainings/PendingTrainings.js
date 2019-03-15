@@ -75,7 +75,12 @@ class PendingTrainings extends Component {
     componentDidMount() {
 
         this.willFocus = this.props.navigation.addListener('willFocus', () => {
-            this.fetchTrainings();
+            this.setState({
+                trainingsList: [],
+                lastIDFetched: false,
+            }, () => {
+                this.fetchTrainings();
+            });
         });
     }
 
@@ -83,6 +88,20 @@ class PendingTrainings extends Component {
 
         this.willFocus.remove();
     }
+
+    /**
+     * Definir as opções da barra de navegação no topo.
+     */
+    static navigationOptions = ({navigation}) => ({
+        headerTitle: 'Convocatórias fechadas',
+        headerLeft: <Ionicons
+            name="md-arrow-back"
+            size={28}
+            color={'#ffffff'}
+            style={{paddingLeft: 20}}
+            onPress = {() => navigation.goBack()}
+        />
+    });
 
     /**
      * Buscar treinos com convocatória fechadas.

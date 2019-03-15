@@ -30,6 +30,12 @@ class TrainingScreen extends Component {
         this.willFocus.remove();
     }
 
+    static defaultNavigationOptions = ({navigation}) => {
+        return ({
+
+        });
+    };
+
     /**
      * Definir as opções da barra de navegação no topo.
      */

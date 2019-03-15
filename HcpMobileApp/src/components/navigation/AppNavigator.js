@@ -21,6 +21,7 @@ import {
 
 import { fromRight, fromBottom } from 'react-navigation-transitions';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo';
 
 import AuthenticationLoading from "../authentication/AuthenticationLoading";
 import LoginScreen from '../authentication/LoginScreen';
@@ -34,6 +35,8 @@ import AthleteScreen from '../screens/AthleteScreen';
 import OpenedTrainings from "../management/trainings/OpenedTrainings";
 import EventScreen from "../screens/EventScreen";
 import PendingTrainings from "../management/trainings/PendingTrainings";
+import OpenedTraining from "../management/trainings/OpenedTraining";
+import EditOpenedTraining from "../management/trainings/EditOpenedTraining";
 
 const styles = StyleSheet.create({
     container: {
@@ -109,23 +112,25 @@ const HomeStackNavigator = createStackNavigator({
     transitionConfig: () => fromRight(600),
     defaultNavigationOptions: ({navigation}) => {
         return {
+            headerTitle: 'Início',
+            headerBackground: (
+                <LinearGradient
+                    colors={['#ad2e53', '#2f2d3b']}
+                    style={{ flex: 1 }}
+                    start={[0, 0]}
+                    end={[0.8, 0]}
+                />
+            ),
+            headerTitleStyle: {
+                color: '#ffffff',
+                fontWeight: '500',
+            },
             headerLeft: <Ionicons
                 name="md-menu"
                 size={30}
-                color="black"
+                color={'#ffffff'}
                 style={{paddingLeft: 20}}
                 onPress = {() => navigation.openDrawer()}/>
-        }
-    },
-    navigationOptions: ({navigation}) => {
-
-        return {
-            title: 'Início',
-            drawerIcon: <Ionicons
-                name="md-home"
-                size={30}
-                color={'#000000'}
-            />
         }
     }
 });
@@ -138,23 +143,25 @@ const CalendarStackNavigator = createStackNavigator({
     transitionConfig: () => fromRight(600),
     defaultNavigationOptions: ({navigation}) => {
         return {
+            headerTitle: 'Calendário',
+            headerBackground: (
+                <LinearGradient
+                    colors={['#ad2e53', '#2f2d3b']}
+                    style={{ flex: 1 }}
+                    start={[0, 0]}
+                    end={[0.8, 0]}
+                />
+            ),
+            headerTitleStyle: {
+                color: '#ffffff',
+                fontWeight: '500',
+            },
             headerLeft: <Ionicons
                 name="md-menu"
                 size={30}
-                color="black"
+                color={'#ffffff'}
                 style={{paddingLeft: 20}}
                 onPress = {() => navigation.openDrawer()}/>
-        }
-    },
-    navigationOptions: ({navigation}) => {
-
-        return {
-            title: 'Calendário',
-            drawerIcon: <Ionicons
-                name="md-calendar"
-                size={30}
-                color={'#000000'}
-            />
         }
     }
 });
@@ -181,80 +188,29 @@ const ManagementNavigator = createMaterialTopTabNavigator({
 });
 
 
-const ManagementSwitchNavigator = createSwitchNavigator({
+// MANAGEMENT STACK
+const ManagementStackNavigator = createStackNavigator({
     ManagementNavigator: {screen: ManagementNavigator},
     OpenedTrainings: {screen: OpenedTrainings},
+    OpenedTraining: {screen: OpenedTraining},
+    EditOpenedTraining: {screen: EditOpenedTraining},
     PendingTrainings: {screen: PendingTrainings}
 }, {
     initialRouteName: 'ManagementNavigator',
-    navigationOptions: ({navigation}) => {
-
-        const { routeName } = navigation.state.routes[navigation.state.index];
-
-        switch (routeName) {
-
-            case 'OpenedTrainings':
-            {
-                return {
-                    headerStyle: {
-                        backgroundColor: '#232323',
-                    },
-                    headerTitleStyle: {
-                        color: '#cacaca',
-                        fontWeight: '500',
-                    },
-                    headerTitle: 'Convocatórias em aberto',
-                    headerLeft: <Ionicons
-                        name="md-arrow-back"
-                        size={28}
-                        color={'#cacaca'}
-                        style={{paddingLeft: 20}}
-                        onPress = {() => navigation.navigate('ManagementNavigator')}
-                    />
-                }
-            }
-            case 'PendingTrainings':
-            {
-                return {
-                    headerStyle: {
-                        backgroundColor: '#232323',
-                    },
-                    headerTitleStyle: {
-                        color: '#cacaca',
-                        fontWeight: '500',
-                    },
-                    headerTitle: 'Convocatórias fechadas',
-                    headerLeft: <Ionicons
-                        name="md-arrow-back"
-                        size={28}
-                        color={'#cacaca'}
-                        style={{paddingLeft: 20}}
-                        onPress = {() => navigation.navigate('ManagementNavigator')}
-                    />
-                }
-            }
-            default:
-                return {
-                    headerTitle: 'Gestão'
-                }
-        }
-    }
-});
-
-// MANAGEMENT STACK
-const ManagementStackNavigator = createStackNavigator({
-    ManagementSwitchNavigator: {screen: ManagementSwitchNavigator}
-}, {
-    initialRouteName: 'ManagementSwitchNavigator',
-
-    transitionConfig: () => fromRight(600),
+    //transitionConfig: () => fromRight(350),
     defaultNavigationOptions: ({navigation}) => {
         return {
-            headerStyle: {
-                backgroundColor: '#232323',
-            },
+            headerTitle: 'Gestão',
+            headerBackground: (
+                <LinearGradient
+                    colors={['#ad2e53', '#2f2d3b']}
+                    style={{ flex: 1 }}
+                    start={[0, 0]}
+                    end={[0.8, 0]}
+                />
+            ),
             headerTitleStyle: {
-                color: '#cacaca',
+                color: '#ffffff',
                 fontWeight: '500',
             },
             headerLeft: (
@@ -269,21 +225,10 @@ const ManagementStackNavigator = createStackNavigator({
                     <Ionicons
                         name="md-menu"
                         size={30}
-                        color={'#cacaca'}
+                        color={'#ffffff'}
                         onPress = {() => navigation.openDrawer()}/>
                 </View>
             )
-        }
-    },
-    navigationOptions: ({navigation}) => {
-
-        return {
-            title: 'Gestão',
-            drawerIcon: <Ionicons
-                name="md-clipboard"
-                size={30}
-                color={'#000000'}
-            />
         }
     }
 });
@@ -297,23 +242,25 @@ const AthletesStackNavigator = createStackNavigator({
     transitionConfig: () => fromBottom(600),
     defaultNavigationOptions: ({navigation}) => {
         return {
+            headerTitle: 'Atletas',
+            headerBackground: (
+                <LinearGradient
+                    colors={['#ad2e53', '#2f2d3b']}
+                    style={{ flex: 1 }}
+                    start={[0, 0]}
+                    end={[0.8, 0]}
+                />
+            ),
+            headerTitleStyle: {
+                color: '#ffffff',
+                fontWeight: '500',
+            },
             headerLeft: <Ionicons
                 name="md-menu"
                 size={30}
-                color="black"
+                color={'#ffffff'}
                 style={{paddingLeft: 20}}
                 onPress = {() => navigation.openDrawer()}/>
-        }
-    },
-    navigationOptions: ({navigation}) => {
-
-        return {
-            title: 'Atletas',
-            drawerIcon: <Ionicons
-                name="md-people"
-                size={30}
-                color={'#000000'}
-            />
         }
     }
 });
@@ -326,23 +273,25 @@ const ProfileStackNavigator = createStackNavigator({
     transitionConfig: () => fromRight(600),
     defaultNavigationOptions: ({navigation}) => {
         return {
+            headerTitle: 'Perfil',
+            headerBackground: (
+                <LinearGradient
+                    colors={['#ad2e53', '#2f2d3b']}
+                    style={{ flex: 1 }}
+                    start={[0, 0]}
+                    end={[0.8, 0]}
+                />
+            ),
+            headerTitleStyle: {
+                color: '#ffffff',
+                fontWeight: '500',
+            },
             headerLeft: <Ionicons
                 name="md-menu"
                 size={30}
-                color="black"
+                color={'#ffffff'}
                 style={{paddingLeft: 20}}
                 onPress = {() => navigation.openDrawer()}/>
-        }
-    },
-    navigationOptions: ({navigation}) => {
-
-        return {
-            title: 'Perfil',
-            drawerIcon: <Ionicons
-                name="md-person"
-                size={30}
-                color={'#000000'}
-            />
         }
     }
 });
@@ -383,22 +332,69 @@ const CustomDrawerContentComponent = (props) => {
 
 
 const AppDrawerNavigator = createDrawerNavigator({
-    HomeStack: { screen: HomeStackNavigator },
-    CalendarStack: {screen: CalendarStackNavigator},
-    ManagementStack: {screen: ManagementStackNavigator},
-    ProfileStack: {screen: ProfileStackNavigator},
-    AthletesStack: {screen: AthletesStackNavigator}
+    HomeStack: {
+        screen: HomeStackNavigator,
+        navigationOptions: ({
+            title: 'Início',
+            drawerIcon: <Ionicons
+                name="md-home"
+                size={30}
+                color={'#000000'}
+            />
+        })
+    },
+    CalendarStack: {
+        screen: CalendarStackNavigator,
+        navigationOptions: ({
+            title: 'Calendário',
+            drawerIcon: <Ionicons
+                name="md-calendar"
+                size={30}
+                color={'#000000'}
+            />
+        })
+    },
+    ManagementStack: {
+        screen: ManagementStackNavigator,
+        navigationOptions: ({
+            title: 'Gestão',
+            drawerIcon: <Ionicons
+                name="md-clipboard"
+                size={30}
+                color={'#000000'}
+            />
+        })
+    },
+    AthletesStack: {
+        screen: AthletesStackNavigator,
+        navigationOptions: ({
+            title: 'Atletas',
+            drawerIcon: <Ionicons
+                name="md-people"
+                size={30}
+                color={'#000000'}
+            />
+        })
+    },
+    ProfileStack: {
+        screen: ProfileStackNavigator,
+        navigationOptions: ({
+            title: 'Perfil',
+            drawerIcon: <Ionicons
+                name="md-person"
+                size={30}
+                color={'#000000'}
+            />
+        })
+    }
 }, {
-    initialRouteName: 'ManagementStack',
+    initialRouteName: 'HomeStack',
     order: ['HomeStack', 'CalendarStack', 'ManagementStack', 'AthletesStack', 'ProfileStack'],
-    //drawerBackgroundColor: '#c9ff59',
     drawerWidth: WIDTH*0.7,
     contentComponent: CustomDrawerContentComponent,
     contentOptions: {
         activeTintColor: '#000000',
         activeBackgroundColor: '#b3b3b3',
-        //inactiveTintColor: '#31e930',
-        //inactiveBackgroundColor: '#62e9cc',
         itemsContainerStyle: {
             marginVertical: 0,
         },
