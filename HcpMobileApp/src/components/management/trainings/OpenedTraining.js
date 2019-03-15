@@ -1,9 +1,10 @@
 import React from 'react';
 
-import {View, Text, StyleSheet} from 'react-native';
+import {View, Text, StyleSheet, Image, ScrollView, RefreshControl, FlatList} from 'react-native';
 import {connect} from 'react-redux';
 import {Ionicons} from "@expo/vector-icons";
 import { SectionGrid } from 'react-native-super-grid';
+import { ListItem } from 'react-native-elements';
 
 class OpenedTraining extends React.Component {
 
@@ -11,11 +12,13 @@ class OpenedTraining extends React.Component {
         super(props);
 
         this.state = {
+            isRefreshing: false,
             id: false,
             category: '',
-            local: {},
+            local: '',
             startTime: '',
             endTime: '',
+            duration: '',
             coaches: [],
             athletes: [],
         }
@@ -24,9 +27,11 @@ class OpenedTraining extends React.Component {
     componentDidMount() {
 
         this.setState({
+
             id: this.props.navigation.getParam('id')
-        }, () => {
-            this.fetchTraining(this.state.id);
+
+        }, async () => {
+            await this.fetchTraining(this.state.id);
         });
     }
 
@@ -51,12 +56,11 @@ class OpenedTraining extends React.Component {
         />
     });
 
-
     /**
      * Buscar todos os dados necessários sobre o treino.
      * @param id
      */
-    fetchTraining(id) {
+    async fetchTraining(id) {
 
         let params = {
             ids: [id],
@@ -66,27 +70,34 @@ class OpenedTraining extends React.Component {
                 'local',
                 'start_datetime',
                 'stop_datetime',
+                'duracao',
                 'treinador',
                 'convocatorias'
             ],
         };
 
-        this.props.odoo.get('ges.treino', params)
-            .then(response => {
+        const response = await this.props.odoo.get('ges.treino', params);
+        if (response.success && response.data.length > 0) {
 
-                if (response.success && response.data.length > 0) {
+            console.log(response.data);
+            await this.fetchAthletes(response.data[0].convocatorias);
 
-                    this.fetchAthletes(response.data[0].convocatorias);
-                }
-            })
-            .catch(e => {})
+            await this.setState({
+                category: response.data[0].escalao[1],
+                startTime: response.data[0].start_datetime,
+                endTime: response.data[0].stop_datetime,
+                duration: response.data[0].duration,
+                coaches: response.data[0].treinador,
+                local: response.data[0].local[1],
+            });
+        }
     }
 
     /**
      * Buscar os atletas que foram convocados, bem como a sua disponibilidade.
      * @param ids
      */
-    fetchAthletes(ids) {
+    async fetchAthletes(ids) {
 
         const params = {
             ids: ids,
@@ -97,115 +108,233 @@ class OpenedTraining extends React.Component {
             ],
         };
 
-        this.props.odoo.get('ges.linha_convocatoria', params)
-            .then(response => {
+        const response = await this.props.odoo.get('ges.linha_convocatoria', params)
 
-                if(response.success && response.data.length > 0) {
+        if(response.success && response.data.length > 0) {
 
-                    const data = response.data;
-                    const size = data.length;
+            const data = response.data;
+            const size = data.length;
 
-                    let athletes = [];
-                    for (let i = 0; i < size; i++) {
+            let athletes = [];
+            for (let i = 0; i < size; i++) {
 
-                        const athlete = {
-                            id: data[i].atleta[0],
-                            name: data[i].atleta[1],
-                            squad_number: data[i].numero,
-                            available: data[i].disponivel
-                        };
+                const athlete = {
+                    id: data[i].atleta[0],
+                    name: data[i].atleta[1],
+                    squad_number: data[i].numero,
+                    available: data[i].disponivel,
+                    image: await this.fetchAthleteImage(data[i].atleta[0])
+                };
 
-                        athletes.push(athlete);
-                    }
+                athletes.push(athlete);
+            }
 
-                    this.setState(state => ({
-                        athletes: [...state.athletes, ...athletes]
-                    }));
-                }
-            })
-            .catch(error => {});
+            this.setState(state => ({
+                athletes: [...state.athletes, ...athletes]
+            }));
+        }
     }
 
-    render() {
-        const items = [
-            {name: 'TURQUOISE', code: '#1abc9c'},
-            {name: 'EMERALD', code: '#2ecc71'},
-            {name: 'PETER RIVER', code: '#3498db'},
-            {name: 'AMETHYST', code: '#9b59b6'},
-            {name: 'WET ASPHALT', code: '#34495e'},
-            {name: 'GREEN SEA', code: '#16a085'},
-            {name: 'NEPHRITIS', code: '#27ae60'},
-            {name: 'BELIZE HOLE', code: '#2980b9'},
-            {name: 'WISTERIA', code: '#8e44ad'},
-            {name: 'MIDNIGHT BLUE', code: '#2c3e50'},
-            {name: 'SUN FLOWER', code: '#f1c40f'},
-            {name: 'CARROT', code: '#e67e22'},
-            {name: 'ALIZARIN', code: '#e74c3c'},
-            {name: 'CLOUDS', code: '#ecf0f1'},
-            {name: 'CONCRETE', code: '#95a5a6'},
-            {name: 'ORANGE', code: '#f39c12'},
-            {name: 'PUMPKIN', code: '#d35400'},
-            {name: 'POMEGRANATE', code: '#c0392b'},
-            {name: 'SILVER', code: '#bdc3c7'},
-            {name: 'ASBESTOS', code: '#7f8c8d'},
-        ];
+    /**
+     * Buscar a imagem do atleta
+     * @param id
+     */
+    async fetchAthleteImage (id) {
+
+        const params = {
+            ids: [id],
+            fields: [
+                'image',
+            ]
+        };
+
+        const response = await this.props.odoo.get('ges.atleta', params);
+
+        if(response.success && response.data.length > 0)
+            return response.data[0].image;
+
+        return null;
+    }
+
+    /**
+     * Renderizar o item da lista presente no header.
+     * @param {Object} item
+     */
+    renderItemOfList = ({ item }) => (
+        <ListItem
+            title={item.name}
+            subtitle={item.subtitle}
+            leftAvatar={
+                <View style={{width: 25}}>
+                    <Ionicons name={item.icon} size={27} /*style={{paddingBottom: 5}}*/ />
+                </View>
+            }
+            containerStyle={{
+                backgroundColor: '#ffe3e4',
+                height: 60,
+            }}
+        />
+    );
+
+    /**
+     * Renderizar o item dos atletas convocados.
+     * @param {Object} item
+     */
+    renderItem = ({item}) => {
+
+        if(item.image) {
+            return (
+                <View style={[
+                    styles.itemContainer,
+                    {backgroundColor: item.available ? '#81c784' : '#e57373'}]}>
+                    <Image
+                        source={{uri: `data:image/png;base64,${item.image}`}}
+                        style={{width: '100%', height: '60%', opacity: 1,
+                            borderTopLeftRadius: 5, borderTopRightRadius: 5 }}>
+                    </Image>
+                    <View style={{flex: 1, padding: 5, justifyContent: 'center'}}>
+                        <Text style={styles.itemName}>
+                            {item.name.substring(0, 27)}
+                        </Text>
+                        <Text style={styles.itemCode}>#{item.squad_number}</Text>
+                    </View>
+                </View>
+            );
+        }
 
         return (
-            <SectionGrid
-                itemDimension={90}
-                // staticDimension={300}
-                // fixed
-                // spacing={20}
-                sections={[
-                    {
-                        title: 'Atletas convocados',
-                        data: items.slice(0, 20),
-                    }
-                ]}
-                style={styles.gridView}
-                renderItem={({item, section, index}) => (
-                    <View style={[styles.itemContainer, {backgroundColor: item.code}]}>
-                        <Text style={styles.itemName}>{item.name}</Text>
-                        <Text style={styles.itemCode}>{item.code}</Text>
-                    </View>
-                )}
-                renderSectionHeader={({section}) => (
-                    <Text style={styles.sectionHeader}>{section.title}</Text>
-                )}
-            />
+            <View style={[
+                styles.itemContainer,
+                {backgroundColor: item.available ? '#81c784' : '#e57373'}]}>
+                <Image
+                    source={require('../../../../assets/user-account.png')}
+                    style={{width: '100%', height: '60%', opacity: 0.8,
+                        borderTopLeftRadius: 5, borderTopRightRadius: 5 }}>
+                </Image>
+                <View style={{flex: 1, padding: 5, justifyContent: 'center'}}>
+                    <Text style={styles.itemName}>
+                        {item.name.substring(0, 27)}
+                    </Text>
+                    <Text style={styles.itemCode}>#{item.squad_number}</Text>
+                </View>
+            </View>
+        );
+    };
+
+    /**
+     * Função que permite atualizar o conteúdo do componente.
+     */
+    onRefresh = () => {
+        this.setState({
+            isRefreshing: true,
+            athletes: []
+        }, async () => {
+
+            await this.fetchTraining(this.state.id);
+            this.setState({isRefreshing: false});
+        });
+    };
+
+
+    render() {
+
+        const list = [{
+            name: 'Escalão',
+            icon: 'md-shirt',
+            subtitle: this.state.category,
+        }, {
+            name: 'Início',
+            icon: 'md-time',
+            subtitle: this.state.startTime
+        }, {
+            name: 'Local',
+            icon: 'md-pin',
+            subtitle: this.state.local
+        }, {
+            name: 'Treinadores',
+            icon: 'md-people',
+            subtitle: 'Treinador 1 | Treinador 2'
+        }];
+
+        return (
+            <ScrollView
+                style={{flex: 1}}
+                nestedScrollEnabled={true}
+                refreshControl={
+                    <RefreshControl
+                        refreshing={this.state.isRefreshing}
+                        onRefresh={this.onRefresh}
+                    />
+                }>
+                <View style={styles.topHeader}>
+                    <FlatList
+                        keyExtractor={item => item.name}
+                        data={list}
+                        renderItem={this.renderItemOfList}
+                    />
+                </View>
+                <SectionGrid
+                    itemDimension={100}
+                    spacing={10}
+                    sections={[{
+                        title: 'Atletas convocados | Disponibilidade',
+                        data: this.state.athletes,
+                    }]}
+                    style={styles.gridView}
+                    renderItem={this.renderItem}
+                    renderSectionHeader={({section}) => (
+                        <View style={styles.sectionHeader}>
+                            <Text style={styles.sectionText}>{section.title}</Text>
+                        </View>
+                    )}
+                />
+            </ScrollView>
         );
     }
 }
 
 const styles = StyleSheet.create({
+    topHeader: {
+        flex: 1,
+        backgroundColor: '#ffe3e4',
+        borderBottomLeftRadius: 20,
+        borderBottomRightRadius: 20,
+        paddingVertical: 10
+    },
     gridView: {
-        marginTop: 20,
+        marginTop: 10,
         flex: 1,
     },
     itemContainer: {
-        justifyContent: 'flex-end',
+        justifyContent: 'flex-start',
         borderRadius: 5,
-        padding: 10,
+        padding: 0,
         height: 150,
     },
     itemName: {
         fontSize: 16,
-        color: '#fff',
+        color: '#000',
         fontWeight: '600',
     },
     itemCode: {
         fontWeight: '600',
         fontSize: 12,
-        color: '#fff',
+        color: '#000',
     },
     sectionHeader: {
         flex: 1,
-        fontSize: 15,
-        fontWeight: '600',
+        justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: '#636e72',
-        color: 'white',
-        padding: 10,
+        borderBottomColor: '#ad2e53',
+        borderBottomWidth: 2,
+        marginHorizontal: 20,
+        padding: 5
+    },
+    sectionText: {
+        flex: 1,
+        fontSize: 16,
+        fontWeight: '600',
+        color: '#ad2e53',
     },
 });
 
