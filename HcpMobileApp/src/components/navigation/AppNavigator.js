@@ -27,18 +27,18 @@ import LoginScreen from '../authentication/LoginScreen';
 import HomeScreen from '../screens/HomeScreen';
 import CalendarScreen from '../screens/CalendarScreen';
 import ProfileScreen from '../screens/ProfileScreen';
-import TrainingScreen from "../screens/TrainingScreen";
-import GameScreen from "../screens/GameScreen";
+import TrainingScreen from "../management/trainings/TrainingScreen";
+import GameScreen from "../management/games/GameScreen";
 import AthletesScreen from "../screens/AthletesScreen";
 import AthleteScreen from '../screens/AthleteScreen';
-import OpenedTrainings from "../screens/Trainings/OpenedTrainings";
+import OpenedTrainings from "../management/trainings/OpenedTrainings";
 import EventScreen from "../screens/EventScreen";
+import PendingTrainings from "../management/trainings/PendingTrainings";
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#e4e4e4'
-        //backgroundColor: '#d7e8ff'
+        backgroundColor: '#e2e2e2'
     },
     header:{
         height: 150,
@@ -54,7 +54,7 @@ const styles = StyleSheet.create({
     },
     imgView: {
         flex: 1,
-        paddingLeft: 20,
+        paddingLeft: 15,
         paddingRight: 20,
     },
     img: {
@@ -69,21 +69,17 @@ const styles = StyleSheet.create({
     },
     text: {
         fontSize: 15,
-        color: '#ad2e53',
         textAlign: 'left',
     },
     content: {
         flex: 1,
-        paddingTop: 10,
+        paddingTop: 5,
         paddingBottom: 250,
     },
     footer: {
         height: 50,
         flexDirection: 'row',
         alignItems: 'center',
-        //backgroundColor: '#e2e2e2',
-        //borderTopWidth: 1,
-        //borderTopColor: '#777777'
 
     },
     logoutText: {
@@ -92,13 +88,13 @@ const styles = StyleSheet.create({
         marginLeft: 20,
         marginRight: 15,
         fontSize: 16,
-        color: '#7a7a7a'
+        color: '#777777'
     },
     logoutIcon: {
         flex: 1,
         textAlign: 'right',
         marginRight: 20,
-        color: '#7a7a7a'
+        color: '#777777'
     },
 });
 
@@ -128,7 +124,7 @@ const HomeStackNavigator = createStackNavigator({
             drawerIcon: <Ionicons
                 name="md-home"
                 size={30}
-                color="black"
+                color={'#000000'}
             />
         }
     }
@@ -157,7 +153,7 @@ const CalendarStackNavigator = createStackNavigator({
             drawerIcon: <Ionicons
                 name="md-calendar"
                 size={30}
-                color="black"
+                color={'#000000'}
             />
         }
     }
@@ -187,7 +183,8 @@ const ManagementNavigator = createMaterialTopTabNavigator({
 
 const ManagementSwitchNavigator = createSwitchNavigator({
     ManagementNavigator: {screen: ManagementNavigator},
-    OpenedTrainings: {screen: OpenedTrainings}
+    OpenedTrainings: {screen: OpenedTrainings},
+    PendingTrainings: {screen: PendingTrainings}
 }, {
     initialRouteName: 'ManagementNavigator',
     navigationOptions: ({navigation}) => {
@@ -196,20 +193,41 @@ const ManagementSwitchNavigator = createSwitchNavigator({
 
         switch (routeName) {
 
-            case 'ManagementNavigator':
-            {
-                return {
-                    headerTitle: 'Gestão'
-                }
-            }
             case 'OpenedTrainings':
             {
                 return {
-                    headerTitle: 'Treinos em aberto',
+                    headerStyle: {
+                        backgroundColor: '#232323',
+                    },
+                    headerTitleStyle: {
+                        color: '#cacaca',
+                        fontWeight: '500',
+                    },
+                    headerTitle: 'Convocatórias em aberto',
                     headerLeft: <Ionicons
                         name="md-arrow-back"
-                        size={30}
-                        color="black"
+                        size={28}
+                        color={'#cacaca'}
+                        style={{paddingLeft: 20}}
+                        onPress = {() => navigation.navigate('ManagementNavigator')}
+                    />
+                }
+            }
+            case 'PendingTrainings':
+            {
+                return {
+                    headerStyle: {
+                        backgroundColor: '#232323',
+                    },
+                    headerTitleStyle: {
+                        color: '#cacaca',
+                        fontWeight: '500',
+                    },
+                    headerTitle: 'Convocatórias fechadas',
+                    headerLeft: <Ionicons
+                        name="md-arrow-back"
+                        size={28}
+                        color={'#cacaca'}
                         style={{paddingLeft: 20}}
                         onPress = {() => navigation.navigate('ManagementNavigator')}
                     />
@@ -232,12 +250,29 @@ const ManagementStackNavigator = createStackNavigator({
     transitionConfig: () => fromRight(600),
     defaultNavigationOptions: ({navigation}) => {
         return {
-            headerLeft: <Ionicons
-                name="md-menu"
-                size={30}
-                color="black"
-                style={{paddingLeft: 20}}
-                onPress = {() => navigation.openDrawer()}/>
+            headerStyle: {
+                backgroundColor: '#232323',
+            },
+            headerTitleStyle: {
+                color: '#cacaca',
+                fontWeight: '500',
+            },
+            headerLeft: (
+                <View style={{
+                    width:42,
+                    height:42,
+                    alignItems:'center',
+                    justifyContent:'center',
+                    //borderRadius:50,
+                    //backgroundColor: '#3e3e3e',
+                    marginLeft: 10}}>
+                    <Ionicons
+                        name="md-menu"
+                        size={30}
+                        color={'#cacaca'}
+                        onPress = {() => navigation.openDrawer()}/>
+                </View>
+            )
         }
     },
     navigationOptions: ({navigation}) => {
@@ -247,7 +282,7 @@ const ManagementStackNavigator = createStackNavigator({
             drawerIcon: <Ionicons
                 name="md-clipboard"
                 size={30}
-                color="black"
+                color={'#000000'}
             />
         }
     }
@@ -277,7 +312,7 @@ const AthletesStackNavigator = createStackNavigator({
             drawerIcon: <Ionicons
                 name="md-people"
                 size={30}
-                color="black"
+                color={'#000000'}
             />
         }
     }
@@ -306,7 +341,7 @@ const ProfileStackNavigator = createStackNavigator({
             drawerIcon: <Ionicons
                 name="md-person"
                 size={30}
-                color="black"
+                color={'#000000'}
             />
         }
     }
@@ -328,13 +363,6 @@ const CustomDrawerContentComponent = (props) => {
                         <View style={styles.imgView}>
                             <Image style={styles.img} source={require('../../../assets/logo.png')} />
                         </View>
-                        {
-                            /*
-                            <View style={styles.textView}>
-                                <Text style={styles.text}>Username</Text>
-                            </View>
-                             */
-                        }
                     </View>
                 </View>
                 <View style={styles.content}>
@@ -364,18 +392,18 @@ const AppDrawerNavigator = createDrawerNavigator({
     initialRouteName: 'ManagementStack',
     order: ['HomeStack', 'CalendarStack', 'ManagementStack', 'AthletesStack', 'ProfileStack'],
     //drawerBackgroundColor: '#c9ff59',
-    drawerWidth: WIDTH*0.75,
+    drawerWidth: WIDTH*0.7,
     contentComponent: CustomDrawerContentComponent,
     contentOptions: {
-        activeTintColor: '#ad2e53',
-        activeBackgroundColor: '#debec8',
+        activeTintColor: '#000000',
+        activeBackgroundColor: '#b3b3b3',
         //inactiveTintColor: '#31e930',
         //inactiveBackgroundColor: '#62e9cc',
         itemsContainerStyle: {
             marginVertical: 0,
         },
         iconContainerStyle: {
-            opacity: 1
+            opacity: 1,
         },
         labelStyle:{
             fontSize: 16,

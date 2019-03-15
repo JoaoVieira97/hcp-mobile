@@ -15,9 +15,19 @@ class TrainingScreen extends Component {
             openedTrainingsCounter: 0,
             closedTrainingsCounter: 0,
         };
+    }
 
-        this.countOpenedTrainings();
-        this.countTrainingsThatNeedToClose();
+    componentDidMount() {
+
+        this.willFocus = this.props.navigation.addListener('willFocus', () => {
+            this.countOpenedTrainings();
+            this.countTrainingsThatNeedToClose();
+        });
+    }
+
+    componentWillUnmount() {
+
+        this.willFocus.remove();
     }
 
     /**
@@ -167,7 +177,10 @@ class TrainingScreen extends Component {
                     'Fechar o período de convocatórias',
                 badge: {
                     value: this.state.openedTrainingsCounter,
-                    status: "warning"
+                    status: "warning",
+                    badgeStyle: {
+                        backgroundColor: '#ad2e53'
+                    }
                 },
                 chevron: false,
                 onPress: 'OpenedTrainings'
@@ -178,10 +191,13 @@ class TrainingScreen extends Component {
                     'Concluir ou eliminar treinos',
                 badge: {
                     value: this.state.closedTrainingsCounter,
-                    status: "warning"
+                    status: "warning",
+                    badgeStyle: {
+                        backgroundColor: '#ad2e53'
+                    }
                 },
                 chevron: false,
-                onPress: 'ManagementNavigator'
+                onPress: 'PendingTrainings'
             },
         ];
 
@@ -213,6 +229,7 @@ export default connect(mapStateToProps, mapDispatchToProps)(TrainingScreen);
 const styles = StyleSheet.create({
     container: {
         flex: 1,
+        marginTop: 10
     }
 });
 
