@@ -11,65 +11,57 @@ import {
 
 import getDirections from 'react-native-google-maps-directions';
 
-
 export default class EventScreen extends Component {
 
     constructor(props) {
         super(props);
         this.state = {
-            location: { // University of Minho
-                latitude: 41.55938888888888,
-                longitude: -8.398416666666666,
-            },
-            item: {}
+            item: {},
         };
     }
     
     handleGetDirections = () => {
+        if (this.state.item.coordinates){
 
-        //console.log(this.state.location)
-
-        const data = {
-            source: {
-                latitude: this.state.location.latitude,
-                longitude: this.state.location.longitude
-            },
-            destination: { // Braga center
-                latitude: 41.5518,
-                longitude: -8.4229
-            },
-            params: [
-                {
-                    key: "travelmode",
-                    value: "driving" // value = [driving, walking, bicycling, transit]
+            navigator.geolocation.getCurrentPosition(
+                position => {
+                    const data = {
+                        source: {
+                            latitude: position.coords.latitude,
+                            longitude: position.coords.longitude
+                        },
+                        destination: {
+                            latitude: this.state.item.coordinates.latitude,
+                            longitude: this.state.item.coordinates.longitude
+                        },
+                        params: [
+                            {
+                                key: "travelmode",
+                                value: "driving" // value = [driving, walking, bicycling, transit]
+                            },
+                            {
+                                key: "dir_action",
+                                value: "navigate" // instantly initializes navigation using the given travel mode 
+                            }
+                        ]
+                    }
+                    console.log(data)
+                    getDirections(data)
                 },
-                {
-                    key: "dir_action",
-                    value: "navigate" // instantly initializes navigation using the given travel mode 
-                }
-            ]
+                error => Alert.alert('Não foi possível obter a sua localização. Tente de novo.'),
+                { enableHighAccuracy: true, timeout: 20000, maximumAge: 1000 }
+            );
+
         }
-        getDirections(data)
+        else{
+            Alert.alert('Coordenadas do local não estão definidas. Pedimos desculpa.')
+        }
     }
 
     async componentDidMount(){
-
         this.setState({
             item: this.props.navigation.state.params.item
         });
-
-        //console.log(this.state.location)
-        await navigator.geolocation.getCurrentPosition(
-            position => {
-                this.setState({
-                    location: { latitude: position.coords.latitude, longitude: position.coords.longitude }
-                });
-            },
-            error => Alert.alert(error.message),
-            { enableHighAccuracy: true, timeout: 20000, maximumAge: 1000 }
-        );
-        //console.log(this.state.location)
-        console.log(this.state.item)
     }
 
     render() {
@@ -88,7 +80,7 @@ export default class EventScreen extends Component {
                 <View style={{marginBottom: 40}}>
                     <Text style={[styles.lines, {fontSize: 20, textAlign: 'center', textShadowColor: colorText}]}>{this.state.item.title}</Text>
                     <Text style={[styles.lines, {fontSize: 15, textAlign: 'center', textShadowColor: colorText}]}>{this.state.item.time}</Text>
-                    <Text style={[styles.lines, {fontSize: 15, textAlign: 'center', textShadowColor: colorText}]}>{this.state.item.title}</Text>
+                    <Text style={[styles.lines, {fontSize: 15, textAlign: 'center', textShadowColor: colorText}]}>{this.state.item.description}</Text>
                 </View>
                 <TouchableOpacity onPress={this.handleGetDirections} style={[styles.buttonContainer, {borderColor: colorText}]}>
                     <Text style={[styles.buttonText,{textShadowColor: colorText}]}>Obter direções</Text>
@@ -97,12 +89,11 @@ export default class EventScreen extends Component {
                 source={require('../img/map-icon.png')}
                 style={{padding: 1, margin: 5, width: 45, height: 45}}
                 />
+                <Text>{this.state.item.local}</Text>
             </View>
         );
     }
 }
-
-//<Button onPress={this.handleGetDirections} title="Obter direções" style={{color: colorText}}/>
 
 const styles = StyleSheet.create({
     container: {
@@ -140,5 +131,5 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         textShadowOffset: {width: -2, height: 2},
         textShadowRadius: 15,
-    }
+    },
 });

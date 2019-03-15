@@ -13,8 +13,6 @@ import {connect} from 'react-redux';
 
 import {Agenda} from 'react-native-calendars';
 
-import EventScreen from "../screens/EventScreen";
-
 const gameMark = {key:'game', color: '#fab1a0'};
 const trainingMark = {key:'training', color: '#81ecec'};
 
@@ -33,6 +31,20 @@ class CalendarScreen extends Component {
     static navigationOptions = {
         headerTitle: 'Calendário',
     };
+
+    async getLocal(id){
+
+        const params = {
+            ids: [id],
+            fields: ['coordenadas', 'descricao'],
+        };
+
+        const response = await this.props.odoo.get('ges.local', params);
+        if (response.success) {
+            return response;
+        }
+        return {};
+    }
 
     async getAllTrainings() {
 
@@ -53,12 +65,11 @@ class CalendarScreen extends Component {
 
         const params = {
             ids: [id],
-            fields: ['atletas','start_datetime', 'description', 'evento_desportivo', 'duracao'],
+            fields: ['local', 'atletas', 'start_datetime', 'description', 'evento_desportivo', 'duracao'],
         };
 
         const response = await this.props.odoo.get('ges.treino', params);
         if (response.success) {
-            //console.log(response.data);
             return response;
         }
         else return {};
@@ -86,12 +97,22 @@ class CalendarScreen extends Component {
                 const startTime = data.start_datetime;
                 const startTimeDate = (startTime.split(" "))[0];
                 const startTimeHour = (startTime.split(" "))[1];
+                const localName = data.local[1];
+
+                let local = await this.getLocal(data.local[0]);
+
+                let local_f = (local.success && local.data[0].coordenadas)? {
+                    latitude: parseFloat(local.data[0].coordenadas.split(", ")[0]),
+                    longitude: parseFloat(local.data[0].coordenadas.split(", ")[1])
+                } : null
 
                 let finalObject = {
                     type: 1,
                     title: description,
                     time: 'Início: ' + startTimeHour,
-                    description: 'Duração: ' + duration + ' min'
+                    description: 'Duração: ' + duration + ' min',
+                    local: localName,
+                    coordinates: local_f
                 };
 
                 //Update this.state.items -> concat to array if necessary
@@ -153,7 +174,7 @@ class CalendarScreen extends Component {
 
         const params = {
             ids: [id],
-            fields: ['start_datetime', 'equipa_adversaria', 'description', 'evento_desportivo'],
+            fields: ['local', 'start_datetime', 'equipa_adversaria', 'description', 'evento_desportivo'],
         };
 
         const response = await this.props.odoo.get('ges.jogo', params);
@@ -168,8 +189,9 @@ class CalendarScreen extends Component {
 
         let allGames = await this.getAllGames();
 
-        for (let i = 0; i < 10; i++){
+        //for (let i = 0; i < 10; i++){
         //for (let i = 0; i < allGames.data.length; i++){
+        for (let i = 200; i < allGames.data.length; i++){
 
             let game = await this.getGame(allGames.data[i]);
 
@@ -185,12 +207,22 @@ class CalendarScreen extends Component {
                 const startTime = data.start_datetime;
                 const startTimeDate = (startTime.split(" "))[0];
                 const startTimeHour = (startTime.split(" "))[1];
+                const localName = data.local[1];
+
+                let local = await this.getLocal(data.local[0]);
+
+                let local_f = (local.success && local.data[0].coordenadas)? {
+                    latitude: parseFloat(local.data[0].coordenadas.split(", ")[0]),
+                    longitude: parseFloat(local.data[0].coordenadas.split(", ")[1])
+                } : null
 
                 let finalObject = {
-                        type: 0,
-                        title: description,
-                        time: 'Início ' + startTimeHour,
-                        description: 'Adversário: ' + opponent
+                    type: 0,
+                    title: description,
+                    time: 'Início ' + startTimeHour,
+                    description: 'Adversário: ' + opponent,
+                    local: localName,
+                    coordinates: local_f
                 };
 
                 //Update this.state.items -> concat to array if necessary
