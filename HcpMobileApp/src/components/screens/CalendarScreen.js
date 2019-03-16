@@ -24,7 +24,8 @@ class CalendarScreen extends Component {
         super(props);
         this.state = {
             items: {},
-            markedDates: {}
+            markedDates: {},
+            months: []
         };
     }
 
@@ -32,7 +33,7 @@ class CalendarScreen extends Component {
         headerTitle: 'Calendário',
     };
 
-    async getLocal(id){
+    async getLocal(id) {
 
         const params = {
             ids: [id],
@@ -46,276 +47,204 @@ class CalendarScreen extends Component {
         return {};
     }
 
-    async getAllTrainings() {
+    async getTrainings(date1, date2) {
 
         const params = {
-            domain: [['id', '>=', '0']],
-            fields: ['id'],
+            domain: [
+                ['start_datetime', '>', date1],
+                ['start_datetime', '<', date2]
+            ],
+            fields: ['local', 'atletas', 'start_datetime', 'description', 'duracao'],
+            order: 'start_datetime ASC'
         };
 
-        let response = await this.props.odoo.search('ges.treino', params);
-        if (response.success) {
-            //console.log(response.data);
-            return response;
-        }
-        else return {};
-    }
-
-    async getTraining(id) {
-
-        const params = {
-            ids: [id],
-            fields: ['local', 'atletas', 'start_datetime', 'description', 'evento_desportivo', 'duracao'],
-        };
-
-        const response = await this.props.odoo.get('ges.treino', params);
-        if (response.success) {
-            return response;
-        }
-        else return {};
-    }
-
-    async getTrainings() {
-
-        let allTrainings = await this.getAllTrainings();
-        
-        for (let i = 20; i < 40; i++){
-        //for (let i = 0; i < allTrainings.data.length; i++){
-            
-            let training = await this.getTraining(allTrainings.data[i]);
-
-            // get training data
-            if (training.success) {
-            
-                // get data object
-                const data = training.data[0];
-
-                // parse data
-                const description = data.description;
-                //const event = data.evento_desportivo[1];
-                const duration = data.duracao;
-                const startTime = data.start_datetime;
-                const startTimeDate = (startTime.split(" "))[0];
-                const startTimeHour = (startTime.split(" "))[1];
-                const localName = data.local[1];
-
-                let local = await this.getLocal(data.local[0]);
-
-                let local_f = (local.success && local.data[0].coordenadas)? {
-                    latitude: parseFloat(local.data[0].coordenadas.split(", ")[0]),
-                    longitude: parseFloat(local.data[0].coordenadas.split(", ")[1])
-                } : null
-
-                let finalObject = {
-                    type: 1,
-                    title: description,
-                    time: 'Início: ' + startTimeHour,
-                    description: 'Duração: ' + duration + ' min',
-                    local: localName,
-                    coordinates: local_f
-                };
-
-                //Update this.state.items -> concat to array if necessary
-                if (!(startTimeDate in this.state.items)){
-                    this.state.items[startTimeDate] = [];
-                }
-                this.state.items[startTimeDate].push(finalObject);
-
-                /*
-                this.setState(state => ({
-                    items: {...state.items, ...finalObject}
-                }));
-                */
-
-                if (!(startTimeDate in this.state.markedDates)){
-                    this.state.markedDates[startTimeDate] = {
-                        dots: [trainingMark],
-                        selectedColor: '#e6e6e6'
-                    }
-                }
-                else{
-                    if (!(this.state.markedDates[startTimeDate].dots.includes(trainingMark))){
-                        this.state.markedDates[startTimeDate].dots.push(trainingMark)
-                    }
-                }
-
-                /*
-                let finalMarkedDates = {
-                    [startTimeDate] : {
-                        dots: [trainingMark],
-                        selectedColor: '#e6e6e6'
-                    }
-                };
-
-                this.setState(state => ({
-                    markedDates: {...state.markedDates, ...finalMarkedDates}
-                }));
-                */
+        const response = await this.props.odoo.search_read('ges.treino', params);
+        if (response.success){
+            for (let i=0; i < response.data.length; i++){
+                let training = response.data[i];
+                this.parseTraining(training);
             }
         }
     }
 
-    async getAllGames() {
+    async parseTraining(training) {
+        const description = training.description;
+        const duration = training.duracao;
+        const startTime = training.start_datetime;
+        const startTimeDate = (startTime.split(" "))[0];
+        const startTimeHour = (startTime.split(" "))[1];
+        const localName = training.local[1];
 
-        const params = {
-            domain: [['id', '>=', '0']],
-            fields: ['id'],
+        let local = await this.getLocal(training.local[0]);
+
+        let local_f = (local.success && local.data[0].coordenadas)? {
+            latitude: parseFloat(local.data[0].coordenadas.split(", ")[0]),
+            longitude: parseFloat(local.data[0].coordenadas.split(", ")[1])
+        } : null
+
+        let finalObject = {
+            type: 1,
+            title: description,
+            time: 'Início: ' + startTimeHour,
+            description: 'Duração: ' + duration + ' min',
+            local: localName,
+            coordinates: local_f
         };
 
-        let response = await this.props.odoo.search('ges.jogo', params);
-        if (response.success) {
-            //console.log(response.data);
-            return response;
+        // ------ Update Items ------
+
+        let newItems = this.state.items;
+        if (!(startTimeDate in newItems)){
+            newItems[startTimeDate] = [];
         }
-        else return {};
+        newItems[startTimeDate].push(finalObject);
+
+        this.setState({items: newItems});
+
+        // ------ Update MarkedDates ------
+
+        let newMarks = this.state.markedDates;
+        if (!(startTimeDate in newMarks)){
+            newMarks[startTimeDate] = {
+                dots: [trainingMark],
+                selectedColor: '#e6e6e6'
+            }
+        }
+        else{
+            if (!(newMarks[startTimeDate].dots.includes(trainingMark))){
+                newMarks[startTimeDate].dots.push(trainingMark)
+            }
+        }
+
+        this.setState({markedDates: newMarks});
+  
     }
 
-    async getGame(id) {
+    async getGames(date1, date2) {
 
         const params = {
-            ids: [id],
-            fields: ['local', 'start_datetime', 'equipa_adversaria', 'description', 'evento_desportivo'],
+            domain: [
+                ['start_datetime', '>', date1],
+                ['start_datetime', '<', date2]
+            ],
+            fields: ['local', 'start_datetime', 'equipa_adversaria', 'description'],
+            order: 'start_datetime ASC'
         };
 
-        const response = await this.props.odoo.get('ges.jogo', params);
-        if (response.success) {
-            //console.log(response.data);
-            return response;
-        }
-        else return {};
-    }
-
-    async getGames() {
-
-        let allGames = await this.getAllGames();
-
-        //for (let i = 0; i < 10; i++){
-        //for (let i = 0; i < allGames.data.length; i++){
-        for (let i = 200; i < allGames.data.length; i++){
-
-            let game = await this.getGame(allGames.data[i]);
-
-            if (game.success) {
-
-                // get data object
-                const data = game.data[0];
-
-                // parse data
-                const description = data.description;
-                const opponent = data.equipa_adversaria[1];
-                //const event = data.evento_desportivo[1];
-                const startTime = data.start_datetime;
-                const startTimeDate = (startTime.split(" "))[0];
-                const startTimeHour = (startTime.split(" "))[1];
-                const localName = data.local[1];
-
-                let local = await this.getLocal(data.local[0]);
-
-                let local_f = (local.success && local.data[0].coordenadas)? {
-                    latitude: parseFloat(local.data[0].coordenadas.split(", ")[0]),
-                    longitude: parseFloat(local.data[0].coordenadas.split(", ")[1])
-                } : null
-
-                let finalObject = {
-                    type: 0,
-                    title: description,
-                    time: 'Início ' + startTimeHour,
-                    description: 'Adversário: ' + opponent,
-                    local: localName,
-                    coordinates: local_f
-                };
-
-                //Update this.state.items -> concat to array if necessary
-                if (!(startTimeDate in this.state.items)){
-                    this.state.items[startTimeDate] = [];
-                }
-                this.state.items[startTimeDate].push(finalObject);
-
-                /*
-                this.setState(state => ({
-                    items: {...state.items, ...finalObject}
-                }));
-                */
-
-                if (!(startTimeDate in this.state.markedDates)){
-                    this.state.markedDates[startTimeDate] = {
-                        dots: [gameMark],
-                        selectedColor: '#e6e6e6'
-                    }
-                }
-                else{
-                    if (!(this.state.markedDates[startTimeDate].dots.includes(gameMark))){
-                        this.state.markedDates[startTimeDate].dots.push(gameMark)
-                    }
-                }
-
-                /*let finalMarkedDates = {
-                    [startTimeDate] : {
-                        dots: [gameMark],
-                        selectedColor: '#e6e6e6'
-                    }
-                };
-
-                this.setState(state => ({
-                    markedDates: {...state.markedDates, ...finalMarkedDates}
-                }));*/
+        const response = await this.props.odoo.search_read('ges.jogo', params);
+        if (response.success){
+            for (let i=0; i < response.data.length; i++){
+                let game = response.data[i];
+                this.parseGame(game);
             }
         }
     }
 
-    async componentDidMount() {
+    async parseGame(game){
+        const description = game.description;
+        const opponent = game.equipa_adversaria[1];
+        const startTime = game.start_datetime;
+        const startTimeDate = (startTime.split(" "))[0];
+        const startTimeHour = (startTime.split(" "))[1];
+        const localName = game.local[1];
 
-        // Get games
-        await this.getGames();
+        let local = await this.getLocal(game.local[0]);
 
-        // Get trainigs
-        await this.getTrainings();
+        let local_f = (local.success && local.data[0].coordenadas)? {
+            latitude: parseFloat(local.data[0].coordenadas.split(", ")[0]),
+            longitude: parseFloat(local.data[0].coordenadas.split(", ")[1])
+        } : null
 
-        // Just for test
-        const finalObject = {
-            '2019-03-10': [{
-                type: 0,
-                title: 'Jogo de inauguração',
-                time: 'Início 10:00h',
-                description: 'Adversário: Rossas'
-            },{
-                type: 1,
-                title: 'Treino para a Champions',
-                time: 'Início 10:00h',
-                description: 'Duração: 90 min'
-            }]
+        let finalObject = {
+            type: 0,
+            title: description,
+            time: 'Início ' + startTimeHour,
+            description: 'Adversário: ' + opponent,
+            local: localName,
+            coordinates: local_f
         };
 
-        this.setState(state => ({
-            items: {...state.items, ...finalObject}
-        }));
+        // ------ Update Items ------
 
-        const finalMark = {
-            '2019-03-10': {
-                dots: [trainingMark, gameMark],
-                selectedColor: '#e6e6e6',
+        let newItems = this.state.items;
+        if (!(startTimeDate in newItems)){
+            newItems[startTimeDate] = [];
+        }
+        newItems[startTimeDate].push(finalObject);
+
+        this.setState({items: newItems});
+
+        // ------ Update MarkedDates ------
+
+        let newMarks = this.state.markedDates;
+        if (!(startTimeDate in newMarks)){
+            newMarks[startTimeDate] = {
+                dots: [gameMark],
+                selectedColor: '#e6e6e6'
             }
-        };
+        }
+        else{
+            if (!(newMarks[startTimeDate].dots.includes(gameMark))){
+                newMarks[startTimeDate].dots.push(gameMark)
+            }
+        }
 
-        this.setState(state => ({
-            markedDates: {...state.markedDates, ...finalMark}
-        }));
+        this.setState({markedDates: newMarks});
+    }
 
-        //console.log(this.state.items);
-        //console.log(this.state.markedDates);
-    };
     render() {
         return (
             <Agenda
                 items = {this.state.items}
-                //selected={'2019-03-06'}
                 renderItem = {renderItem.bind(this)}
-                renderEmptyDate = {renderEmptyDate}
+                renderEmptyData = {() => {return (<View><Text style={{margin: 25, textAlign: 'center', fontSize: 15, color: '#828583'}}>Sem eventos marcados.</Text></View>);}}
                 rowHasChanged = {rowHasChanged}
                 markedDates = {this.state.markedDates}
                 markingType={'multi-dot'}
+                loadItemsForMonth={this.loadItems.bind(this)}
             />
         );
+    }
+
+    loadItems(day){
+        let month = day.month;
+        let year = day.year;
+
+        month_i = parseInt(month);
+        year_i = parseInt(year);
+
+        if (!(year_i in this.state.months)){
+            let newMonths = this.state.months;
+            newMonths[year_i] = [];
+            this.setState({months: newMonths});
+        }
+
+        if (!(this.state.months[year_i].includes(month_i))){
+            let newMonths = this.state.months;
+            newMonths[year_i].push(month_i);
+            this.setState({months: newMonths});
+
+            let initial_date = year + '-' + month + '-01';
+            let end_date = '';
+            if (month_i === 12){
+                end_date = String(year_i+1) + '-01-01'; 
+            } else{
+                end_date = year + '-' + String(month_i+1) + '-01';
+            }
+            console.log('Retrieving events in: ' + initial_date + ' <==> ' + end_date);
+            this.getGames(initial_date, end_date);
+            this.getTrainings(initial_date, end_date)
+            
+            console.log('DONE')
+        } else{
+            console.log('Events of month already retrieved before')
+        }
+    }
+
+    dayToString(day, diff) {
+        const time = day.timestamp + diff * 24 * 60 * 60 * 1000;
+        const date = new Date(time);
+        return date.toISOString().split('T')[0];
     }
 }
 
@@ -347,12 +276,6 @@ function renderItem(item) {
     );
 }
 
-function renderEmptyDate() {
-    return (
-        <View style={styles.emptyDate}>Sem dados.</View>
-    );
-}
-
 function rowHasChanged(r1, r2) {
     return r1.name !== r2.name;
 }
@@ -379,6 +302,32 @@ const styles = StyleSheet.create({
     emptyDate: {
         height: 15,
         flex: 1,
-        paddingTop: 30
+        paddingTop: 30,
     }
 });
+
+/*const finalObject = {
+    '2019-03-10': [{
+        type: 0,
+        title: 'Jogo de inauguração',
+        time: 'Início 10:00h',
+        description: 'Adversário: Rossas'
+    },{
+        type: 1,
+        title: 'Treino para a Champions',
+        time: 'Início 10:00h',
+        description: 'Duração: 90 min'
+    }]
+};
+this.setState(state => ({
+    items: {...state.items, ...finalObject}
+}));
+const finalMark = {
+    '2019-03-10': {
+        dots: [trainingMark, gameMark],
+        selectedColor: '#e6e6e6',
+    }
+};
+this.setState(state => ({
+    markedDates: {...state.markedDates, ...finalMark}
+}));*/

@@ -11,6 +11,8 @@ import {
 
 import getDirections from 'react-native-google-maps-directions';
 
+import {Ionicons} from "@expo/vector-icons";
+
 export default class EventScreen extends Component {
 
     constructor(props) {
@@ -63,6 +65,17 @@ export default class EventScreen extends Component {
             item: this.props.navigation.state.params.item
         });
     }
+
+    static navigationOptions = ({navigation}) => ({
+        headerTitle: 'Detalhes do Evento',
+        headerLeft: <Ionicons
+            name="md-arrow-back"
+            size={28}
+            color={'#ffffff'}
+            style={{paddingLeft: 20}}
+            onPress = {() => navigation.goBack()}
+        />
+    });
 
     render() {
       
