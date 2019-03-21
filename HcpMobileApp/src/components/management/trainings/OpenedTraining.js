@@ -1,10 +1,11 @@
 import React from 'react';
 
-import {View, Text, StyleSheet, Image, ScrollView, RefreshControl, FlatList} from 'react-native';
+import {View, Text, StyleSheet, Image, ScrollView, RefreshControl, FlatList, TouchableOpacity} from 'react-native';
 import {connect} from 'react-redux';
 import {Ionicons} from "@expo/vector-icons";
 import { SectionGrid } from 'react-native-super-grid';
 import { ListItem } from 'react-native-elements';
+import CustomText from "../../CustomText";
 
 class OpenedTraining extends React.Component {
 
@@ -39,21 +40,39 @@ class OpenedTraining extends React.Component {
      * Definir as opções da barra de navegação no topo.
      */
     static navigationOptions = ({navigation}) => ({
-        headerTitle: 'Treino',
-        headerLeft: <Ionicons
-            name="md-arrow-back"
-            size={28}
-            color={'#ffffff'}
-            style={{paddingLeft: 20}}
-            onPress = {() => navigation.goBack()}
-        />,
-        headerRight: <Ionicons
-            name="md-create"
-            size={25}
-            color={'#ffffff'}
-            style={{paddingRight: 20}}
-            onPress = {() => navigation.navigate('EditOpenedTraining')}
-        />
+        headerTitle: //'Treino',
+            <CustomText
+                type={'bold'}
+                children={'TREINO'}
+                style={{
+                    color: '#ffffff',
+                    fontSize: 16
+                }}
+            />,
+        headerLeft:
+            <TouchableOpacity style={{
+                width:42,
+                height:42,
+                alignItems:'center',
+                justifyContent:'center',
+                marginLeft: 10}} onPress = {() => navigation.goBack()}>
+                <Ionicons
+                    name="md-arrow-back"
+                    size={28}
+                    color={'#ffffff'} />
+            </TouchableOpacity>,
+        headerRight:
+            <TouchableOpacity style={{
+                width:42,
+                height:42,
+                alignItems:'center',
+                justifyContent:'center',
+                marginRight: 10}} onPress = {() => navigation.navigate('EditOpenedTraining')}>
+                <Ionicons
+                    name="md-create"
+                    size={25}
+                    color={'#ffffff'} />
+            </TouchableOpacity>
     });
 
     /**
@@ -234,7 +253,6 @@ class OpenedTraining extends React.Component {
             this.setState({isRefreshing: false});
         });
     };
-
 
     render() {
 

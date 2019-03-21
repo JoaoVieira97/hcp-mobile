@@ -1,5 +1,5 @@
 import React from 'react';
-import {View,} from 'react-native';
+import {TouchableOpacity, View,} from 'react-native';
 import {connect} from 'react-redux';
 import {Ionicons} from "@expo/vector-icons";
 
@@ -10,20 +10,30 @@ class EditOpenedTraining extends React.Component {
      */
     static navigationOptions = ({navigation}) => ({
         headerTitle: 'Editar treino',
-        headerLeft: <Ionicons
-            name="md-arrow-back"
-            size={28}
-            color={'#ffffff'}
-            style={{paddingLeft: 20}}
-            onPress = {() => navigation.goBack()}
-        />,
-        headerRight: <Ionicons
-            name="md-save"
-            size={25}
-            color={'#ffffff'}
-            style={{paddingRight: 20}}
-            //onPress = {() => navigation.navigate('EditOpenedTraining')}
-        />
+        headerLeft:
+            <TouchableOpacity style={{
+                width:42,
+                height:42,
+                alignItems:'center',
+                justifyContent:'center',
+                marginLeft: 10}} onPress = {() => navigation.goBack()}>
+                <Ionicons
+                    name="md-arrow-back"
+                    size={28}
+                    color={'#ffffff'} />
+            </TouchableOpacity>,
+        headerRight:
+            <TouchableOpacity style={{
+                width:42,
+                height:42,
+                alignItems:'center',
+                justifyContent:'center',
+                marginRight: 10}}>
+                <Ionicons
+                    name="md-save"
+                    size={28}
+                    color={'#ffffff'} />
+            </TouchableOpacity>,
     });
 
     render() {

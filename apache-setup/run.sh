@@ -25,7 +25,7 @@ if [[ $1 == start ]]; then
 
 elif [[ $1 == stop ]]; then
       cd /etc/apache2/sites-available
-      sudo a2dissite odoo.prod.conf &>/dev/null
+      sudo a2dissite * &>/dev/null
       sudo a2dissite proxy &>/dev/null
       sudo a2dissite proxy_http &>/dev/null
       # sudo a2dissite remoteip &>/dev/null

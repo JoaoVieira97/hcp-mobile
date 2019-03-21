@@ -6,6 +6,8 @@ export default class CustomText extends Component {
         switch (type) {
             case 'bold':
                 return 'Montserrat-Bold';
+            case 'semi-bold':
+                return 'Montserrat-SemiBold';
             case 'extra-light':
                 return 'Montserrat-ExtraLight';
             default:

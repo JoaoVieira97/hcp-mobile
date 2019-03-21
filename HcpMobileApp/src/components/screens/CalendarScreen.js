@@ -29,10 +29,6 @@ class CalendarScreen extends Component {
         };
     }
 
-    static navigationOptions = {
-        headerTitle: 'Calendário',
-    };
-
     async getLocal(id) {
 
         const params = {

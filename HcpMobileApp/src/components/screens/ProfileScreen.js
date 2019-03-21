@@ -3,7 +3,6 @@ import React, { Component } from 'react';
 import {Text, View, Button} from 'react-native';
 import {connect} from "react-redux";
 
-
 class ProfileScreen extends Component {
 
     constructor(props) {
@@ -22,13 +21,6 @@ class ProfileScreen extends Component {
             phone: null,
             posicao: null
         }
-    };
-
-    static navigationOptions = ({navigation}) => {
-
-        return ({
-            headerTitle: 'Perfil',
-        });
     };
 
     async getInformations(){
@@ -59,14 +51,13 @@ class ProfileScreen extends Component {
                 phone: response.data[0].phone,
                 posicao: response.data[0].posicao
             });
-
-            console.log(response.data);
         }
     }
 
     render() {
+
         return (
-            <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+            <View style={{flex: 1, justifyContent: 'center', alignItems: 'center', paddingVertical: 20}}>
                 <Button onPress={this.getInformations.bind(this)}
                         title='GET DATA'
                 />
@@ -89,8 +80,6 @@ class ProfileScreen extends Component {
     }
 
 }
-
-
 
 
 

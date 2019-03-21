@@ -20,13 +20,6 @@ class AthletesScreen extends Component {
         }
     };
 
-    static navigationOptions = ({navigation}) => {
-
-        return ({
-            headerTitle: 'Atletas',
-        });
-    };
-
     componentDidMount() {
 
         this.getAthletesSub20();

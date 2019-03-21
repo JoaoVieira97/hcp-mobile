@@ -1,9 +1,10 @@
 import React, {Component} from 'react';
-import {View, FlatList, ActivityIndicator, Text} from 'react-native';
+import {View, FlatList, ActivityIndicator, Text, TouchableOpacity} from 'react-native';
 import {ListItem} from 'react-native-elements';
 
 import {connect} from 'react-redux';
 import {Ionicons} from "@expo/vector-icons";
+import CustomText from "../../CustomText";
 
 
 class TrainingItem extends React.PureComponent {
@@ -99,14 +100,27 @@ class OpenedTrainings extends Component {
      * Definir as opções da barra de navegação no topo.
      */
     static navigationOptions = ({navigation}) => ({
-        headerTitle: 'Convocatórias em aberto',
-        headerLeft: <Ionicons
-            name="md-arrow-back"
-            size={28}
-            color={'#ffffff'}
-            style={{paddingLeft: 20}}
-            onPress = {() => navigation.goBack()}
-        />
+        headerTitle: //'Convocatórias em aberto',
+            <CustomText
+                type={'bold'}
+                children={'CONVOCATÓRIAS EM ABERTO'}
+                style={{
+                    color: '#ffffff',
+                    fontSize: 16
+                }}
+            />,
+        headerLeft:
+            <TouchableOpacity style={{
+                width:42,
+                height:42,
+                alignItems:'center',
+                justifyContent:'center',
+                marginLeft: 10}} onPress = {() => navigation.goBack()}>
+                <Ionicons
+                    name="md-arrow-back"
+                    size={28}
+                    color={'#ffffff'} />
+            </TouchableOpacity>
     });
 
     /**

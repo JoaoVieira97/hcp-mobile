@@ -6,7 +6,6 @@ import {
     Image,
     TouchableOpacity,
     AsyncStorage,
-    Text,
     StyleSheet
 } from 'react-native';
 
@@ -23,6 +22,8 @@ import { fromRight, fromBottom } from 'react-navigation-transitions';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo';
 
+import {colors} from "../../styles/index.style";
+
 import AuthenticationLoading from "../authentication/AuthenticationLoading";
 import LoginScreen from '../authentication/LoginScreen';
 import HomeScreen from '../screens/HomeScreen';
@@ -37,6 +38,7 @@ import EventScreen from "../screens/EventScreen";
 import PendingTrainings from "../management/trainings/PendingTrainings";
 import OpenedTraining from "../management/trainings/OpenedTraining";
 import EditOpenedTraining from "../management/trainings/EditOpenedTraining";
+import CustomText from "../CustomText";
 
 const styles = StyleSheet.create({
     container: {
@@ -112,25 +114,57 @@ const HomeStackNavigator = createStackNavigator({
     transitionConfig: () => fromRight(600),
     defaultNavigationOptions: ({navigation}) => {
         return {
-            headerTitle: 'Início',
+            headerStyle: {
+                elevation: 0, // remove shadow on Android
+                shadowOpacity: 0, // remove shadow on iOS
+                backgroundColor: colors.gradient1
+            },
+            headerTitle:
+                <CustomText
+                    type={'bold'}
+                    children={'INÍCIO'}
+                    style={{
+                        color: '#ffffff',
+                        
+                        fontSize: 16
+                    }}
+                />,
+            /*
             headerBackground: (
                 <LinearGradient
-                    colors={['#ad2e53', '#2f2d3b']}
+                    colors={[colors.gradient1, colors.gradient2]}
                     style={{ flex: 1 }}
                     start={[0, 0]}
                     end={[0.8, 0]}
                 />
             ),
-            headerTitleStyle: {
-                color: '#ffffff',
-                fontWeight: '500',
-            },
-            headerLeft: <Ionicons
-                name="md-menu"
-                size={30}
-                color={'#ffffff'}
-                style={{paddingLeft: 20}}
-                onPress = {() => navigation.openDrawer()}/>
+            */
+            headerLeft: (
+                <TouchableOpacity style={{
+                    width:42,
+                    height:42,
+                    alignItems:'center',
+                    justifyContent:'center',
+                    marginLeft: 10}} onPress = {() => navigation.openDrawer()}>
+                    <Ionicons
+                        name="md-menu"
+                        size={30}
+                        color={'#ffffff'}/>
+                </TouchableOpacity>
+            ),
+            headerRight: (
+                <TouchableOpacity style={{
+                    width:42,
+                    height:42,
+                    alignItems:'center',
+                    justifyContent:'center',
+                    marginRight: 10}} >
+                    <Ionicons
+                        name="md-notifications"
+                        size={27}
+                        color={'#ffffff'}/>
+                </TouchableOpacity>
+            )
         }
     }
 });
@@ -143,25 +177,38 @@ const CalendarStackNavigator = createStackNavigator({
     transitionConfig: () => fromRight(600),
     defaultNavigationOptions: ({navigation}) => {
         return {
-            headerTitle: 'Calendário',
+            headerTitle:
+                <CustomText
+                    type={'bold'}
+                    children={'CALENDÁRIO'}
+                    style={{
+                        color: '#ffffff',
+                        
+                        fontSize: 16
+                    }}
+                />,
             headerBackground: (
                 <LinearGradient
-                    colors={['#ad2e53', '#2f2d3b']}
+                    colors={[colors.gradient1, colors.gradient2]}
                     style={{ flex: 1 }}
                     start={[0, 0]}
                     end={[0.8, 0]}
                 />
             ),
-            headerTitleStyle: {
-                color: '#ffffff',
-                fontWeight: '500',
-            },
-            headerLeft: <Ionicons
-                name="md-menu"
-                size={30}
-                color={'#ffffff'}
-                style={{paddingLeft: 20}}
-                onPress = {() => navigation.openDrawer()}/>
+
+            headerLeft: (
+                <TouchableOpacity style={{
+                    width:42,
+                    height:42,
+                    alignItems:'center',
+                    justifyContent:'center',
+                    marginLeft: 10}} onPress = {() => navigation.openDrawer()}>
+                    <Ionicons
+                        name="md-menu"
+                        size={30}
+                        color={'#ffffff'}/>
+                </TouchableOpacity>
+            )
         }
     }
 });
@@ -179,11 +226,13 @@ const ManagementNavigator = createMaterialTopTabNavigator({
         pressColor: '#551726',
         showIcon: false,
         style: {
-            backgroundColor: '#debec8'
+            backgroundColor: '#debec8',
+            //shadowRadius: 0,
+            //elevation: 0
         },
         indicatorStyle: {
-            backgroundColor: '#ad2e53'
-        }
+            backgroundColor: '#ad2e53',
+        },
     }
 });
 
@@ -200,34 +249,36 @@ const ManagementStackNavigator = createStackNavigator({
     //transitionConfig: () => fromRight(350),
     defaultNavigationOptions: ({navigation}) => {
         return {
-            headerTitle: 'Gestão',
+            headerTitle:
+                <CustomText
+                    type={'bold'}
+                    children={'GESTÃO'}
+                    style={{
+                        color: '#ffffff',
+                        fontSize: 16
+                    }}
+                />,
             headerBackground: (
                 <LinearGradient
-                    colors={['#ad2e53', '#2f2d3b']}
+                    colors={[colors.gradient1, colors.gradient2]}
                     style={{ flex: 1 }}
                     start={[0, 0]}
                     end={[0.8, 0]}
                 />
             ),
-            headerTitleStyle: {
-                color: '#ffffff',
-                fontWeight: '500',
-            },
+
             headerLeft: (
-                <View style={{
+                <TouchableOpacity style={{
                     width:42,
                     height:42,
                     alignItems:'center',
                     justifyContent:'center',
-                    //borderRadius:50,
-                    //backgroundColor: '#3e3e3e',
-                    marginLeft: 10}}>
+                    marginLeft: 10}} onPress = {() => navigation.openDrawer()}>
                     <Ionicons
                         name="md-menu"
                         size={30}
-                        color={'#ffffff'}
-                        onPress = {() => navigation.openDrawer()}/>
-                </View>
+                        color={'#ffffff'}/>
+                </TouchableOpacity>
             )
         }
     }
@@ -242,25 +293,37 @@ const AthletesStackNavigator = createStackNavigator({
     transitionConfig: () => fromBottom(600),
     defaultNavigationOptions: ({navigation}) => {
         return {
-            headerTitle: 'Atletas',
+            headerTitle:
+                <CustomText
+                    type={'bold'}
+                    children={'ATLETAS'}
+                    style={{
+                        color: '#ffffff',
+                        fontSize: 16
+                    }}
+                />,
             headerBackground: (
                 <LinearGradient
-                    colors={['#ad2e53', '#2f2d3b']}
+                    colors={[colors.gradient1, colors.gradient2]}
                     style={{ flex: 1 }}
                     start={[0, 0]}
                     end={[0.8, 0]}
                 />
             ),
-            headerTitleStyle: {
-                color: '#ffffff',
-                fontWeight: '500',
-            },
-            headerLeft: <Ionicons
-                name="md-menu"
-                size={30}
-                color={'#ffffff'}
-                style={{paddingLeft: 20}}
-                onPress = {() => navigation.openDrawer()}/>
+
+            headerLeft: (
+                <TouchableOpacity style={{
+                    width:42,
+                    height:42,
+                    alignItems:'center',
+                    justifyContent:'center',
+                    marginLeft: 10}} onPress = {() => navigation.openDrawer()}>
+                    <Ionicons
+                        name="md-menu"
+                        size={30}
+                        color={'#ffffff'}/>
+                </TouchableOpacity>
+            )
         }
     }
 });
@@ -273,25 +336,40 @@ const ProfileStackNavigator = createStackNavigator({
     transitionConfig: () => fromRight(600),
     defaultNavigationOptions: ({navigation}) => {
         return {
-            headerTitle: 'Perfil',
+            headerTitle:
+                <CustomText
+                    type={'bold'}
+                    children={'PERFIL'}
+                    style={{
+                        color: '#ffffff',
+                        fontSize: 16
+                    }}
+                />,
+            headerTitleStyle: {
+                color: '#ffffff',
+            },
             headerBackground: (
                 <LinearGradient
-                    colors={['#ad2e53', '#2f2d3b']}
+                    colors={[colors.gradient1, colors.gradient2]}
                     style={{ flex: 1 }}
                     start={[0, 0]}
                     end={[0.8, 0]}
                 />
             ),
-            headerTitleStyle: {
-                color: '#ffffff',
-                fontWeight: '500',
-            },
-            headerLeft: <Ionicons
-                name="md-menu"
-                size={30}
-                color={'#ffffff'}
-                style={{paddingLeft: 20}}
-                onPress = {() => navigation.openDrawer()}/>
+
+            headerLeft: (
+                <TouchableOpacity style={{
+                    width:42,
+                    height:42,
+                    alignItems:'center',
+                    justifyContent:'center',
+                    marginLeft: 10}} onPress = {() => navigation.openDrawer()}>
+                    <Ionicons
+                        name="md-menu"
+                        size={30}
+                        color={'#ffffff'}/>
+                </TouchableOpacity>
+            )
         }
     }
 });
@@ -321,7 +399,7 @@ const CustomDrawerContentComponent = (props) => {
             <TouchableOpacity
                 style={styles.footer}
                 onPress={_logout}>
-                <Text style={styles.logoutText}>Logout</Text>
+                <CustomText type={'semi-bold'} children={'Logout'} style={styles.logoutText} />
                 <Ionicons name="md-exit" size={30} style={styles.logoutIcon}
                 />
             </TouchableOpacity>
@@ -335,10 +413,19 @@ const AppDrawerNavigator = createDrawerNavigator({
     HomeStack: {
         screen: HomeStackNavigator,
         navigationOptions: ({
-            title: 'Início',
+            drawerLabel:
+                <View style={{marginVertical: 15}}>
+                    <CustomText
+                        type={'bold'}
+                        children={'Início'}
+                        style={{
+                            fontSize: 16
+                        }}
+                    />
+                </View>,
             drawerIcon: <Ionicons
                 name="md-home"
-                size={30}
+                size={28}
                 color={'#000000'}
             />
         })
@@ -346,10 +433,19 @@ const AppDrawerNavigator = createDrawerNavigator({
     CalendarStack: {
         screen: CalendarStackNavigator,
         navigationOptions: ({
-            title: 'Calendário',
+            drawerLabel:
+                <View style={{marginVertical: 15}}>
+                    <CustomText
+                        type={'bold'}
+                        children={'Calendário'}
+                        style={{
+                            fontSize: 16
+                        }}
+                    />
+                </View>,
             drawerIcon: <Ionicons
                 name="md-calendar"
-                size={30}
+                size={28}
                 color={'#000000'}
             />
         })
@@ -357,10 +453,19 @@ const AppDrawerNavigator = createDrawerNavigator({
     ManagementStack: {
         screen: ManagementStackNavigator,
         navigationOptions: ({
-            title: 'Gestão',
+            drawerLabel:
+                <View style={{marginVertical: 15}}>
+                    <CustomText
+                        type={'bold'}
+                        children={'Gestão'}
+                        style={{
+                            fontSize: 16
+                        }}
+                    />
+                </View>,
             drawerIcon: <Ionicons
                 name="md-clipboard"
-                size={30}
+                size={28}
                 color={'#000000'}
             />
         })
@@ -368,10 +473,19 @@ const AppDrawerNavigator = createDrawerNavigator({
     AthletesStack: {
         screen: AthletesStackNavigator,
         navigationOptions: ({
-            title: 'Atletas',
+            drawerLabel:
+                <View style={{marginVertical: 15}}>
+                    <CustomText
+                        type={'bold'}
+                        children={'Atletas'}
+                        style={{
+                            fontSize: 16
+                        }}
+                    />
+                </View>,
             drawerIcon: <Ionicons
                 name="md-people"
-                size={30}
+                size={29}
                 color={'#000000'}
             />
         })
@@ -379,16 +493,25 @@ const AppDrawerNavigator = createDrawerNavigator({
     ProfileStack: {
         screen: ProfileStackNavigator,
         navigationOptions: ({
-            title: 'Perfil',
+            drawerLabel:
+                <View style={{marginVertical: 15}}>
+                    <CustomText
+                        type={'bold'}
+                        children={'Perfil'}
+                        style={{
+                            fontSize: 16
+                        }}
+                    />
+                </View>,
             drawerIcon: <Ionicons
                 name="md-person"
-                size={30}
+                size={27}
                 color={'#000000'}
             />
         })
     }
 }, {
-    initialRouteName: 'ManagementStack',
+    initialRouteName: 'HomeStack',
     order: ['HomeStack', 'CalendarStack', 'ManagementStack', 'AthletesStack', 'ProfileStack'],
     drawerWidth: WIDTH*0.7,
     contentComponent: CustomDrawerContentComponent,

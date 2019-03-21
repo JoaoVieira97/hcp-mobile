@@ -10,6 +10,8 @@ import Odoo from 'react-native-odoo-promise-based';
 import {connect} from 'react-redux';
 import {setOdooInstance} from "../../redux/actions/odoo";
 import {setUserData, setUserImage, setUserRoles} from "../../redux/actions/user";
+import { HOST, PORT, DATABASE } from 'react-native-dotenv';
+import {colors} from "../../styles/index.style";
 
 
 
@@ -30,9 +32,9 @@ class AuthenticationLoading extends React.Component {
         if(token) {
             // odoo connection parameters
             const odoo = new Odoo({
-                host: '10.0.2.2',
-                port: 8069,
-                database: 'hcp',
+                host: HOST,
+                port: PORT,
+                database: DATABASE,
                 sid: token,
                 username: username,
                 password: password
@@ -115,7 +117,7 @@ class AuthenticationLoading extends React.Component {
     render() {
         return (
             <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
-                <ActivityIndicator />
+                <ActivityIndicator size='large' color={colors.loadingColor} />
             </View>
         );
     }

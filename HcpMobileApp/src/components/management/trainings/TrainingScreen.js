@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import {View, StyleSheet, FlatList, Alert } from 'react-native';
 import {ListItem} from 'react-native-elements';
 import {Ionicons} from "@expo/vector-icons";
+import CustomText from "../../CustomText";
 
 import {connect} from 'react-redux';
 
@@ -29,12 +30,6 @@ class TrainingScreen extends Component {
 
         this.willFocus.remove();
     }
-
-    static defaultNavigationOptions = ({navigation}) => {
-        return ({
-
-        });
-    };
 
     /**
      * Definir as opções da barra de navegação no topo.
