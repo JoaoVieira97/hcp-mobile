@@ -32,7 +32,10 @@ class LoginScreen extends React.Component {
             password: "",
             error: "",
             isLoading: false
-        }
+        };
+
+        console.log(HOST);
+        console.log(PORT);
     }
 
     /**

@@ -26,7 +26,7 @@ import {colors} from "../../styles/index.style";
 
 import AuthenticationLoading from "../authentication/AuthenticationLoading";
 import LoginScreen from '../authentication/LoginScreen';
-import HomeScreen from '../screens/HomeScreen';
+import HomeScreen from '../home/HomeScreen';
 import CalendarScreen from '../screens/CalendarScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import TrainingScreen from "../management/trainings/TrainingScreen";
@@ -52,8 +52,8 @@ const styles = StyleSheet.create({
     headerLogo: {
         flex: 1,
         flexDirection: 'row',
-        alignItems: 'center',
-        paddingTop: 25,
+        //alignItems: 'center',
+        paddingTop: 40,
         //borderBottomWidth: 1,
         //borderBottomColor: '#777777',
     },
@@ -390,6 +390,19 @@ const CustomDrawerContentComponent = (props) => {
                         <View style={styles.imgView}>
                             <Image style={styles.img} source={require('../../../assets/logo.png')} />
                         </View>
+                        <View style={{marginRight: 15}}>
+                            <TouchableOpacity style={{
+                                width:50,
+                                height:50,
+                                alignItems:'center',
+                                justifyContent:'center',
+                                }} onPress = {() => props.navigation.closeDrawer()}>
+                                <Ionicons
+                                    name="md-close"
+                                    size={30}
+                                    color={colors.greyText}/>
+                            </TouchableOpacity>
+                        </View>
                     </View>
                 </View>
                 <View style={styles.content}>
@@ -400,8 +413,7 @@ const CustomDrawerContentComponent = (props) => {
                 style={styles.footer}
                 onPress={_logout}>
                 <CustomText type={'semi-bold'} children={'Logout'} style={styles.logoutText} />
-                <Ionicons name="md-exit" size={30} style={styles.logoutIcon}
-                />
+                <Ionicons name="md-exit" size={30} style={styles.logoutIcon}/>
             </TouchableOpacity>
         </View>
     )

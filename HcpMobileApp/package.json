@@ -24,7 +24,9 @@
     "react-navigation-material-bottom-tabs": "^1.0.0",
     "react-navigation-transitions": "^1.0.8",
     "react-redux": "^6.0.1",
-    "redux": "^4.0.1"
+    "redux": "^4.0.1",
+    "react-native-dotenv": "latest",
+    "react-native-snap-carousel": "latest"
   },
   "devDependencies": {
     "babel-preset-expo": "^5.0.0"

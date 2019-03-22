@@ -21,6 +21,9 @@ class AuthenticationLoading extends React.Component {
 
     constructor(props) {
         super(props);
+
+        console.log(HOST);
+        console.log(PORT);
     }
 
     async componentDidMount() {

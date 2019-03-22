@@ -3,14 +3,16 @@ import {
     View,
     Image,
     StyleSheet,
-    Text,
     Dimensions,
+    ScrollView,
+    TouchableOpacity
 } from 'react-native';
 import {connect} from 'react-redux';
 import {LinearGradient} from 'expo';
 import {colors} from "../../styles/index.style";
 import Carousel, { Pagination } from 'react-native-snap-carousel';
 import CustomText from "../CustomText";
+import {Ionicons} from "@expo/vector-icons";
 
 class HomeScreen extends React.Component {
 
@@ -58,13 +60,45 @@ class HomeScreen extends React.Component {
         return (
             <View style={styles.slide}>
                 <View style={styles.slideInnerContainer}>
-                    <Image
-                        source={require('../../../assets/test.png')}
-                        style={{width: '100%', height: '60%', opacity: 0.8}}>
-                    </Image>
-                    <Text>
-                        {item.title}
-                    </Text>
+                    {/*
+                        <Image
+                            source={require('../../../assets/test.png')}
+                            style={{width: '100%', height: '60%', opacity: 0.8}}>
+                        </Image>
+                        <Text>
+                            {item.title}
+                        </Text>
+                    */}
+                    <View style={{flex: 1}}>
+                        <View style={{
+                            height: '70%',
+                            opacity: 0.8,
+                            backgroundColor: colors.gradient2}}>
+
+                        </View>
+                        <View style={{height: '30%'}}>
+                            <TouchableOpacity style={{
+                                flex: 1,
+                                flexDirection: 'row',
+                                justifyContent: 'flex-end',
+                                alignItems: 'center',
+                                paddingHorizontal: 20}}>
+                                <View style={{marginRight: 15}}>
+                                    <CustomText
+                                        children={'Ver mais'}
+                                        type={'bold'}
+                                        style={{
+                                            fontSize: 18,
+                                            color: colors.gradient2
+                                        }}
+                                    />
+                                </View>
+                                <View>
+                                    <Ionicons name={"md-arrow-forward"} color={colors.gradient2} size={26}/>
+                                </View>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
                 </View>
             </View>
         );
@@ -121,47 +155,42 @@ class HomeScreen extends React.Component {
                 style={styles.container}
                 start={[0, 0.2]}
                 end={[0, 0.7]}>
-                <View>
-                    <View style={{justifyContent: 'center', alignItems: 'center'}}>
-                        {
-                            /*
-                        <Image
-                            resizeMode={'cover'}
-                            style={{ height: 80, width: 80}}
-                               source={require('../../../assets/logo.png')}/>
-                        */
-                        }
-                        <CustomText
-                            children={'Eventos'}
-                            type={'semi-bold'}
-                            style={{
-                                color: '#fff',
-                                marginBottom: 8
-                            }}
-                        />
-                    </View>
+                <ScrollView contentContainerStyle={{alignItems: 'center'}}>
+                    <CustomText
+                        children={'Eventos'}
+                        type={'semi-bold'}
+                        style={{
+                            color: '#fff',
+                            marginBottom: 8
+                        }}
+                    />
                     { this.pagination }
                     <Carousel
-                        layout={'tinder'} // layout={'stack'}
-                        layoutCardOffset={18}
+                        /*
+                        https://github.com/archriss/react-native-snap-carousel/blob/master/doc/PROPS_METHODS_AND_GETTERS.md
+                         */
+                        enableMomentum={false}
+                        decelerationRate={'fast'}
+                        //loop
+                        //loopClonesPerSide={3}
+                        autoplay
+                        autoplayDelay={2000}
+                        autoplayInterval={2500}
+                        // layout={'tinder'} // layout={'stack'}
+                        // layoutCardOffset={18}
                         renderItem={this._renderItem}
                         sliderWidth={sliderWidth}
                         itemWidth={itemWidth}
                         data={this.state.entries}
                         onSnapToItem={(index) => this.setState({ activeSlide: index }) }
                     />
-                    <View style={{justifyContent: 'center', alignItems: 'center'}}>
+                    <View>
                         {displayRoles}
                     </View>
-                </View>
-            </LinearGradient>
-            /*
-                <View style={styles.container}>
-                    <Text style={{fontWeight: '700', fontSize: 20}}>{this.state.name}</Text>
                     <Image style={{ width: 150, height: 100, marginVertical: 20}}
                            source={{uri: `data:image/png;base64,${this.state.image}`}}/>
-                </View>
-            */
+                </ScrollView>
+            </LinearGradient>
         );
     }
 }
@@ -180,7 +209,7 @@ const slideWidth = Math.round(sliderWidth * 0.8);
 const horizontalMargin = 30;
 const itemWidth = slideWidth + horizontalMargin * 2;
 // Outside Item Height
-const itemHeight = viewportHeight * 0.45; //300
+const itemHeight = viewportHeight * 0.40; //300
 // Outside Border Radius
 const entryBorderRadius = 15;
 
@@ -192,11 +221,9 @@ const styles = StyleSheet.create({
     slide: {
         width: itemWidth,
         height: itemHeight,
-        //paddingLeft: horizontalMargin,
-        //paddingRight: 30,
         alignItems: 'center',
         paddingTop: 10,
-        paddingBottom: 50,
+        paddingBottom: 20,
         //backgroundColor: '#fff'
     },
     slideInnerContainer: {
