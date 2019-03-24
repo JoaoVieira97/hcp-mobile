@@ -1,11 +1,27 @@
 import React from 'react';
 
-import {View, Text, StyleSheet, Image, ScrollView, RefreshControl, FlatList, TouchableOpacity} from 'react-native';
+import {
+    View,
+    Text,
+    StyleSheet,
+    Image,
+    ScrollView,
+    RefreshControl,
+    FlatList,
+    TouchableOpacity,
+    ActivityIndicator,
+    Alert
+} from 'react-native';
 import {connect} from 'react-redux';
 import {Ionicons} from "@expo/vector-icons";
 import { SectionGrid } from 'react-native-super-grid';
 import { ListItem } from 'react-native-elements';
 import CustomText from "../../CustomText";
+import { DangerZone } from 'expo';
+const { Lottie } = DangerZone;
+
+import {removeTraining} from "../../../redux/actions/openedTrainings";
+import {colors} from "../../../styles/index.style";
 
 class OpenedTraining extends React.Component {
 
@@ -13,27 +29,29 @@ class OpenedTraining extends React.Component {
         super(props);
 
         this.state = {
+            isLoading: true,
             isRefreshing: false,
-            id: false,
-            category: '',
-            local: '',
-            startTime: '',
-            endTime: '',
-            duration: '',
-            coaches: [],
+            animation: false,
+            training: {},
+            coaches: ['A carregar...'],
             athletes: [],
         }
     }
 
-    componentDidMount() {
+    componentWillMount() {
+
+        const training = this.props.trainingsList.find(
+            training => training.id === this.props.navigation.getParam('id')
+        );
 
         this.setState({
-
-            id: this.props.navigation.getParam('id')
-
-        }, async () => {
-            await this.fetchTraining(this.state.id);
+            training: training
         });
+    }
+
+    async componentDidMount() {
+
+        await this.fetchData();
     }
 
     /**
@@ -67,7 +85,8 @@ class OpenedTraining extends React.Component {
                 height:42,
                 alignItems:'center',
                 justifyContent:'center',
-                marginRight: 10}} onPress = {() => navigation.navigate('EditOpenedTraining')}>
+                marginRight: 10}} onPress = {() => {navigation.navigate('EditOpenedTraining')}
+            }>
                 <Ionicons
                     name="md-create"
                     size={25}
@@ -77,19 +96,12 @@ class OpenedTraining extends React.Component {
 
     /**
      * Buscar todos os dados necessários sobre o treino.
-     * @param id
      */
-    async fetchTraining(id) {
+    async fetchData() {
 
         let params = {
-            ids: [id],
+            ids: [this.state.training.id],
             fields: [
-                'id',
-                'escalao',
-                'local',
-                'start_datetime',
-                'stop_datetime',
-                'duracao',
                 'treinador',
                 'convocatorias'
             ],
@@ -98,16 +110,12 @@ class OpenedTraining extends React.Component {
         const response = await this.props.odoo.get('ges.treino', params);
         if (response.success && response.data.length > 0) {
 
-            console.log(response.data);
             await this.fetchAthletes(response.data[0].convocatorias);
+            await this.fetchCoaches(response.data[0].treinador);
 
             await this.setState({
-                category: response.data[0].escalao[1],
-                startTime: response.data[0].start_datetime,
-                endTime: response.data[0].stop_datetime,
-                duration: response.data[0].duration,
-                coaches: response.data[0].treinador,
-                local: response.data[0].local[1],
+                isLoading: false,
+                isRefreshing: false
             });
         }
     }
@@ -127,26 +135,31 @@ class OpenedTraining extends React.Component {
             ],
         };
 
-        const response = await this.props.odoo.get('ges.linha_convocatoria', params)
-
+        const response = await this.props.odoo.get('ges.linha_convocatoria', params);
         if(response.success && response.data.length > 0) {
 
             const data = response.data;
-            const size = data.length;
+            const ids = data.map(athlete => {return athlete.atleta[0]});
 
             let athletes = [];
-            for (let i = 0; i < size; i++) {
+            const athletesImages = await this.fetchAthletesImages(ids);
+
+            data.forEach(item => {
+
+                const image = athletesImages.find(imageItem =>
+                    item.atleta[0] === imageItem.id
+                );
 
                 const athlete = {
-                    id: data[i].atleta[0],
-                    name: data[i].atleta[1],
-                    squad_number: data[i].numero,
-                    available: data[i].disponivel,
-                    image: await this.fetchAthleteImage(data[i].atleta[0])
+                    id: item.atleta[0],
+                    name: item.atleta[1],
+                    squad_number: item.numero,
+                    available: item.disponivel,
+                    image: image.image
                 };
 
                 athletes.push(athlete);
-            }
+            });
 
             this.setState(state => ({
                 athletes: [...state.athletes, ...athletes]
@@ -155,14 +168,15 @@ class OpenedTraining extends React.Component {
     }
 
     /**
-     * Buscar a imagem do atleta
-     * @param id
+     * Buscar as imagens dos atletas.
+     * @param ids
      */
-    async fetchAthleteImage (id) {
+    async fetchAthletesImages(ids) {
 
         const params = {
-            ids: [id],
+            ids: ids,
             fields: [
+                'id',
                 'image',
             ]
         };
@@ -170,9 +184,90 @@ class OpenedTraining extends React.Component {
         const response = await this.props.odoo.get('ges.atleta', params);
 
         if(response.success && response.data.length > 0)
-            return response.data[0].image;
+            return response.data;
 
-        return null;
+        return [];
+    }
+
+    /**
+     * Buscar os nomes dos treinadores associados ao treino.
+     */
+    async fetchCoaches(ids) {
+
+        const params = {
+            ids: ids,
+            fields: ['name'],
+        };
+
+        const response = await this.props.odoo.get('ges.treinador', params);
+        if(response.success && response.data.length > 0) {
+
+            const data = response.data;
+
+            let coachesNames = [];
+            data.forEach(item => {
+                coachesNames.push(item.name);
+            });
+
+            this.setState({
+                coaches: coachesNames
+            });
+        }
+    }
+
+    /**
+     * Registar presenças.
+     */
+    async markPresences() {
+
+        Alert.alert(
+            'Confirmação',
+            'Pretende fechar o período de convocatórias para este treino?',
+            [
+                {text: 'Cancelar', style: 'cancel'},
+                {
+                    text: 'Confirmar',
+                    onPress: async () => {
+
+                        /*
+                        const params = {
+                            kwargs: {
+                                context: this.props.odoo.context,
+                            },
+                            model: 'ges.treino',
+                            method: 'marcar_presencas',
+                            args: [this.state.training.id]
+                        };
+
+                        const response = await this.props.odoo.rpc_call(
+                            '/web/dataset/call_kw',
+                            params
+                        );
+
+                        if (response.success) {
+
+                            await this.props.removeTraining(this.state.training.id);
+                            await this.setState({animation: true});
+                            this.animation.play();
+
+                            setTimeout(() => {
+                                this.props.navigation.goBack();
+                            }, 1100);
+                        }
+                        */
+
+                        await this.props.removeTraining(this.state.training.id);
+                        await this.setState({animation: true});
+                        this.animation.play();
+
+                        setTimeout(() => {
+                            this.props.navigation.goBack();
+                        }, 1100);
+                    }
+                },
+            ],
+            {cancelable: true},
+        );
     }
 
     /**
@@ -240,6 +335,30 @@ class OpenedTraining extends React.Component {
         );
     };
 
+    renderHeader = () => {
+
+        return (
+            <TouchableOpacity
+                onPress={async () => {await this.markPresences();}}
+                style={{
+                flex: 1,
+                alignItems: 'center',
+                backgroundColor: 'rgba(173, 46, 83, 0.8)', //rgba(173, 46, 83, 0.8)
+                padding: 10,
+                marginHorizontal: 10,
+                marginVertical: 5,
+                borderRadius: 5
+            }}>
+                <Text style={{color: '#fff', fontWeight: '700', fontSize: 15}}>
+                    FECHAR CONVOCATÓRIA
+                </Text>
+                <Text style={{color: '#dedede', fontWeight: '400'}}>
+                    Serão registadas as presenças dos atletas disponíveis.
+                </Text>
+            </TouchableOpacity>
+        );
+    };
+
     /**
      * Função que permite atualizar o conteúdo do componente.
      */
@@ -249,8 +368,7 @@ class OpenedTraining extends React.Component {
             athletes: []
         }, async () => {
 
-            await this.fetchTraining(this.state.id);
-            this.setState({isRefreshing: false});
+            await this.fetchData();
         });
     };
 
@@ -259,54 +377,77 @@ class OpenedTraining extends React.Component {
         const list = [{
             name: 'Escalão',
             icon: 'md-shirt',
-            subtitle: this.state.category,
+            subtitle: this.state.training.escalao[1],
         }, {
             name: 'Início',
             icon: 'md-time',
-            subtitle: this.state.startTime
+            subtitle: this.state.training.display_start,
         }, {
             name: 'Local',
             icon: 'md-pin',
-            subtitle: this.state.local
+            subtitle: this.state.training.local[1],
         }, {
             name: 'Treinadores',
             icon: 'md-people',
-            subtitle: 'Treinador 1 | Treinador 2'
+            subtitle: this.state.coaches.join(', ')
         }];
 
         return (
-            <ScrollView
-                style={{flex: 1}}
-                nestedScrollEnabled={true}
-                refreshControl={
-                    <RefreshControl
-                        refreshing={this.state.isRefreshing}
-                        onRefresh={this.onRefresh}
+            <View style={{flex: 1}}>
+                { this.state.isLoading &&
+                    <View style={styles.loading} opacity={0.5}>
+                        <ActivityIndicator size='large' color={colors.loadingColor} />
+                    </View>
+                }
+                { this.state.animation &&
+                    <View style={styles.loading} opacity={0.8}>
+                        <Lottie
+                            ref={animation => {
+                                this.animation = animation;
+                            }}
+                            loop={false}
+                            style={{
+                                width: 200,
+                                height: 200,
+                            }}
+                            source={require('../../../../assets/animations/success')}
+                        />
+                    </View>
+                }
+                <ScrollView
+                    style={{flex: 1}}
+                    nestedScrollEnabled={true}
+                    refreshControl={
+                        <RefreshControl
+                            refreshing={this.state.isRefreshing}
+                            onRefresh={this.onRefresh}
+                        />
+                    }>
+                    <View style={styles.topHeader}>
+                        <FlatList
+                            keyExtractor={item => item.name}
+                            data={list}
+                            renderItem={this.renderItemOfList}
+                            ListHeaderComponent={this.renderHeader}
+                        />
+                    </View>
+                    <SectionGrid
+                        itemDimension={100}
+                        spacing={10}
+                        sections={[{
+                            title: 'Atletas convocados | Disponibilidade',
+                            data: this.state.athletes,
+                        }]}
+                        style={styles.gridView}
+                        renderItem={this.renderItem}
+                        renderSectionHeader={({section}) => (
+                            <View style={styles.sectionHeader}>
+                                <Text style={styles.sectionText}>{section.title}</Text>
+                            </View>
+                        )}
                     />
-                }>
-                <View style={styles.topHeader}>
-                    <FlatList
-                        keyExtractor={item => item.name}
-                        data={list}
-                        renderItem={this.renderItemOfList}
-                    />
-                </View>
-                <SectionGrid
-                    itemDimension={100}
-                    spacing={10}
-                    sections={[{
-                        title: 'Atletas convocados | Disponibilidade',
-                        data: this.state.athletes,
-                    }]}
-                    style={styles.gridView}
-                    renderItem={this.renderItem}
-                    renderSectionHeader={({section}) => (
-                        <View style={styles.sectionHeader}>
-                            <Text style={styles.sectionText}>{section.title}</Text>
-                        </View>
-                    )}
-                />
-            </ScrollView>
+                </ScrollView>
+            </View>
         );
     }
 }
@@ -317,7 +458,8 @@ const styles = StyleSheet.create({
         backgroundColor: '#ffe3e4',
         borderBottomLeftRadius: 20,
         borderBottomRightRadius: 20,
-        paddingVertical: 10
+        paddingVertical: 10,
+        elevation: 5
     },
     gridView: {
         marginTop: 10,
@@ -354,13 +496,30 @@ const styles = StyleSheet.create({
         fontWeight: '600',
         color: '#ad2e53',
     },
+    loading: {
+        position: 'absolute',
+        left: 0,
+        right: 0,
+        top: 0,
+        bottom: 0,
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: "#ffffff",
+        zIndex: 101
+    }
 });
 
 const mapStateToProps = state => ({
 
     odoo: state.odoo.odoo,
+    trainingsList: state.openedTrainings.trainingsList
 });
 
-const mapDispatchToProps = dispatch => ({});
+const mapDispatchToProps = dispatch => ({
+
+    removeTraining: (trainingsList) => {
+        dispatch(removeTraining(trainingsList))
+    },
+});
 
 export default connect(mapStateToProps, mapDispatchToProps)(OpenedTraining);

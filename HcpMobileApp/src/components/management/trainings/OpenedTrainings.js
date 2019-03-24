@@ -6,6 +6,8 @@ import {connect} from 'react-redux';
 import {Ionicons} from "@expo/vector-icons";
 import CustomText from "../../CustomText";
 
+import {setTrainings, addTrainings, clearAllTrainings} from "../../../redux/actions/openedTrainings";
+
 
 class TrainingItem extends React.PureComponent {
 
@@ -72,28 +74,29 @@ class OpenedTrainings extends Component {
         super(props);
 
         this.state = {
-            trainingsList: [],
-            lastIDFetched: false,
             isLoading: true,
             isRefreshing: false,
         };
     }
 
-    componentDidMount() {
+    async componentDidMount() {
 
+        await this.fetchTrainings();
+        /*
         this.willFocus = this.props.navigation.addListener('willFocus', () => {
             this.setState({
                 trainingsList: [],
                 lastIDFetched: false,
-            }, () => {
-                this.fetchTrainings();
+            }, async () => {
+                await this.fetchTrainings();
             });
         });
+        */
     }
 
     componentWillUnmount() {
 
-        this.willFocus.remove();
+        //this.willFocus.remove();
     }
 
     /**
@@ -129,17 +132,18 @@ class OpenedTrainings extends Component {
      *
      * @param limit
      */
-    async fetchTrainings(limit=15) {
+    async fetchTrainings(limit=20) {
 
-        const id = this.state.lastIDFetched ? this.state.lastIDFetched : 2147483647;
+        const idsFetched = this.props.trainingsList.map(training => {return training.id});
         const params = {
             domain: [
-                ['id', '<', id.toString()],
+                //['display_start', '<=', '3000-01-01 24:00:00'],
+                ['id', 'not in', idsFetched],
                 ['state', '=', 'aberto']
             ],
             fields: ['id', 'display_start', 'local', 'escalao', 'duracao'],
             limit: limit,
-            order: 'id DESC'
+            order: 'display_start DESC'
         };
 
         const response = await this.props.odoo.search_read('ges.treino', params);
@@ -147,12 +151,11 @@ class OpenedTrainings extends Component {
 
             if (response.data.length > 0) {
 
-                await this.setState({
-                    trainingsList: [...this.state.trainingsList, ...response.data],
-                    lastIDFetched: response.data[response.data.length-1].id
-                });
+                //this.props.setTrainings(response.data);
+                await this.props.addTrainings(response.data);
             }
-        }
+        } else
+            console.log("error");
 
         await this.setState({
             isLoading: false,
@@ -164,14 +167,14 @@ class OpenedTrainings extends Component {
      * Função que trata de atualizar a lista dos treinos.
      */
     handleRefresh = () => {
+
         this.setState({
-                trainingsList: [],
-                lastIDFetched: false,
                 isRefreshing: true,
                 isLoading: false
             },
-            () => {
-                this.fetchTrainings();
+            async () => {
+                await this.props.clearAllTrainings();
+                await this.fetchTrainings();
             });
     };
 
@@ -182,8 +185,8 @@ class OpenedTrainings extends Component {
         this.setState({
                 isLoading: true
             },
-            () => {
-                this.fetchTrainings();
+            async () => {
+                await this.fetchTrainings();
             });
     };
 
@@ -197,8 +200,6 @@ class OpenedTrainings extends Component {
             return (
                 <View style={{
                     paddingVertical: 20,
-                    borderTopWidth: 1,
-                    borderTopColor: '#ced0ce'
                 }}>
                     <ActivityIndicator
                         size={'large'}
@@ -229,7 +230,7 @@ class OpenedTrainings extends Component {
      * @param item
      */
     renderItem = ({ item, index }) => (
-        <TrainingItem training={item} index={index} navigation={this.props.navigation} />
+        <TrainingItem training={item} key={item.id} navigation={this.props.navigation} />
     );
 
     render() {
@@ -237,7 +238,7 @@ class OpenedTrainings extends Component {
         return (
             <FlatList
                 keyExtractor={item => item.id.toString()}
-                data={this.state.trainingsList}
+                data={this.props.trainingsList}
                 renderItem={this.renderItem}
                 refreshing={this.state.isRefreshing}
                 onRefresh={this.handleRefresh}
@@ -255,8 +256,22 @@ class OpenedTrainings extends Component {
 const mapStateToProps = state => ({
 
     odoo: state.odoo.odoo,
+    trainingsList: state.openedTrainings.trainingsList
 });
 
-const mapDispatchToProps = dispatch => ({});
+const mapDispatchToProps = dispatch => ({
+
+    setTrainings: (trainingsList) => {
+        dispatch(setTrainings(trainingsList))
+    },
+
+    addTrainings: (trainingsList) => {
+        dispatch(addTrainings(trainingsList))
+    },
+
+    clearAllTrainings: () => {
+        dispatch(clearAllTrainings())
+    }
+});
 
 export default connect(mapStateToProps, mapDispatchToProps)(OpenedTrainings);

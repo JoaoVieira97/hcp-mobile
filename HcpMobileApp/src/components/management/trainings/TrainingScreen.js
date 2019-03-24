@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
-import {View, StyleSheet, FlatList, Alert } from 'react-native';
+import {View, StyleSheet, FlatList} from 'react-native';
 import {ListItem} from 'react-native-elements';
 import {Ionicons} from "@expo/vector-icons";
-import CustomText from "../../CustomText";
+import {colors} from "../../../styles/index.style";
 
 import {connect} from 'react-redux';
 
@@ -15,20 +15,34 @@ class TrainingScreen extends Component {
         this.state = {
             openedTrainingsCounter: 0,
             closedTrainingsCounter: 0,
+            isRefreshing: false
         };
     }
 
     componentDidMount() {
 
-        this.willFocus = this.props.navigation.addListener('willFocus', () => {
-            this.countOpenedTrainings();
-            this.countTrainingsThatNeedToClose();
-        });
+        /*
+        this.timer = setInterval(
+            () => {
+                this.countOpenedTrainings();
+                this.countTrainingsThatNeedToClose();
+            },
+            3000
+        );
+        */
+
+        this.subscriptions = [
+            this.props.navigation.addListener('willFocus', async () => {
+                await this.countOpenedTrainings();
+                await this.countTrainingsThatNeedToClose();
+            })
+        ];
     }
 
     componentWillUnmount() {
 
-        this.willFocus.remove();
+        //clearInterval(this.timer);
+        this.subscriptions.forEach(sub => sub.remove());
     }
 
     /**
@@ -46,7 +60,7 @@ class TrainingScreen extends Component {
      * Contar o número de treinos em aberto.
      * Altera o estado do componente.
      */
-    countOpenedTrainings() {
+    async countOpenedTrainings() {
 
         const params = {
             kwargs: {
@@ -59,35 +73,33 @@ class TrainingScreen extends Component {
             ]
         };
 
-        this.props.odoo.rpc_call(
+        const response = await this.props.odoo.rpc_call(
             '/web/dataset/call_kw',
             params
-        ).then(
-            response => {
-                if (response.success) {
+        );
 
-                    this.setState({
-                        openedTrainingsCounter: response.data,
-                    });
-                }
-            }
-        ).catch(
-            error => {
-                Alert.alert(
+        if (response.success) {
+
+            await this.setState({
+                openedTrainingsCounter: response.data,
+            });
+        }
+
+        /*
+        Alert.alert(
                     'Erro',
                     'Aconteceu um erro. Não foi possível contabilizar o número de treiros.',
                     [{text: 'OK', onPress: () => console.log('OK Pressed')}],
                     {cancelable: false},
                 );
-            }
-        );
+         */
     }
 
     /**
      * Contar o número de treinos com convocatórias fechadas.
      * Altera o estado do componente.
      */
-    countTrainingsThatNeedToClose() {
+    async countTrainingsThatNeedToClose() {
 
         const params = {
             kwargs: {
@@ -100,29 +112,44 @@ class TrainingScreen extends Component {
             ]
         };
 
-        this.props.odoo.rpc_call(
+        const response = await this.props.odoo.rpc_call(
             '/web/dataset/call_kw',
             params
-        ).then(
-            response => {
-                if (response.success) {
+        );
 
-                    this.setState({
-                        closedTrainingsCounter: response.data,
-                    });
-                }
-            }
-        ).catch(
-            error => {
-                Alert.alert(
+        if (response.success) {
+
+            await this.setState({
+                closedTrainingsCounter: response.data,
+            });
+        }
+
+        /*
+        Alert.alert(
                     'Erro',
                     'Aconteceu um erro. Não foi possível contabilizar o número de treiros.',
                     [{text: 'OK', onPress: () => console.log('OK Pressed')}],
                     {cancelable: false},
                 );
-            }
-        );
+         */
     }
+
+    /**
+     * Função que trata de atualizar a lista dos treinos.
+     */
+    handleRefresh = () => {
+        this.setState({
+                isRefreshing: true
+            },
+            async () => {
+                await this.countOpenedTrainings();
+                await this.countTrainingsThatNeedToClose();
+
+                this.setState({
+                    isRefreshing: false
+                });
+            });
+    };
 
     /**
      * Renderizar o item da lista principal.
@@ -131,29 +158,29 @@ class TrainingScreen extends Component {
      */
     renderItem = ({ item }) => {
 
-        if (item.badge) {
-            return (
-                <ListItem
-                    title={item.name}
-                    subtitle={item.subtitle}
-                    leftAvatar={
-                        <Ionicons name={item.icon} size={27} style={{paddingBottom: 5}}/>
-                    }
-                    badge={item.badge}
-                    onPress={() => (
-                        this.props.navigation.navigate(item.onPress)
-                    )}
-                />
-            );
-        }
-
         return (
             <ListItem
                 title={item.name}
-                subtitle={item.subtitle}
+                subtitle={item.subtitle ? item.subtitle : null}
                 leftAvatar={
-                    <Ionicons name={item.icon} size={27} style={{paddingBottom: 5}}/>
+                    <View style={{
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        height: 30,
+                        width: 30
+                    }}>
+                        <Ionicons name={item.icon} size={27}/>
+                    </View>
                 }
+                badge={item.value >= 0 ? {
+                    value: item.value,
+                    badgeStyle: {
+                        backgroundColor: colors.gradient1
+                    }
+                } : null}
+                onPress={item.onPress && (item.value > 0 || item.value === -1) ? () => {
+                    this.props.navigation.navigate(item.onPress);
+                } : null}
             />
         );
     };
@@ -167,37 +194,23 @@ class TrainingScreen extends Component {
         const list = [{
                 name: 'Criar treino',
                 icon: 'md-add',
-                subtitle: '',
-                badge: false,
-                chevron: false
+                subtitle: false,
+                value: -1,
+                onPress: false
             }, {
                 name: 'Convocatórias em aberto',
                 icon: 'md-list-box',
                 subtitle: 'Editar dados | ' +
                     'Controlar a disponibilidade dos atletas | ' +
                     'Fechar o período de convocatórias',
-                badge: {
-                    value: this.state.openedTrainingsCounter,
-                    status: "warning",
-                    badgeStyle: {
-                        backgroundColor: '#ad2e53'
-                    }
-                },
-                chevron: false,
+                value: this.state.openedTrainingsCounter,
                 onPress: 'OpenedTrainings'
             }, {
                 name: 'Convocatórias fechadas',
                 icon: 'md-log-out',
                 subtitle: 'Editar presenças e atrasos | ' +
                     'Concluir ou eliminar treinos',
-                badge: {
-                    value: this.state.closedTrainingsCounter,
-                    status: "warning",
-                    badgeStyle: {
-                        backgroundColor: '#ad2e53'
-                    }
-                },
-                chevron: false,
+                value: this.state.closedTrainingsCounter,
                 onPress: 'PendingTrainings'
             },
         ];
@@ -208,6 +221,8 @@ class TrainingScreen extends Component {
                     keyExtractor={item => item.name}
                     data={list}
                     renderItem={this.renderItem}
+                    refreshing={this.state.isRefreshing}
+                    onRefresh={this.handleRefresh}
                 />
             </View>
         )

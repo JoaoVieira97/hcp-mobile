@@ -52,20 +52,15 @@ const styles = StyleSheet.create({
     headerLogo: {
         flex: 1,
         flexDirection: 'row',
-        //alignItems: 'center',
-        paddingTop: 40,
-        //borderBottomWidth: 1,
-        //borderBottomColor: '#777777',
+        paddingTop: 35,
     },
     imgView: {
         flex: 1,
-        paddingLeft: 15,
-        paddingRight: 20,
+        paddingLeft: 15
     },
     img: {
         height: 100,
-        width: 100,
-        //borderRadius: 50,
+        width: 100
     },
     textView: {
         flex: 3,
@@ -392,10 +387,9 @@ const CustomDrawerContentComponent = (props) => {
                         </View>
                         <View style={{marginRight: 15}}>
                             <TouchableOpacity style={{
-                                width:50,
-                                height:50,
-                                alignItems:'center',
-                                justifyContent:'center',
+                                width: 60,
+                                height: 50,
+                                alignItems: 'flex-end',
                                 }} onPress = {() => props.navigation.closeDrawer()}>
                                 <Ionicons
                                     name="md-close"
@@ -523,7 +517,7 @@ const AppDrawerNavigator = createDrawerNavigator({
         })
     }
 }, {
-    initialRouteName: 'HomeStack',
+    initialRouteName: 'ManagementStack',
     order: ['HomeStack', 'CalendarStack', 'ManagementStack', 'AthletesStack', 'ProfileStack'],
     drawerWidth: WIDTH*0.7,
     contentComponent: CustomDrawerContentComponent,
