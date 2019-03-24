@@ -6,6 +6,8 @@ import store  from './src/redux/store';
 import {Font} from 'expo';
 import AppNavigator from './src/components/navigation/AppNavigator';
 
+import Loader from './src/components/screens/Loader';
+
 
 export default class App extends React.Component {
 
@@ -25,17 +27,16 @@ export default class App extends React.Component {
             'Montserrat-ExtraLight': require('./assets/fonts/Montserrat/Montserrat-ExtraLight.ttf'),
         });
 
-        this.setState({isLoading: false});
+        await this.setState({isLoading: false});
     }
 
     render() {
         return (
             <Provider store={store}>
-                <View style={{flex: 1, justifyContent: 'center'}}>
+                <View style={{flex: 1}}>
+                    <Loader isLoading={this.state.isLoading}/>
                     {
-                        this.state.isLoading
-                            ? <ActivityIndicator size={'large'} color={'#ced0ce'} />
-                            : <AppNavigator />
+                        !this.state.isLoading && <AppNavigator />
                     }
                 </View>
             </Provider>

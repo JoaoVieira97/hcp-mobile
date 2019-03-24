@@ -27,14 +27,14 @@ import {colors} from "../../styles/index.style";
 import AuthenticationLoading from "../authentication/AuthenticationLoading";
 import LoginScreen from '../authentication/LoginScreen';
 import HomeScreen from '../home/HomeScreen';
-import CalendarScreen from '../screens/CalendarScreen';
+import CalendarScreen from '../calendar/CalendarScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import TrainingScreen from "../management/trainings/TrainingScreen";
 import GameScreen from "../management/games/GameScreen";
 import AthletesScreen from "../screens/AthletesScreen";
 import AthleteScreen from '../screens/AthleteScreen';
 import OpenedTrainings from "../management/trainings/OpenedTrainings";
-import EventScreen from "../screens/EventScreen";
+import EventScreen from "../calendar/EventScreen";
 import PendingTrainings from "../management/trainings/PendingTrainings";
 import OpenedTraining from "../management/trainings/OpenedTraining";
 import EditOpenedTraining from "../management/trainings/EditOpenedTraining";
@@ -517,7 +517,7 @@ const AppDrawerNavigator = createDrawerNavigator({
         })
     }
 }, {
-    initialRouteName: 'ManagementStack',
+    initialRouteName: 'CalendarStack',
     order: ['HomeStack', 'CalendarStack', 'ManagementStack', 'AthletesStack', 'ProfileStack'],
     drawerWidth: WIDTH*0.7,
     contentComponent: CustomDrawerContentComponent,

@@ -11,9 +11,8 @@ import {connect} from 'react-redux';
 import {setOdooInstance} from "../../redux/actions/odoo";
 import {setUserData, setUserImage, setUserRoles} from "../../redux/actions/user";
 import { HOST, PORT, DATABASE } from 'react-native-dotenv';
-import {colors} from "../../styles/index.style";
 
-
+import Loader from '../screens/Loader';
 
 
 
@@ -21,6 +20,10 @@ class AuthenticationLoading extends React.Component {
 
     constructor(props) {
         super(props);
+
+        this.state = {
+            isLoading: true
+        };
 
         console.log(HOST);
         console.log(PORT);
@@ -32,8 +35,11 @@ class AuthenticationLoading extends React.Component {
         const username = await AsyncStorage.getItem('username');
         const password = await AsyncStorage.getItem('password');
 
+        // Default navigation
+        let navigateTo = 'Authentication';
+
         if(token) {
-            // odoo connection parameters
+            // Odoo connection parameters
             const odoo = new Odoo({
                 host: HOST,
                 port: PORT,
@@ -43,28 +49,26 @@ class AuthenticationLoading extends React.Component {
                 password: password
             });
 
-            // save odoo data on store
+            // Save odoo data on store
             await this.props.setOdooInstance(odoo);
 
-            // login to odoo server
+            // Login to odoo server
             const loginResponse = await this.odooConnection();
             if(loginResponse) {
 
-                // get and save user data on store
+                // Get and save user data on store
                 await this.getUserData();
 
                 // Go to Home Screen
-                this.props.navigation.navigate('AppStack');
-
-            } else {
-                // Token is invalid
-                this.props.navigation.navigate('Authentication');
+                navigateTo = 'AppStack';
             }
-
-        } else {
-            // There is no token
-            this.props.navigation.navigate('Authentication');
         }
+
+        await this.setState({
+            isLoading: false
+        });
+
+        this.props.navigation.navigate(navigateTo);
     }
 
 
@@ -119,9 +123,7 @@ class AuthenticationLoading extends React.Component {
     // Render any loading content that you like here
     render() {
         return (
-            <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
-                <ActivityIndicator size='large' color={colors.loadingColor} />
-            </View>
+            <Loader isLoading={this.state.isLoading}/>
         );
     }
 }
