@@ -193,21 +193,6 @@ class CalendarScreen extends React.Component {
         return r1.name !== r2.name;
     };
 
-
-    async getLocal(id) {
-
-        const params = {
-            ids: [id],
-            fields: ['coordenadas', 'descricao'],
-        };
-
-        const response = await this.props.odoo.get('ges.local', params);
-        if (response.success) {
-            return response;
-        }
-        return {};
-    }
-
     /**
      * Buscar todos os treinos entre determinadas datas.
      * @param date1
@@ -275,6 +260,7 @@ class CalendarScreen extends React.Component {
         const startTimeDate = (startTime.split(" "))[0];
         const startTimeHour = (startTime.split(" "))[1];
         const localId = training.local[0];
+        const local_name = training.local[1];
 
         return {
             type: 1,
@@ -282,37 +268,9 @@ class CalendarScreen extends React.Component {
             time: 'Início: ' + startTimeHour.slice(0,5) + 'h',
             description: 'Duração: ' + duration + ' min',
             local: localId,
-            date: startTimeDate
+            date: startTimeDate,
+            localName: local_name
         };
-
-        /*
-        // ------ Update Items ------
-
-        let newItems = this.state.items;
-        if (!(startTimeDate in newItems)){
-            newItems[startTimeDate] = [];
-        }
-        newItems[startTimeDate].push(finalObject);
-
-        this.setState({items: newItems});
-
-        // ------ Update MarkedDates ------
-
-        let newMarks = this.state.markedDates;
-        if (!(startTimeDate in newMarks)){
-            newMarks[startTimeDate] = {
-                dots: [trainingMark],
-                selectedColor: '#e6e6e6'
-            }
-        }
-        else{
-            if (!(newMarks[startTimeDate].dots.includes(trainingMark))){
-                newMarks[startTimeDate].dots.push(trainingMark)
-            }
-        }
-
-        this.setState({markedDates: newMarks});
-        */
     };
 
     /**
@@ -375,6 +333,7 @@ class CalendarScreen extends React.Component {
         const startTimeDate = (startTime.split(" "))[0];
         const startTimeHour = (startTime.split(" "))[1];
         const localId = game.local[0];
+        const local_name = game.local[1];
 
         return {
             type: 0,
@@ -382,46 +341,10 @@ class CalendarScreen extends React.Component {
             time: 'Início ' + startTimeHour,
             description: 'Adversário: ' + opponent,
             local: localId,
+            localName: local_name,
             date: startTimeDate
         };
-
-        /*
-        // ------ Update Items ------
-
-        let newItems = this.state.items;
-        if (!(startTimeDate in newItems)){
-            newItems[startTimeDate] = [];
-        }
-        newItems[startTimeDate].push(finalObject);
-
-        this.setState({items: newItems});
-
-        // ------ Update MarkedDates ------
-        let newMarks = this.state.markedDates;
-        if (!(startTimeDate in newMarks)){
-            newMarks[startTimeDate] = {
-                dots: [gameMark],
-                selectedColor: '#e6e6e6'
-            }
-        }
-        else{
-            if (!(newMarks[startTimeDate].dots.includes(gameMark))){
-                newMarks[startTimeDate].dots.push(gameMark)
-            }
-        }
-
-        this.setState({markedDates: newMarks});
-        */
     };
-
-    /*
-        <View style={{flex: 1}}>
-            {
-                this.state.isLoading &&
-                <Loader isLoading={this.state.isLoading}/>
-            }
-        </View>
-    */
 
     render() {
 

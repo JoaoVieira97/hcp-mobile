@@ -17,17 +17,34 @@ import {MaterialCommunityIcons} from "@expo/vector-icons";
 import CustomText from "../CustomText";
 import {colors} from "../../styles/index.style";
 
-export default class EventScreen extends Component {
+import {connect} from 'react-redux';
+
+class EventScreen extends Component {
 
     constructor(props) {
         super(props);
         this.state = {
             item: {},
+            local: {},
         };
+    }
+
+    async getLocal(id) {
+
+        const params = {
+            ids: [id],
+            fields: ['coordenadas', 'descricao'],
+        };
+
+        const response = await this.props.odoo.get('ges.local', params);
+        if (response.success) {
+            return response;
+        }
+        return {};
     }
     
     handleGetDirections = () => {
-        if (this.state.item.coordinates){
+        if (this.state.local){
 
             navigator.geolocation.getCurrentPosition(
                 position => {
@@ -37,8 +54,8 @@ export default class EventScreen extends Component {
                             longitude: position.coords.longitude
                         },
                         destination: {
-                            latitude: this.state.item.coordinates.latitude,
-                            longitude: this.state.item.coordinates.longitude
+                            latitude: this.state.local.latitude,
+                            longitude: this.state.local.longitude
                         },
                         params: [
                             {
@@ -65,8 +82,19 @@ export default class EventScreen extends Component {
     }
 
     async componentDidMount(){
-        this.setState({
+        await this.setState({
             item: this.props.navigation.state.params.item
+        });
+
+        let local = await this.getLocal(this.state.item.local);
+
+        let local_f = (local.success && local.data[0].coordenadas)? {
+            latitude: parseFloat(local.data[0].coordenadas.split(", ")[0]),
+            longitude: parseFloat(local.data[0].coordenadas.split(", ")[1])
+        } : null
+
+        this.setState({
+            local: local_f
         });
     }
 
@@ -127,7 +155,7 @@ export default class EventScreen extends Component {
                     size={50}
                     color={'#000000'}
                 />
-                <Text>{this.state.item.local}</Text>
+                <Text>{this.state.item.localName}</Text>
             </View>
         );
     }
@@ -181,3 +209,13 @@ const styles = StyleSheet.create({
         textShadowRadius: 15,
     },
 });
+
+const mapStateToProps = state => ({
+    odoo: state.odoo.odoo,
+});
+
+const mapDispatchToProps = dispatch => ({
+
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(EventScreen);
