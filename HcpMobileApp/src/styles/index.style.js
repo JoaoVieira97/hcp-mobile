@@ -15,6 +15,9 @@ export const colors = {
     // GRADIENT COLORS
     gradient1: '#ad2e53', // used in AppNavigator
     gradient2: '#2f2d3b',
+
+    gameColor: '#ef9c88', //'#fab1a0',
+    trainingColor: '#30c9c9', //'#81ecec'
 };
 
 

@@ -30,19 +30,20 @@ class AgendaItem extends React.PureComponent {
     render() {
 
         let color;
+        let item = this.props.item;
         switch (this.props.item.type) {
             case 1:
-                color = colors.gradient1;
+                color = colors.trainingColor;
                 break;
             default:
-                color = colors.gradient2;
+                color = colors.gameColor;
                 break;
         }
 
         return (
             <TouchableOpacity
                 onPress={() => {
-                    // this.props.navigation.navigate('EventScreen',{item})
+                    this.props.navigation.navigate('EventScreen',{item})
                 }}
                 style={[
                     styles.item, {
@@ -73,45 +74,6 @@ class AgendaItem extends React.PureComponent {
                 </View>
             </TouchableOpacity>
         );
-
-        /*
-        return (
-            <ListItem
-                title={(
-                    <Text style={{fontSize: 16, fontWeight: '700'}}>
-                        {this.props.item.title}
-                    </Text>
-                )}
-                subtitle={(
-                    <View style={{flex: 1, flexDirection: 'column'}}>
-                        <Text>{this.props.item.time}</Text>
-                        <Text>{this.props.item.description}</Text>
-                    </View>
-                )}
-                leftAvatar={(<MaterialCommunityIcons name={'hockey-sticks'} size={28} />)}
-                chevron
-                containerStyle={{
-                    backgroundColor: color,
-                    flex: 1,
-                    borderRadius: 5,
-                    padding: 10,
-                    marginRight: 10,
-                    marginTop: 17
-                }}
-                onPress={() => {
-
-                }}
-            />
-        )
-        */
-
-        /*
-        return (
-            <View style={[styles.item, {height: this.props.item.height}]}>
-                <Text>{this.props.item.name}</Text>
-            </View>
-        )
-        */
     }
 }
 
@@ -163,7 +125,11 @@ class CalendarScreen extends React.Component {
                 monthsFetched: [...state.monthsFetched, firstDaySliced]
             }));
 
-            //this.getGames(initial_date, end_date);
+            await this.getGames(
+                firstDaySliced,
+                lastDaySliced
+            );
+
             await this.getTrainings(
                 firstDaySliced,
                 lastDaySliced
