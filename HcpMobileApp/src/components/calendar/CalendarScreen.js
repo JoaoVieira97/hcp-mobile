@@ -84,8 +84,10 @@ class CalendarScreen extends React.Component {
 
         this.state = {
             isRefreshing: false,
+            isLoading: false,
             items: {},
-            monthsFetched: []
+            monthsFetched: [],
+            markedDates: {}
         };
     }
 
@@ -108,6 +110,10 @@ class CalendarScreen extends React.Component {
      */
     fetchData = async (day) => {
 
+        await this.setState({
+            isLoading: true
+        });
+
         // Get the first and the last days of the given month
         const date = new Date(day.timestamp);
         const firstDay = new Date(date.setDate(1));
@@ -125,16 +131,20 @@ class CalendarScreen extends React.Component {
                 monthsFetched: [...state.monthsFetched, firstDaySliced]
             }));
 
-            await this.getGames(
-                firstDaySliced,
-                lastDaySliced
-            );
-
             await this.getTrainings(
                 firstDaySliced,
                 lastDaySliced
             );
+
+            await this.fetchGames(
+                firstDaySliced,
+                lastDaySliced
+            );
         }
+
+        await this.setState({
+            isLoading: false,
+        });
     };
 
     /**
@@ -183,10 +193,6 @@ class CalendarScreen extends React.Component {
         return r1.name !== r2.name;
     };
 
-    /**
-     * TO DO
-     * --------------------------------------
-     */
 
     async getLocal(id) {
 
@@ -202,6 +208,12 @@ class CalendarScreen extends React.Component {
         return {};
     }
 
+    /**
+     * Buscar todos os treinos entre determinadas datas.
+     * @param date1
+     * @param date2
+     * @returns {Promise<void>}
+     */
     async getTrainings(date1, date2) {
 
         const params = {
@@ -222,41 +234,58 @@ class CalendarScreen extends React.Component {
         };
 
         const response = await this.props.odoo.search_read('ges.treino', params);
-        if (response.success) {
+        if (response.success && response.data.length > 0) {
 
-            console.log(response.data);
+            let items = this.state.items;
+            let markedDates = this.state.markedDates;
+            for (let i=0; i < response.data.length; i++){
 
-            for (let i=0; i < response.data.length; i++) {
-                let training = response.data[i];
-                await this.parseTraining(training);
+                let training = this.parseTraining(response.data[i]);
+
+                if (!(training.date in items)){
+                    items[training.date] = [];
+                }
+                items[training.date].push(training);
+
+                if (!(training.date in markedDates)){
+                    markedDates[training.date] = {
+                        dots: [trainingMark],
+                        selectedColor: '#e6e6e6'
+                    }
+                }
+                else{
+                    if (!(markedDates[training.date].dots.includes(trainingMark))){
+                        markedDates[training.date].dots.push(trainingMark)
+                    }
+                }
             }
+
+            await this.setState({
+                items: items,
+                markedDates: markedDates
+            });
         }
     }
 
-    async parseTraining(training) {
+    parseTraining = (training)  => {
+
         const description = training.display_name;
         const duration = training.duracao;
         const startTime = training.start_datetime;
         const startTimeDate = (startTime.split(" "))[0];
         const startTimeHour = (startTime.split(" "))[1];
-        const localName = training.local[1];
+        const localId = training.local[0];
 
-        let local = await this.getLocal(training.local[0]);
-
-        let local_f = (local.success && local.data[0].coordenadas)? {
-            latitude: parseFloat(local.data[0].coordenadas.split(", ")[0]),
-            longitude: parseFloat(local.data[0].coordenadas.split(", ")[1])
-        } : null
-
-        let finalObject = {
+        return {
             type: 1,
             title: description,
             time: 'Início: ' + startTimeHour.slice(0,5) + 'h',
             description: 'Duração: ' + duration + ' min',
-            local: localName,
-            coordinates: local_f
+            local: localId,
+            date: startTimeDate
         };
 
+        /*
         // ------ Update Items ------
 
         let newItems = this.state.items;
@@ -269,7 +298,6 @@ class CalendarScreen extends React.Component {
 
         // ------ Update MarkedDates ------
 
-        /*
         let newMarks = this.state.markedDates;
         if (!(startTimeDate in newMarks)){
             newMarks[startTimeDate] = {
@@ -285,53 +313,79 @@ class CalendarScreen extends React.Component {
 
         this.setState({markedDates: newMarks});
         */
-  
-    }
+    };
 
-    async getGames(date1, date2) {
+    /**
+     * Buscar todos os jogos entre determinadas datas.
+     *
+     * @param date1
+     * @param date2
+     * @returns {Promise<void>}
+     */
+    async fetchGames(date1, date2) {
 
         const params = {
             domain: [
-                ['start_datetime', '>', date1],
-                ['start_datetime', '<', date2]
+                ['start_datetime', '>=', date1],
+                ['start_datetime', '<=', date2]
             ],
             fields: ['local', 'start_datetime', 'equipa_adversaria', 'description'],
             order: 'start_datetime ASC'
         };
 
         const response = await this.props.odoo.search_read('ges.jogo', params);
-        if (response.success){
+        if (response.success && response.data.length > 0){
+
+            let items = this.state.items;
+            let markedDates = this.state.markedDates;
             for (let i=0; i < response.data.length; i++){
-                let game = response.data[i];
-                this.parseGame(game);
+
+                let game = this.parseGame(response.data[i]);
+
+                if (!(game.date in items)){
+                    items[game.date] = [];
+                }
+                items[game.date].push(game);
+
+                if (!(game.date in markedDates)){
+                    markedDates[game.date] = {
+                        dots: [gameMark],
+                        selectedColor: '#e6e6e6'
+                    }
+                }
+                else{
+                    if (!(markedDates[game.date].dots.includes(gameMark))){
+                        markedDates[game.date].dots.push(gameMark)
+                    }
+                }
             }
+
+            await this.setState({
+                items: items,
+                markedDates: markedDates
+            });
         }
     }
 
-    async parseGame(game){
+    parseGame = (game) =>{
+
         const description = game.description;
         const opponent = game.equipa_adversaria[1];
         const startTime = game.start_datetime;
         const startTimeDate = (startTime.split(" "))[0];
         const startTimeHour = (startTime.split(" "))[1];
-        const localName = game.local[1];
+        const localId = game.local[0];
 
-        let local = await this.getLocal(game.local[0]);
-
-        let local_f = (local.success && local.data[0].coordenadas)? {
-            latitude: parseFloat(local.data[0].coordenadas.split(", ")[0]),
-            longitude: parseFloat(local.data[0].coordenadas.split(", ")[1])
-        } : null
-
-        let finalObject = {
+        return {
             type: 0,
             title: description,
             time: 'Início ' + startTimeHour,
             description: 'Adversário: ' + opponent,
-            local: localName,
-            coordinates: local_f
+            local: localId,
+            date: startTimeDate
         };
 
+        /*
         // ------ Update Items ------
 
         let newItems = this.state.items;
@@ -343,8 +397,6 @@ class CalendarScreen extends React.Component {
         this.setState({items: newItems});
 
         // ------ Update MarkedDates ------
-
-        /*
         let newMarks = this.state.markedDates;
         if (!(startTimeDate in newMarks)){
             newMarks[startTimeDate] = {
@@ -360,13 +412,16 @@ class CalendarScreen extends React.Component {
 
         this.setState({markedDates: newMarks});
         */
-    }
+    };
 
-    /**
-     * --------------------------------------
-     * TO DO
-     */
-
+    /*
+        <View style={{flex: 1}}>
+            {
+                this.state.isLoading &&
+                <Loader isLoading={this.state.isLoading}/>
+            }
+        </View>
+    */
 
     render() {
 
@@ -375,6 +430,8 @@ class CalendarScreen extends React.Component {
                 ref={agenda => this.agenda = agenda /*this.r.chooseDay(this.state.selectedDay, true)*/ }
                 items={this.state.items}
                 loadItemsForMonth={this.fetchData.bind(this)}
+                markedDates = {this.state.markedDates}
+                markingType={'multi-dot'}
                 //selected={this.state.selectedDay}
                 renderItem={this.renderItem.bind(this)}
                 renderEmptyDate={this.renderEmptyDate.bind(this)}
@@ -424,6 +481,8 @@ class CalendarScreen extends React.Component {
     }
 }
 
+const gameMark = {key:'game', color: colors.gameColor};
+const trainingMark = {key:'training', color: colors.trainingColor};
 
 const styles = StyleSheet.create({
     item: {
