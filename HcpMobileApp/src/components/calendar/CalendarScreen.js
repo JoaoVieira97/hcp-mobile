@@ -86,8 +86,8 @@ class CalendarScreen extends React.Component {
             isRefreshing: false,
             isLoading: false,
             items: {},
+            markedDates: {},
             monthsFetched: [],
-            markedDates: {}
         };
     }
 
@@ -131,7 +131,7 @@ class CalendarScreen extends React.Component {
                 monthsFetched: [...state.monthsFetched, firstDaySliced]
             }));
 
-            await this.getTrainings(
+            await this.fetchTrainings(
                 firstDaySliced,
                 lastDaySliced
             );
@@ -158,6 +158,7 @@ class CalendarScreen extends React.Component {
             items: {
                 [today]: [],
             },
+            markedDates: {},
             monthsFetched: []
         });
 
@@ -199,7 +200,7 @@ class CalendarScreen extends React.Component {
      * @param date2
      * @returns {Promise<void>}
      */
-    async getTrainings(date1, date2) {
+    async fetchTrainings(date1, date2) {
 
         const params = {
             domain: [
@@ -223,26 +224,29 @@ class CalendarScreen extends React.Component {
 
             let items = this.state.items;
             let markedDates = this.state.markedDates;
+            const trainingMark = {key:'training', color: colors.trainingColor};
+
             for (let i=0; i < response.data.length; i++){
 
+                // Add training to the items list
                 let training = this.parseTraining(response.data[i]);
 
-                if (!(training.date in items)){
-                    items[training.date] = [];
+                if (items[training.date] === undefined){
+                    items[training.date] = [training];
                 }
-                items[training.date].push(training);
+                else if(items[training.date].find(item => item.type === 1 && item.id === training.id) === undefined)
+                    items[training.date].push(training);
 
-                if (!(training.date in markedDates)){
+                /*
+                // Add training mark
+                if (markedDates[training.date] === undefined) {
                     markedDates[training.date] = {
-                        dots: [trainingMark],
-                        selectedColor: '#e6e6e6'
+                        dots: [training]
                     }
                 }
-                else{
-                    if (!(markedDates[training.date].dots.includes(trainingMark))){
-                        markedDates[training.date].dots.push(trainingMark)
-                    }
-                }
+                else if (markedDates[training.date].dots.find(item => item.key === trainingMark.key) === undefined)
+                    markedDates[training.date].dots.push(trainingMark);
+                */
             }
 
             await this.setState({
@@ -263,6 +267,7 @@ class CalendarScreen extends React.Component {
         const local_name = training.local[1];
 
         return {
+            id: training.id,
             type: 1,
             title: description,
             time: 'Início: ' + startTimeHour.slice(0,5) + 'h',
@@ -287,7 +292,7 @@ class CalendarScreen extends React.Component {
                 ['start_datetime', '>=', date1],
                 ['start_datetime', '<=', date2]
             ],
-            fields: ['local', 'start_datetime', 'equipa_adversaria', 'description'],
+            fields: ['id', 'local', 'start_datetime', 'equipa_adversaria', 'description'],
             order: 'start_datetime ASC'
         };
 
@@ -296,26 +301,29 @@ class CalendarScreen extends React.Component {
 
             let items = this.state.items;
             let markedDates = this.state.markedDates;
+            const gameMark = {key:'game', color: colors.gameColor};
+
             for (let i=0; i < response.data.length; i++){
 
+                // Add game to items object
                 let game = this.parseGame(response.data[i]);
 
-                if (!(game.date in items)){
-                    items[game.date] = [];
+                if (items[game.date] === undefined){
+                    items[game.date] = [game];
                 }
-                items[game.date].push(game);
+                else if(items[game.date].find(item => item.type === 0 && item.id === game.id) === undefined)
+                    items[game.date].push(game);
 
-                if (!(game.date in markedDates)){
+                /*
+                // Add game mark
+                if (markedDates[game.date] === undefined) {
                     markedDates[game.date] = {
-                        dots: [gameMark],
-                        selectedColor: '#e6e6e6'
+                        dots: [gameMark]
                     }
                 }
-                else{
-                    if (!(markedDates[game.date].dots.includes(gameMark))){
-                        markedDates[game.date].dots.push(gameMark)
-                    }
-                }
+                else if(markedDates[game.date].dots.find(item => item.key === gameMark.key) === undefined)
+                    markedDates[game.date].dots.push(gameMark);
+                */
             }
 
             await this.setState({
@@ -336,6 +344,7 @@ class CalendarScreen extends React.Component {
         const local_name = game.local[1];
 
         return {
+            id: game.id,
             type: 0,
             title: description,
             time: 'Início ' + startTimeHour,
@@ -353,8 +362,8 @@ class CalendarScreen extends React.Component {
                 ref={agenda => this.agenda = agenda /*this.r.chooseDay(this.state.selectedDay, true)*/ }
                 items={this.state.items}
                 loadItemsForMonth={this.fetchData.bind(this)}
-                markedDates = {this.state.markedDates}
-                markingType={'multi-dot'}
+                //markedDates = {this.state.markedDates}
+                //markingType={'multi-dot'}
                 //selected={this.state.selectedDay}
                 renderItem={this.renderItem.bind(this)}
                 renderEmptyDate={this.renderEmptyDate.bind(this)}
@@ -378,9 +387,9 @@ class CalendarScreen extends React.Component {
                     monthTextColor: colors.gradient1,
                 }}
                 // Max amount of months allowed to scroll to the past. Default = 50
-                pastScrollRange={2}
+                //pastScrollRange={2}
                 // Max amount of months allowed to scroll to the future. Default = 50
-                futureScrollRange={3}
+                //futureScrollRange={3}
                 // If provided, a standard RefreshControl will be added for "Pull to Refresh" functionality. Make sure to also set the refreshing prop correctly.
                 onRefresh={this.handleRefresh.bind(this)}
                 // Set this true while waiting for new data from a refresh
@@ -403,9 +412,6 @@ class CalendarScreen extends React.Component {
         */
     }
 }
-
-const gameMark = {key:'game', color: colors.gameColor};
-const trainingMark = {key:'training', color: colors.trainingColor};
 
 const styles = StyleSheet.create({
     item: {

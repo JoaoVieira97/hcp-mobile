@@ -517,7 +517,7 @@ const AppDrawerNavigator = createDrawerNavigator({
         })
     }
 }, {
-    initialRouteName: 'CalendarStack',
+    initialRouteName: 'HomeStack',
     order: ['HomeStack', 'CalendarStack', 'ManagementStack', 'AthletesStack', 'ProfileStack'],
     drawerWidth: WIDTH*0.7,
     contentComponent: CustomDrawerContentComponent,
