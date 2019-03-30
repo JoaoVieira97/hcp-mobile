@@ -1,4 +1,3 @@
 hcp-server-dependencies/hcp-lei.zip
 hcp-server-dependencies/odoo_11.0.latest.tar.gz
-HCPApp/.idea
-HcpMobileApp/.idea
+hcp-mobile-app/.idea

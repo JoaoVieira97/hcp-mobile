@@ -31,8 +31,8 @@ import CalendarScreen from '../calendar/CalendarScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import TrainingScreen from "../management/trainings/TrainingScreen";
 import GameScreen from "../management/games/GameScreen";
-import AthletesScreen from "../screens/AthletesScreen";
-import AthleteScreen from '../screens/AthleteScreen';
+import AthletesScreen from "../athletes/AthletesScreen";
+import AthleteScreen from '../athletes/AthleteScreen';
 import OpenedTrainings from "../management/trainings/OpenedTrainings";
 import EventScreen from "../calendar/EventScreen";
 import PendingTrainings from "../management/trainings/PendingTrainings";
@@ -517,7 +517,7 @@ const AppDrawerNavigator = createDrawerNavigator({
         })
     }
 }, {
-    initialRouteName: 'HomeStack',
+    initialRouteName: 'AthletesStack',
     order: ['HomeStack', 'CalendarStack', 'ManagementStack', 'AthletesStack', 'ProfileStack'],
     drawerWidth: WIDTH*0.7,
     contentComponent: CustomDrawerContentComponent,

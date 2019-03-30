@@ -42,7 +42,7 @@ const Loader = (props) => {
             visible={isLoading}
             onRequestClose={() => { console.log('Noop'); }}
         >
-            <View style={styles.modalBackground}>
+            <View style={{...styles.modalBackground}}>
                 <View style={styles.activityIndicatorHolder}>
                     <ActivityIndicator
                         animating={isLoading}
