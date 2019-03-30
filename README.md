@@ -2,20 +2,41 @@
 
 # "Hóquei Clube Penafiel" Mobile Application
 
-`Software Labs Project` 2019/20, Computer and Software Engineering Course @ University of Minho, Braga - Portugal
+Software Labs Project 2019/20, Computer and Software Engineering Course @ University of Minho, Braga - Portugal
 
-This mobile app is being developed using [React Native](https://facebook.github.io/react-native/).
+This mobile app is being developed using [React Native](https://facebook.github.io/react-native/) and [Redux](https://redux.js.org/introduction/getting-started).
 
 Web App version can be found [here](https://github.com/git-antoniosousa/hcp-1), although this is a **private** repository.
 
+<br >
+
 ## Contributors
 
-Thanks goes to these wonderful people ([emoji key](https://github.com/all-contributors/all-contributors#emoji-key)):
-
-<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
-<!-- prettier-ignore -->
-<table><tr><td align="center"><a href="https://twitter.com/@satya164"><img src="https://avatars2.githubusercontent.com/u/1174278?v=4" width="100px;" alt="Satyajit Sahoo"/><br /><sub><b>Satyajit Sahoo</b></sub></a><br /><a href="#ideas-satya164" title="Ideas, Planning, & Feedback">🤔</a> <a href="https://github.com/callstack/react-native-paper/commits?author=satya164" title="Code">💻</a> <a href="https://github.com/callstack/react-native-paper/commits?author=satya164" title="Documentation">📖</a></td><td align="center"><a href="https://ferrannp.com/"><img src="https://avatars2.githubusercontent.com/u/774577?v=4" width="100px;" alt="Ferran Negre"/><br /><sub><b>Ferran Negre</b></sub></a><br /><a href="#ideas-ferrannp" title="Ideas, Planning, & Feedback">🤔</a> <a href="https://github.com/callstack/react-native-paper/commits?author=ferrannp" title="Code">💻</a></td><td align="center"><a href="http://dawidurbaniak.pl"><img src="https://avatars3.githubusercontent.com/u/18584155?v=4" width="100px;" alt="Dawid"/><br /><sub><b>Dawid</b></sub></a><br /><a href="#ideas-Trancever" title="Ideas, Planning, & Feedback">🤔</a> <a href="https://github.com/callstack/react-native-paper/commits?author=Trancever" title="Code">💻</a> <a href="https://github.com/callstack/react-native-paper/commits?author=Trancever" title="Documentation">📖</a></td><td align="center"><a href="https://twitter.com/esemesek"><img src="https://avatars2.githubusercontent.com/u/9092510?v=4" width="100px;" alt="Kacper Wiszczuk"/><br /><sub><b>Kacper Wiszczuk</b></sub></a><br /><a href="#ideas-Esemesek" title="Ideas, Planning, & Feedback">🤔</a> <a href="https://github.com/callstack/react-native-paper/commits?author=Esemesek" title="Code">💻</a></td><td align="center"><a href="https://medium.com/@_happiryu"><img src="https://avatars1.githubusercontent.com/u/22746080?v=4" width="100px;" alt="Luke Walczak"/><br /><sub><b>Luke Walczak</b></sub></a><br /><a href="https://github.com/callstack/react-native-paper/commits?author=lukewalczak" title="Code">💻</a> <a href="https://github.com/callstack/react-native-paper/commits?author=lukewalczak" title="Documentation">📖</a></td><td align="center"><a href="https://github.com/ahmedlhanafy"><img src="https://avatars2.githubusercontent.com/u/7052827?v=4" width="100px;" alt="Ahmed Elhanafy"/><br /><sub><b>Ahmed Elhanafy</b></sub></a><br /><a href="#ideas-ahmedlhanafy" title="Ideas, Planning, & Feedback">🤔</a> <a href="https://github.com/callstack/react-native-paper/commits?author=ahmedlhanafy" title="Code">💻</a></td><td align="center"><a href="https://github.com/kpsroka"><img src="https://avatars0.githubusercontent.com/u/24893014?v=4" width="100px;" alt="K. P. Sroka"/><br /><sub><b>K. P. Sroka</b></sub></a><br /><a href="https://github.com/callstack/react-native-paper/commits?author=kpsroka" title="Code">💻</a> <a href="https://github.com/callstack/react-native-paper/commits?author=kpsroka" title="Documentation">📖</a></td></tr><tr><td align="center"><a href="https://github.com/iyadthayyil"><img src="https://avatars2.githubusercontent.com/u/11161020?v=4" width="100px;" alt="Iyad Thayyil"/><br /><sub><b>Iyad Thayyil</b></sub></a><br /><a href="https://github.com/callstack/react-native-paper/commits?author=iyadthayyil" title="Code">💻</a> <a href="https://github.com/callstack/react-native-paper/commits?author=iyadthayyil" title="Documentation">📖</a></td><td align="center"><a href="http://hundeloh-consulting.ch/"><img src="https://avatars1.githubusercontent.com/u/5358638?v=4" width="100px;" alt="Julian Hundeloh"/><br /><sub><b>Julian Hundeloh</b></sub></a><br /><a href="https://github.com/callstack/react-native-paper/commits?author=jaulz" title="Code">💻</a> <a href="https://github.com/callstack/react-native-paper/commits?author=jaulz" title="Documentation">📖</a></td><td align="center"><a href="https://www.linkedin.com/in/grzegorzgawrysiak/"><img src="https://avatars3.githubusercontent.com/u/7827311?v=4" width="100px;" alt="Grzegorz Gawrysiak"/><br /><sub><b>Grzegorz Gawrysiak</b></sub></a><br /><a href="https://github.com/callstack/react-native-paper/commits?author=gawrysiak" title="Code">💻</a> <a href="https://github.com/callstack/react-native-paper/commits?author=gawrysiak" title="Documentation">📖</a></td><td align="center"><a href="https://github.com/luissmg"><img src="https://avatars2.githubusercontent.com/u/20660551?v=4" width="100px;" alt="Luís"/><br /><sub><b>Luís</b></sub></a><br /><a href="https://github.com/callstack/react-native-paper/commits?author=luissmg" title="Code">💻</a></td><td align="center"><a href="https://raajnadar.in"><img src="https://avatars1.githubusercontent.com/u/17236768?v=4" width="100px;" alt="Rajendran Nadar"/><br /><sub><b>Rajendran Nadar</b></sub></a><br /><a href="https://github.com/callstack/react-native-paper/commits?author=raajnadar" title="Code">💻</a></td><td align="center"><a href="https://github.com/brentvatne"><img src="https://avatars2.githubusercontent.com/u/90494?v=4" width="100px;" alt="Brent Vatne"/><br /><sub><b>Brent Vatne</b></sub></a><br /><a href="https://github.com/callstack/react-native-paper/commits?author=brentvatne" title="Code">💻</a></td><td align="center"><a href="https://jukben.cz"><img src="https://avatars3.githubusercontent.com/u/8135252?v=4" width="100px;" alt="Jakub Beneš"/><br /><sub><b>Jakub Beneš</b></sub></a><br /><a href="https://github.com/callstack/react-native-paper/commits?author=jukben" title="Code">💻</a></td></tr></table>
-<!-- ALL-CONTRIBUTORS-LIST:END -->
+<table align="center">
+  <tr>
+    <td align="center">
+      <a href="https://github.com/oliveirahugo68">
+        <img src="https://avatars3.githubusercontent.com/u/29900750?s=460&v=4" width="100px;" alt="Hugo Oliveira"/>
+        <br />
+        <sub><b>Hugo Oliveira</b>
+      </a>
+    </td>
+    <td align="center">
+      <a href="https://github.com/raphael28">
+        <img src="https://avatars2.githubusercontent.com/u/43729094?s=460&v=4" width="100px;" alt="Raphael Oliveira"/>
+        <br />
+        <sub><b>Raphael Oliveira</b>
+      </a>
+    </td>
+    <td align="center">
+      <a href="https://github.com/JoaoVieira97">
+        <img src="https://avatars2.githubusercontent.com/u/34378224?s=460&v=4" width="100px;" alt="João Vieira"/>
+        <br />
+        <sub><b>João Vieira</b>
+      </a>
+    </td>
+  </tr>
+</table>
 
 <br >
 
