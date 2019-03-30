@@ -14,12 +14,10 @@
     "react-native": "https://github.com/expo/react-native/archive/sdk-32.0.0.tar.gz",
     "react-native-atoz-list": "^1.0.3",
     "react-native-calendars": "^1.22.0",
-    "react-native-dotenv": "latest",
     "react-native-elements": "^1.0.0",
     "react-native-google-maps-directions": "^2.0.0",
-    "react-native-material-textfield": "^0.12.0",
     "react-native-odoo-promise-based": "^0.6.4",
-    "react-native-paper": "^2.12.0",
+    "react-native-paper": "^2.15.0",
     "react-native-snap-carousel": "latest",
     "react-native-super-grid": "^3.0.3",
     "react-native-vector-icons": "^6.3.0",
@@ -30,7 +28,8 @@
     "redux": "^4.0.1"
   },
   "devDependencies": {
-    "babel-preset-expo": "^5.0.0"
+    "babel-preset-expo": "^5.0.0",
+    "react-native-dotenv": "^0.2.0"
   },
   "private": true
 }

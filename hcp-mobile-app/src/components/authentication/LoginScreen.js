@@ -1,25 +1,29 @@
 import React from 'react';
+
 import {
+    View,
+    Animated,
+    Keyboard,
+    KeyboardAvoidingView,
+    StatusBar,
     Alert,
     AsyncStorage,
     StyleSheet,
-    Text,
-    Button,
-    View,
-    KeyboardAvoidingView,
-    ActivityIndicator,
+    Dimensions,
+    TouchableOpacity,
+    TouchableWithoutFeedback
 } from 'react-native';
 
-import { TextField } from 'react-native-material-textfield';
-import Logo from '../Logo';
+import {Button, TextInput, DefaultTheme} from 'react-native-paper';
+import {MaterialIcons} from "@expo/vector-icons";
 import Odoo from 'react-native-odoo-promise-based';
-import { HOST, PORT, DATABASE } from 'react-native-dotenv';
-
+import {HOST, PORT, DATABASE} from 'react-native-dotenv';
 import {connect} from 'react-redux';
 import {setOdooInstance} from "../../redux/actions/odoo";
 import {setUserData, setUserImage, setUserRoles} from "../../redux/actions/user";
-
 import {colors} from "../../styles/index.style";
+import Logo from "../../../assets/logo.png";
+import Loader from '../screens/Loader';
 
 
 class LoginScreen extends React.Component {
@@ -31,12 +35,52 @@ class LoginScreen extends React.Component {
             username: "",
             password: "",
             error: "",
-            isLoading: false
+            isLoading: false,
+            hidePassword: true,
         };
+
+        this.imageHeight = new Animated.Value(IMAGE_HEIGHT);
 
         console.log(HOST);
         console.log(PORT);
     }
+
+    componentDidMount() {
+
+        this.keyboardDidShowListener = Keyboard.addListener(
+            'keyboardDidShow',
+            this._keyboardDidShow,
+        );
+        this.keyboardDidHideListener = Keyboard.addListener(
+            'keyboardDidHide',
+            this._keyboardDidHide,
+        );
+    }
+
+    componentWillUnmount() {
+
+        this.keyboardDidShowListener.remove();
+        this.keyboardDidHideListener.remove();
+    }
+
+    _keyboardDidShow = () => {
+
+        Animated.timing(this.imageHeight, {
+            duration: 500,
+            toValue: IMAGE_HEIGHT_SMALL,
+        }).start();
+    };
+
+    _keyboardDidHide = () => {
+
+        Animated.timing(this.imageHeight, {
+            duration: 500,
+            toValue: IMAGE_HEIGHT,
+        }).start();
+
+        this._usernameInput.blur();
+        this._passwordInput.blur();
+    };
 
     /**
      * User authentication and validation.
@@ -105,13 +149,13 @@ class LoginScreen extends React.Component {
      *
      * @returns {Promise<void>}
      */
-    onLoginPressed = async() => {
+    handleLoginPressed = async() => {
 
         if(this.state.username && this.state.password) {
 
             // Odoo connection parameters
             const odoo = new Odoo({
-                host: '10.0.2.2',
+                host: HOST,
                 port: PORT,
                 database: DATABASE,
                 username: this.state.username,
@@ -133,78 +177,125 @@ class LoginScreen extends React.Component {
             }
         }
         else {
-            this.setState({error: "Preencha todos os campos."});
+            this.setState({error: true});
         }
     };
 
-    _next = () => {
-        this._passwordInput && this._passwordInput.focus();
+    /**
+     * Função que permite mostrar a palavra-passe.
+     */
+    handleShowPassword =() => {
+
+        this.setState(state => ({
+            hidePassword: !state.hidePassword
+        }));
     };
 
     render() {
 
         return (
             <KeyboardAvoidingView style={styles.container} behavior="padding" enabled>
-                <View style={styles.imageTop}>
-                    <Logo size={"big"}/>
-                </View>
-                <Text style={styles.textTop}>
-                    Bem-vindo,
-                </Text>
-                <Text style={styles.textBottom}>
-                    faça login para continuar.
-                </Text>
-                <TextField
-                    onChangeText={(text) => this.setState({username: text, error: ""})}
-                    value={this.state.username}
-                    label={'Nome de utilizador'}
-                    autoCapitalize={'none'}
-                    textColor={colors.blueText}
-                    lineWidth={1}
-                    baseColor={colors.greyText}
-                    tintColor={colors.blueText}
-                    animationDuration={225}
-                    autoFocus={false}
-                    error={this.state.error}
-                    errorColor={colors.redText}
-                    onSubmitEditing={this._next}
-                />
-                <TextField
-                    onChangeText={(text) => this.setState({password: text, error: ""})}
-                    ref={ref => {this._passwordInput = ref}}
-                    value={this.state.password}
-                    label={'Palavra-passe'}
-                    autoCapitalize={'none'}
-                    textColor={colors.blueText}
-                    lineWidth={1}
-                    baseColor={colors.greyText}
-                    tintColor={colors.blueText}
-                    animationDuration={225}
-                    error={this.state.error}
-                    errorColor={colors.redText}
-                    secureTextEntry={true}
-                    returnKeyType="send"
-                    onSubmitEditing={this.onLoginPressed}
-
-                    labelHeight={15}
-                />
-                <View style={styles.loginButton}>
-                    <Button
-                        onPress={this.onLoginPressed}
-                        title="Login"
-                        color={colors.redText}
-                    />
-                </View>
-
-                { this.state.isLoading &&
-                    <View style={styles.loading} opacity={0.5}>
-                        <ActivityIndicator size='large' color={colors.loadingColor} />
+                <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+                    <View style={styles.innerContainer}>
+                        <StatusBar barStyle="light-content" backgroundColor={'#808e95'}/>
+                        <Animated.Image
+                            source={Logo}
+                            style={[styles.logo, { height: this.imageHeight }]}
+                        />
+                        <TextInput
+                            ref={ref => {this._usernameInput = ref}}
+                            onChangeText={(text) => this.setState({username: text, error: false})}
+                            mode={'flat'}
+                            style={styles.input}
+                            label={'Nome de utilizador'}
+                            value={this.state.username}
+                            error={this.state.error}
+                            theme={{ colors: {
+                                ...DefaultTheme.colors,
+                                primary: colors.blueText,
+                            }}}
+                            autoCapitalize={'none'}
+                        />
+                        <View>
+                            <TextInput
+                                ref={ref => {this._passwordInput = ref}}
+                                onChangeText={(text) => this.setState({password: text, error: false})}
+                                mode={'flat'}
+                                style={styles.input}
+                                label={'Palavra-passe'}
+                                value={this.state.password}
+                                error={this.state.error}
+                                secureTextEntry={this.state.hidePassword}
+                                theme={{ colors: {
+                                    ...DefaultTheme.colors,
+                                    primary: colors.blueText,
+                                }}}
+                                autoCapitalize={'none'}
+                            />
+                            <TouchableOpacity
+                                style={styles.icon}
+                                onPress={this.handleShowPassword.bind(this)}>
+                                <MaterialIcons
+                                    name={this.state.hidePassword ? "visibility-off" : "visibility"}
+                                    size={20}
+                                    color={'#808d94'} />
+                            </TouchableOpacity>
+                        </View>
+                        <Button
+                            color={'#808d94'}
+                            mode="contained"
+                            contentStyle={styles.loginButtonInside}
+                            style={styles.loginButtonOutside}
+                            onPress={this.handleLoginPressed}
+                        >
+                            Login
+                        </Button>
+                        <Loader isLoading={this.state.isLoading}/>
                     </View>
-                }
+                </TouchableWithoutFeedback>
             </KeyboardAvoidingView>
         );
     }
 }
+
+const window = Dimensions.get('window');
+const padding = 30;
+const IMAGE_HEIGHT = window.width / 3;
+const IMAGE_HEIGHT_SMALL = window.width / 4;
+
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: '#b0bec5',
+        justifyContent: 'center'
+    },
+    innerContainer: {
+        alignItems: 'center',
+    },
+    logo: {
+        height: IMAGE_HEIGHT,
+        resizeMode: 'contain',
+        marginBottom: 10
+    },
+    input: {
+        marginBottom: 10,
+        width: window.width - padding,
+        backgroundColor: 'transparent'
+    },
+    icon: {
+        position: 'absolute',
+        top: 30,
+        right: 5
+    },
+    loginButtonInside: {
+        height: 50,
+        width: window.width - padding,
+    },
+    loginButtonOutside: {
+        marginTop: 20
+    }
+});
 
 
 const mapStateToProps = state => ({
@@ -230,45 +321,3 @@ const mapDispatchToProps = dispatch => ({
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(LoginScreen);
-
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        justifyContent: 'center',
-        height: "100%",
-        paddingLeft: 25,
-        paddingRight: 25,
-        backgroundColor: colors.background1,
-    },
-    imageTop: {
-        alignItems: 'center',
-        marginBottom: 15
-    },
-    textTop: {
-        fontFamily: 'Montserrat-Bold',
-        fontSize: 18,
-        color: colors.blueText,
-        marginBottom: 5
-    },
-    textBottom: {
-        fontFamily: 'Montserrat-Regular',
-        fontSize: 18,
-        marginBottom: 10
-    },
-    loginButton: {
-        marginTop: 35,
-        zIndex: 100
-    },
-    loading: {
-        position: 'absolute',
-        left: 0,
-        right: 0,
-        top: 0,
-        bottom: 0,
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: "#ffffff",
-        zIndex: 101
-    }
-});

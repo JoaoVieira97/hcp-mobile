@@ -1,10 +1,13 @@
 import React from 'react';
 
-import {ActivityIndicator, View} from 'react-native';
-import {Provider} from 'react-redux';
+import {View} from 'react-native';
+import {Provider as StoreProvider} from 'react-redux';
+import {Provider as PaperProvider} from 'react-native-paper';
+
 import store  from './src/redux/store';
 import {Font} from 'expo';
 import AppNavigator from './src/components/navigation/AppNavigator';
+
 
 import Loader from './src/components/screens/Loader';
 
@@ -32,14 +35,16 @@ export default class App extends React.Component {
 
     render() {
         return (
-            <Provider store={store}>
-                <View style={{flex: 1}}>
-                    <Loader isLoading={this.state.isLoading}/>
-                    {
-                        !this.state.isLoading && <AppNavigator />
-                    }
-                </View>
-            </Provider>
+            <StoreProvider store={store}>
+                <PaperProvider>
+                    <View style={{flex: 1}}>
+                        <Loader isLoading={this.state.isLoading}/>
+                        {
+                            !this.state.isLoading && <AppNavigator />
+                        }
+                    </View>
+                </PaperProvider>
+            </StoreProvider>
         );
     }
 }
