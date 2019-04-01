@@ -39,6 +39,7 @@ import PendingTrainings from "../management/trainings/PendingTrainings";
 import OpenedTraining from "../management/trainings/OpenedTraining";
 import EditOpenedTraining from "../management/trainings/EditOpenedTraining";
 import CustomText from "../CustomText";
+import LoadingScreen from "../screens/LoadingScreen";
 
 const styles = StyleSheet.create({
     container: {
@@ -105,6 +106,7 @@ const WIDTH = Dimensions.get('window').width;
 // HOME STACK
 const HomeStackNavigator = createStackNavigator({
     HomeScreen: {screen: HomeScreen},
+    EventScreen: {screen: EventScreen}
 }, {
     transitionConfig: () => fromRight(600),
     defaultNavigationOptions: ({navigation}) => {

@@ -23,7 +23,7 @@ class HomeScreen extends React.Component {
             image: null,
             roles: [],
             // slider state
-            entries: [{title: 'Title 1'}, {title: 'Title 2'}, {title: 'Title 3'}],
+            entries: [{title:'JOGO 1'}, {title: 'JOGO 2'}, {title: 'JOGO 3'}],
             activeSlide: 0,
         }
     }
@@ -35,6 +35,42 @@ class HomeScreen extends React.Component {
             'image': this.props.user.image,
             'roles': []
         });
+
+        const games_params = {
+            domain: [],
+            fields: ['id', 'local', 'start_datetime', 'equipa_adversaria', 'description'],
+            order: 'start_datetime DESC',
+            limit: 5
+        };
+
+        const games = await this.props.odoo.search_read('ges.jogo', games_params);
+
+        let newEntries = [];
+        for (let i=0; i<games.data.length; i++){
+
+            let game = games.data[i];
+
+            let description = game.description;
+            let opponent = game.equipa_adversaria[1];
+            let startTime = game.start_datetime;
+            let startTimeDate = (startTime.split(" "))[0];
+            let startTimeHour = (startTime.split(" "))[1];
+            let localId = game.local[0];
+            let local_name = game.local[1];
+
+            newEntries.push({
+                type: 0,
+                title: description,
+                time: 'Início ' + startTimeHour,
+                description: 'Adversário: ' + opponent,
+                local: localId,
+                localName: local_name,
+                date: startTimeDate
+            });
+        }
+        this.setState({
+            entries: newEntries
+        })
 
         const params = {
             ids: this.props.user.roles,
@@ -60,35 +96,41 @@ class HomeScreen extends React.Component {
         return (
             <View style={styles.slide}>
                 <View style={styles.slideInnerContainer}>
-                    {/*
-                        <Image
-                            source={require('../../../assets/test.png')}
-                            style={{width: '100%', height: '60%', opacity: 0.8}}>
-                        </Image>
-                        <Text>
-                            {item.title}
-                        </Text>
-                    */}
                     <View style={{flex: 1}}>
                         <View style={{
-                            height: '70%',
-                            opacity: 0.8,
-                            backgroundColor: colors.gradient2}}>
-
+                            height: '85%',
+                            opacity: 0.5,
+                            backgroundColor: colors.gradient2,
+                            alignItems: 'center'
+                        }}>
+                            <Image
+                                source={require('../img/hoquei-home-icon.png')}
+                                resizeMode={"contain"}
+                                style={{
+                                    height: '60%', 
+                                    width: '60%',
+                                }}
+                            />
+                            <CustomText children={item.title} type={'bold'} style={{color: colors.gameColor}}/>
+                            <CustomText children={item.date + ", " + item.time} style={{color: '#fff'}}/>
+                            <CustomText children={item.description} style={{color: '#fff'}}/>
                         </View>
-                        <View style={{height: '30%'}}>
+                        <View style={{height: '15%'}}>
                             <TouchableOpacity style={{
                                 flex: 1,
                                 flexDirection: 'row',
                                 justifyContent: 'flex-end',
                                 alignItems: 'center',
-                                paddingHorizontal: 20}}>
+                                paddingHorizontal: 20}}
+                                onPress={() => {
+                                    this.props.navigation.navigate('EventScreen',{item})
+                                }}>
                                 <View style={{marginRight: 15}}>
                                     <CustomText
-                                        children={'Ver mais'}
+                                        children={'Detalhes'}
                                         type={'bold'}
                                         style={{
-                                            fontSize: 18,
+                                            fontSize: 14,
                                             color: colors.gradient2
                                         }}
                                     />
@@ -157,7 +199,7 @@ class HomeScreen extends React.Component {
                 end={[0, 0.7]}>
                 <ScrollView contentContainerStyle={{alignItems: 'center'}}>
                     <CustomText
-                        children={'Eventos'}
+                        children={'Próximos Eventos'}
                         type={'semi-bold'}
                         style={{
                             color: '#fff',
@@ -178,7 +220,7 @@ class HomeScreen extends React.Component {
                         autoplayInterval={2500}
                         // layout={'tinder'} // layout={'stack'}
                         // layoutCardOffset={18}
-                        renderItem={this._renderItem}
+                        renderItem={this._renderItem.bind(this)}
                         sliderWidth={sliderWidth}
                         itemWidth={itemWidth}
                         data={this.state.entries}
