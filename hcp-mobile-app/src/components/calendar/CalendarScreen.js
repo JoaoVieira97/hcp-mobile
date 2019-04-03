@@ -11,10 +11,8 @@ import {connect} from 'react-redux';
 
 import {colors} from "../../styles/index.style";
 import {MaterialCommunityIcons} from "@expo/vector-icons";
-import { Ionicons } from '@expo/vector-icons';
 
 import { CheckBox } from 'react-native-elements';
-import { Colors } from 'react-native-paper';
 
 // Locale settings
 LocaleConfig.locales['pt'] = {
@@ -27,8 +25,6 @@ LocaleConfig.locales['pt'] = {
     dayNamesShort: ['Dom.','Seg.','Terç.','Qua.','Qui.','Sex.','Sáb.']
 };
 LocaleConfig.defaultLocale = 'pt';
-
-const idUser = 62;
 
 class AgendaItem extends React.PureComponent {
 
@@ -233,7 +229,7 @@ class CalendarScreen extends React.Component {
 
         // If user wants to see only his events
         if (this.state.checked == false){
-            params.domain.push(['atletas', '=', idUser])
+            params.domain.push(['atletas', '=', this.props.user.id])
         }
         // ------------------------------------
 
@@ -316,7 +312,7 @@ class CalendarScreen extends React.Component {
 
         // If user wants to see only his events
         if (this.state.checked == false){
-            params.domain.push(['atletas', '=', idUser])
+            params.domain.push(['atletas', '=', this.props.user.id])
         }
         // ------------------------------------
 
@@ -453,20 +449,6 @@ class CalendarScreen extends React.Component {
                 refreshing={this.state.isRefreshing}
             />
         );
-
-        /*
-        return (
-            <Agenda
-                items = {this.state.items}
-                renderItem = {renderItem.bind(this)}
-                renderEmptyData = {() => {return (<View><Text style={{margin: 25, textAlign: 'center', fontSize: 15, color: '#828583'}}>Sem eventos marcados.</Text></View>);}}
-                rowHasChanged = {rowHasChanged}
-                markedDates = {this.state.markedDates}
-                markingType={'multi-dot'}
-                loadItemsForMonth={this.loadItems.bind(this)}
-            />
-        );
-        */
     }
 }
 
@@ -489,6 +471,7 @@ const styles = StyleSheet.create({
 
 const mapStateToProps = state => ({
     odoo: state.odoo.odoo,
+    user: state.user
 });
 
 const mapDispatchToProps = dispatch => ({
