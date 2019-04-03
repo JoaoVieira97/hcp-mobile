@@ -11,6 +11,10 @@ import {connect} from 'react-redux';
 
 import {colors} from "../../styles/index.style";
 import {MaterialCommunityIcons} from "@expo/vector-icons";
+import { Ionicons } from '@expo/vector-icons';
+
+import { CheckBox } from 'react-native-elements';
+import { Colors } from 'react-native-paper';
 
 // Locale settings
 LocaleConfig.locales['pt'] = {
@@ -24,6 +28,7 @@ LocaleConfig.locales['pt'] = {
 };
 LocaleConfig.defaultLocale = 'pt';
 
+const idUser = 62;
 
 class AgendaItem extends React.PureComponent {
 
@@ -88,6 +93,7 @@ class CalendarScreen extends React.Component {
             items: {},
             markedDates: {},
             monthsFetched: [],
+            checked: true
         };
     }
 
@@ -98,9 +104,15 @@ class CalendarScreen extends React.Component {
         await this.setState({
             items: {
                 [today]: [],
-            }
+            },
+        });
+
+        this.props.navigation.setParams({
+            handleThis: this.changeChecked.bind(this),
+            checkValue: true
         });
     }
+
 
     /**
      * Função que busca os eventos compreendidos num dados mês.
@@ -206,7 +218,7 @@ class CalendarScreen extends React.Component {
             domain: [
                 ['start_datetime', '>=', date1],
                 ['start_datetime', '<=', date2],
-                ['state', '=', 'convocatorias_fechadas']
+                ['state', '=', 'convocatorias_fechadas'],
             ],
             fields: [
                 'id',
@@ -218,6 +230,12 @@ class CalendarScreen extends React.Component {
             ],
             order: 'start_datetime ASC'
         };
+
+        // If user wants to see only his events
+        if (this.state.checked == false){
+            params.domain.push(['atletas', '=', idUser])
+        }
+        // ------------------------------------
 
         const response = await this.props.odoo.search_read('ges.treino', params);
         if (response.success && response.data.length > 0) {
@@ -290,11 +308,17 @@ class CalendarScreen extends React.Component {
         const params = {
             domain: [
                 ['start_datetime', '>=', date1],
-                ['start_datetime', '<=', date2]
+                ['start_datetime', '<=', date2],
             ],
             fields: ['id', 'local', 'start_datetime', 'equipa_adversaria', 'description'],
             order: 'start_datetime ASC'
         };
+
+        // If user wants to see only his events
+        if (this.state.checked == false){
+            params.domain.push(['atletas', '=', idUser])
+        }
+        // ------------------------------------
 
         const response = await this.props.odoo.search_read('ges.jogo', params);
         if (response.success && response.data.length > 0){
@@ -353,6 +377,39 @@ class CalendarScreen extends React.Component {
             localName: local_name,
             date: startTimeDate
         };
+    };
+
+    async changeChecked() {
+        const {setParams} = this.props.navigation;
+        if (this.state.checked == false){
+            await this.setState({checked: true})
+            setParams({ checkValue: true })
+        } else{
+            await this.setState({checked: false})
+            setParams({ checkValue: false })
+        }
+        console.log(this.state.checked)
+        this.handleRefresh();
+
+    }
+
+    static navigationOptions = ({navigation}) => {
+        const {params = {}} = navigation.state;
+        return {
+            headerRight:
+                <CheckBox
+                    center
+                    iconRight
+                    size={28}
+                    title='Todos os eventos'
+                    textStyle={{color: colors.gradient1}}
+                    checkedColor={colors.gradient1}
+                    uncheckedColor={colors.gradient1}
+                    checked={params.checkValue}
+                    onPress={() => params.handleThis()}
+                    containerStyle={{ margin: 0, padding: 0, backgroundColor: 'transparent', borderColor: 'transparent'}}
+                />
+        }
     };
 
     render() {
