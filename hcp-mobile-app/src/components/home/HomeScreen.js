@@ -23,54 +23,117 @@ class HomeScreen extends React.Component {
             image: null,
             roles: [],
             // slider state
-            entries: [{title:'JOGO 1'}, {title: 'JOGO 2'}, {title: 'JOGO 3'}],
+            entries: [],
             activeSlide: 0,
         }
     }
 
+    async parseEvents(events_to_request){
+        let newEntries = [];
+        for (let i=0; i<events_to_request.length; i++){
+            let e = events_to_request[i];
+
+            if (e.type === 'ges.jogo'){ //GAME
+                const get_game = {
+                    ids: [parseInt(e.id)],
+                    fields: ['id', 'local', 'start_datetime', 'equipa_adversaria', 'description'],
+                };
+                let game = (await this.props.odoo.get('ges.jogo', get_game)).data[0];
+
+                let description = game.description;
+                let opponent = game.equipa_adversaria[1];
+                let startTime = game.start_datetime;
+                let startTimeDate = (startTime.split(" "))[0];
+                let startTimeHour = (startTime.split(" "))[1];
+                let localId = game.local[0];
+                let local_name = game.local[1];
+
+                newEntries.push({
+                    type: 0,
+                    title: description,
+                    time: 'Início ' + startTimeHour,
+                    description: 'Adversário: ' + opponent,
+                    local: localId,
+                    localName: local_name,
+                    date: startTimeDate
+                });
+            }
+            else { //TRAINING
+                const get_training = {
+                    ids: [parseInt(e.id)],
+                    fields: ['id','display_name','start_datetime','description','duracao','local'],
+                };
+                let training = (await this.props.odoo.get('ges.treino', get_training)).data[0];
+
+                let description = training.display_name;
+                let duration = training.duracao;
+                let startTime = training.start_datetime;
+                let startTimeDate = (startTime.split(" "))[0];
+                let startTimeHour = (startTime.split(" "))[1];
+                let localId = training.local[0];
+                let local_name = training.local[1];
+
+                newEntries.push({
+                    type: 1,
+                    title: description,
+                    time: 'Início: ' + startTimeHour.slice(0,5) + 'h',
+                    description: 'Duração: ' + duration + ' min',
+                    local: localId,
+                    localName: local_name,
+                    date: startTimeDate
+                });
+            }
+        }
+        this.setState({
+            entries: newEntries
+        })
+    }
+
     async componentDidMount() {
+
+        // --------------------------------------------------------
+        // STATE
 
         this.setState({
             'name': this.props.user.name,
             'image': this.props.user.image,
             'roles': []
         });
+        
+        // --------------------------------------------------------
+        // EVENTS SLIDES
 
-        const games_params = {
-            domain: [],
-            fields: ['id', 'local', 'start_datetime', 'equipa_adversaria', 'description'],
-            order: 'start_datetime DESC',
+        date = new Date().toJSON().slice(0,10)
+
+        const event_params = {
+            //domain: [],
+            domain: [
+                ['start_datetime', '>=', date],
+            ],
+            fields: ['evento_ref'],
+            order: 'start_datetime ASC',
+            //order: 'start_datetime DESC',
             limit: 5
         };
 
-        const games = await this.props.odoo.search_read('ges.jogo', games_params);
+        const events = await this.props.odoo.search_read('ges.evento_desportivo', event_params);
 
-        let newEntries = [];
-        for (let i=0; i<games.data.length; i++){
+        const events_to_request = [];
+        for (let i=0; i<events.data.length; i++){
+            let event = events.data[i];
+            let id_event = (event.evento_ref.split(","))[1];
+            let type_event = (event.evento_ref.split(","))[0];
 
-            let game = games.data[i];
-
-            let description = game.description;
-            let opponent = game.equipa_adversaria[1];
-            let startTime = game.start_datetime;
-            let startTimeDate = (startTime.split(" "))[0];
-            let startTimeHour = (startTime.split(" "))[1];
-            let localId = game.local[0];
-            let local_name = game.local[1];
-
-            newEntries.push({
-                type: 0,
-                title: description,
-                time: 'Início ' + startTimeHour,
-                description: 'Adversário: ' + opponent,
-                local: localId,
-                localName: local_name,
-                date: startTimeDate
+            events_to_request.push({
+                id: id_event,
+                type: type_event
             });
         }
-        this.setState({
-            entries: newEntries
-        })
+
+        await this.parseEvents(events_to_request);
+
+        // --------------------------------------------------------
+        // ROLES
 
         const params = {
             ids: this.props.user.roles,
@@ -93,6 +156,8 @@ class HomeScreen extends React.Component {
     }
 
     _renderItem ({item, index}) {
+
+        let titleColor = (item.type == 0) ? colors.gameColor : colors.trainingColor;
         return (
             <View style={styles.slide}>
                 <View style={styles.slideInnerContainer}>
@@ -111,7 +176,7 @@ class HomeScreen extends React.Component {
                                     width: '60%',
                                 }}
                             />
-                            <CustomText children={item.title} type={'bold'} style={{color: colors.gameColor}}/>
+                            <CustomText children={item.title} type={'bold'} style={{color: titleColor}}/>
                             <CustomText children={item.date + ", " + item.time} style={{color: '#fff'}}/>
                             <CustomText children={item.description} style={{color: '#fff'}}/>
                         </View>
