@@ -1,16 +1,15 @@
 import React from 'react';
 import {
-    ActivityIndicator, Alert,
-    AsyncStorage,
-    View,
+    Alert,
+    AsyncStorage
 } from 'react-native';
 
 import Odoo from 'react-native-odoo-promise-based';
 
 import {connect} from 'react-redux';
 import {setOdooInstance} from "../../redux/actions/odoo";
-import {setUserData, setUserImage, setUserRoles} from "../../redux/actions/user";
-import { HOST, PORT, DATABASE } from 'react-native-dotenv';
+import {setUserData, setUserImage, setUserGroups} from "../../redux/actions/user";
+import {HOST, PORT, DATABASE} from 'react-native-dotenv';
 
 import Loader from '../screens/Loader';
 
@@ -31,20 +30,22 @@ class AuthenticationLoading extends React.Component {
 
     async componentDidMount() {
 
-        const token = await AsyncStorage.getItem('access_token');
-        const username = await AsyncStorage.getItem('username');
-        const password = await AsyncStorage.getItem('password');
+        let username = null;
+        let password = null;
+        let navigateTo = 'Authentication'; // Default navigation
 
-        // Default navigation
-        let navigateTo = 'Authentication';
+        await AsyncStorage.multiGet(['username', 'password']).then((data) => {
+            username = data[0][1];
+            password = data[1][1];
+        });
 
-        if(token) {
+        if(username && password) {
+
             // Odoo connection parameters
             const odoo = new Odoo({
                 host: HOST,
                 port: PORT,
                 database: DATABASE,
-                sid: token,
                 username: username,
                 password: password
             });
@@ -53,7 +54,7 @@ class AuthenticationLoading extends React.Component {
             await this.props.setOdooInstance(odoo);
 
             // Login to odoo server
-            const loginResponse = await this.odooConnection();
+            const loginResponse = await this.authentication();
             if(loginResponse) {
 
                 // Get and save user data on store
@@ -71,27 +72,12 @@ class AuthenticationLoading extends React.Component {
         this.props.navigation.navigate(navigateTo);
     }
 
-
-    async getUserData() {
-
-        // Define parameters
-        const params = {
-            ids: [this.props.user.id],
-            fields: [ 'name', 'image', 'groups_id' ],
-        };
-
-        // Get data
-        const response = await this.props.odoo.get('res.users', params);
-
-        // Check and and save user data on store
-        if(response.success) {
-
-            await this.props.setUserImage(response.data[0].image);
-            await this.props.setUserRoles(response.data[0].groups_id);
-        }
-    }
-
-    async odooConnection() {
+    /**
+     * User authentication and validation.
+     *
+     * @returns {Promise<boolean>}
+     */
+    async authentication() {
 
         const response = await this.props.odoo.connect();
 
@@ -117,6 +103,68 @@ class AuthenticationLoading extends React.Component {
             Alert.alert("Erro",response.error.toString());
         }
         return false;
+    }
+
+    /**
+     * Get user image and groups.
+     *
+     * @returns {Promise<void>}
+     */
+    async getUserData() {
+
+        // Define parameters
+        const params = {
+            ids: [this.props.user.id],
+            fields: ['image', 'groups_id'],
+        };
+
+        // Get data
+        const response = await this.props.odoo.get('res.users', params);
+
+        // Check and and save user data on store
+        if(response.success) {
+
+            await this.props.setUserImage(response.data[0].image);
+            await this.fetchUserGroups(response.data[0].groups_id);
+        }
+    }
+
+    /**
+     * Fetch and parse user groups.
+     * @param groups
+     * @returns {Promise<void>}
+     */
+    async fetchUserGroups(groups) {
+
+        const params = {
+            ids: groups,
+            fields: ['full_name'],
+        };
+
+        const response = await this.props.odoo.get('res.groups', params);
+        if (response.success) {
+
+            // User groups filtered
+            let result = [];
+            for (let i = 0; i < response.data.length; i++) {
+
+
+                const splitName = response.data[i].full_name.split(" / ");
+                if (splitName[0] === 'Gestão de Equipas Desportivas')
+                {
+                    if (splitName[1] === 'Atleta')
+                        result.push('Atleta');
+                    else if (splitName[1] === 'Treinador')
+                        result.push('Treinador');
+                    else if (splitName[1] === 'Seccionista')
+                        result.push('Seccionista');
+                    else if (splitName[1] === 'Pai')
+                        result.push('Pai');
+                }
+            }
+
+            await this.props.setUserGroups(result);
+        }
     }
 
 
@@ -145,8 +193,8 @@ const mapDispatchToProps = dispatch => ({
     setUserImage: (image) => {
         dispatch(setUserImage(image))
     },
-    setUserRoles: (groups) => {
-        dispatch(setUserRoles(groups))
+    setUserGroups: (groups) => {
+        dispatch(setUserGroups(groups))
     },
 });
 

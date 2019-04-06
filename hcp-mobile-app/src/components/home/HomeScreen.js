@@ -28,7 +28,63 @@ class HomeScreen extends React.Component {
         }
     }
 
+    async componentDidMount() {
+
+        this.setState({
+            'name': this.props.user.name,
+            'image': this.props.user.image,
+            'roles': []
+        });
+
+        await this.fetchEvents();
+    }
+
+    /**
+     * Fetch future events. All events are associated to the current user id.
+     * Display the first 5 events from now.
+     * @returns {Promise<void>}
+     */
+    async fetchEvents() {
+
+        // Get today using "xxxx-xx-xx" format
+        const nowDate = new Date().toJSON().slice(0,10);
+
+        const event_params = {
+            domain: [
+                //['atletas', '=', this.props.user.id],7
+                ['treinador', '=', ''],
+                ['start_datetime', '>=', nowDate],
+            ],
+            //fields: ['evento_ref'],
+            order: 'start_datetime ASC',
+            limit: 5
+        };
+
+        const response = await this.props.odoo.search_read('ges.evento_desportivo', event_params);
+        //console.log(response);
+
+        /*
+        if (events.success) {
+
+            const events_to_request = [];
+            for (let i=0; i<events.data.length; i++){
+                let event = events.data[i];
+                let id_event = (event.evento_ref.split(","))[1];
+                let type_event = (event.evento_ref.split(","))[0];
+
+                events_to_request.push({
+                    id: id_event,
+                    type: type_event
+                });
+            }
+
+            await this.parseEvents(events_to_request);
+        }
+        */
+    }
+
     async parseEvents(events_to_request){
+
         let newEntries = [];
         for (let i=0; i<events_to_request.length; i++){
             let e = events_to_request[i];
@@ -87,72 +143,6 @@ class HomeScreen extends React.Component {
         this.setState({
             entries: newEntries
         })
-    }
-
-    async componentDidMount() {
-
-        // --------------------------------------------------------
-        // STATE
-
-        this.setState({
-            'name': this.props.user.name,
-            'image': this.props.user.image,
-            'roles': []
-        });
-        
-        // --------------------------------------------------------
-        // EVENTS SLIDES
-
-        date = new Date().toJSON().slice(0,10)
-
-        const event_params = {
-            //domain: [],
-            domain: [
-                ['start_datetime', '>=', date],
-            ],
-            fields: ['evento_ref'],
-            order: 'start_datetime ASC',
-            //order: 'start_datetime DESC',
-            limit: 5
-        };
-
-        const events = await this.props.odoo.search_read('ges.evento_desportivo', event_params);
-
-        const events_to_request = [];
-        for (let i=0; i<events.data.length; i++){
-            let event = events.data[i];
-            let id_event = (event.evento_ref.split(","))[1];
-            let type_event = (event.evento_ref.split(","))[0];
-
-            events_to_request.push({
-                id: id_event,
-                type: type_event
-            });
-        }
-
-        await this.parseEvents(events_to_request);
-
-        // --------------------------------------------------------
-        // ROLES
-
-        const params = {
-            ids: this.props.user.roles,
-            fields: ['id', 'full_name'],
-        };
-
-        const userRoles = await this.props.odoo.get(
-            'res.groups',
-            params
-        );
-
-        for (let i = 0; i < userRoles.data.length; i++) {
-
-            const info = userRoles.data[i].full_name.split(" / ");
-
-            this.setState({
-                roles: [...this.state.roles, {key: i, name: info[1]}]
-            });
-        }
     }
 
     _renderItem ({item, index}) {

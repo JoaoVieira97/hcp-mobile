@@ -15,9 +15,9 @@ export function setUserImage(image) {
     }
 }
 
-export function setUserRoles(groups) {
+export function setUserGroups(groups) {
     return {
-        type: 'SET_USER_ROLES',
+        type: 'SET_USER_GROUPS',
         groups: groups
     }
 }

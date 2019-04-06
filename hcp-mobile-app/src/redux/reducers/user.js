@@ -5,7 +5,7 @@ const INITIAL_STATE = {
     id: {},
     name: {},
     image: {},
-    roles: [],
+    groups: [],
 };
 
 // take the previous state and an action, and return the next state
@@ -25,10 +25,10 @@ export default function userReducer (state = INITIAL_STATE, action) {
                 image: action.image
             };
 
-        case 'SET_USER_ROLES':
+        case 'SET_USER_GROUPS':
             return {
                 ...state,
-                roles: action.groups
+                groups: action.groups
             };
 
         default:
