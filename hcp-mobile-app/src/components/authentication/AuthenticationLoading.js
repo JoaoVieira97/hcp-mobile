@@ -148,18 +148,93 @@ class AuthenticationLoading extends React.Component {
             let result = [];
             for (let i = 0; i < response.data.length; i++) {
 
-
                 const splitName = response.data[i].full_name.split(" / ");
                 if (splitName[0] === 'Gestão de Equipas Desportivas')
                 {
                     if (splitName[1] === 'Atleta')
-                        result.push('Atleta');
+                    {
+                        const athleteParams = {
+                            ids: [],
+                            fields: ['id'],
+                            domain: [
+                                ['user_id', '=', this.props.user.id]
+                            ],
+                            limit: 1
+                        };
+
+                        const athleteResponse = await this.props.odoo.search_read('ges.atleta', athleteParams);
+                        if (athleteResponse && athleteResponse.data.length > 0) {
+
+                            const athleteInfo = {
+                                name: 'Atleta',
+                                id:  athleteResponse.data[0].id
+                            };
+                            result.push(athleteInfo);
+                        }
+                    }
                     else if (splitName[1] === 'Treinador')
-                        result.push('Treinador');
+                    {
+                        const coachParams = {
+                            ids: [],
+                            fields: ['id'],
+                            domain: [
+                                ['user_id', '=', this.props.user.id]
+                            ],
+                            limit: 1
+                        };
+
+                        const coachResponse = await this.props.odoo.search_read('ges.treinador', coachParams);
+                        if (coachResponse && coachResponse.data.length > 0) {
+
+                            const coachInfo = {
+                                name: 'Treinador',
+                                id: coachResponse.data[0].id
+                            };
+                            result.push(coachInfo);
+                        }
+                    }
                     else if (splitName[1] === 'Seccionista')
-                        result.push('Seccionista');
+                    {
+                        const secretaryParams = {
+                            ids: [],
+                            fields: ['id'],
+                            domain: [
+                                ['user_id', '=', this.props.user.id]
+                            ],
+                            limit: 1
+                        };
+
+                        const secretaryResponse = await this.props.odoo.search_read('ges.seccionista', secretaryParams);
+                        if (secretaryResponse && secretaryResponse.data.length > 0) {
+
+                            const secretaryInfo = {
+                                name: 'Seccionista',
+                                id: secretaryResponse.data[0].id
+                            };
+                            result.push(secretaryInfo);
+                        }
+                    }
                     else if (splitName[1] === 'Pai')
-                        result.push('Pai');
+                    {
+                        const fatherParams = {
+                            ids: [],
+                            fields: ['id'],
+                            domain: [
+                                ['user_id', '=', this.props.user.id]
+                            ],
+                            limit: 1
+                        };
+
+                        const fatherResponse = await this.props.odoo.search_read('ges.pai', fatherParams);
+                        if (fatherResponse && fatherResponse.data.length > 0) {
+
+                            const fatherInfo = {
+                                name: 'Pai',
+                                id: fatherResponse.data[0].id
+                            };
+                            result.push(fatherInfo);
+                        }
+                    }
                 }
             }
 

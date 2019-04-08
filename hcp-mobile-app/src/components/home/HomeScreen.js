@@ -40,7 +40,7 @@ class HomeScreen extends React.Component {
     }
 
     /**
-     * Fetch future events. All events are associated to the current user id.
+     * Fetch future events. All events are associated to the current user.
      * Display the first 5 events from now.
      * @returns {Promise<void>}
      */
@@ -49,28 +49,38 @@ class HomeScreen extends React.Component {
         // Get today using "xxxx-xx-xx" format
         const nowDate = new Date().toJSON().slice(0,10);
 
-        const event_params = {
-            domain: [
-                //['atletas', '=', this.props.user.id],7
-                ['treinador', '=', ''],
-                ['start_datetime', '>=', nowDate],
-            ],
-            //fields: ['evento_ref'],
+        // Define domain
+        let domain = [['start_datetime', '>=', nowDate]];
+        for (let i = 0; i < this.props.user.groups.length; i++) {
+
+            const group = this.props.user.groups[i];
+
+            if(group.name === 'Atleta') {
+                domain = [...domain, ['atletas', 'in', group.id]];
+            }
+            else if (group.name === 'Seccionista') {
+                domain = [...domain, ['seccionistas', 'in', group.id]];
+            }
+            else if (group.name === 'Treinador') {
+                domain = [...domain, ['treinador', 'in', group.id]];
+            }
+        }
+
+        const params = {
+            domain: domain,
+            fields: ['evento_ref'],
             order: 'start_datetime ASC',
-            limit: 5
+            limit: 6
         };
 
-        const response = await this.props.odoo.search_read('ges.evento_desportivo', event_params);
-        //console.log(response);
-
-        /*
-        if (events.success) {
+        const response = await this.props.odoo.search_read('ges.evento_desportivo', params);
+        if (response.success) {
 
             const events_to_request = [];
-            for (let i=0; i<events.data.length; i++){
-                let event = events.data[i];
-                let id_event = (event.evento_ref.split(","))[1];
-                let type_event = (event.evento_ref.split(","))[0];
+            for (let i=0; i< response.data.length; i++){
+                const event = response.data[i];
+                const id_event = (event.evento_ref.split(","))[1];
+                const type_event = (event.evento_ref.split(","))[0];
 
                 events_to_request.push({
                     id: id_event,
@@ -80,7 +90,6 @@ class HomeScreen extends React.Component {
 
             await this.parseEvents(events_to_request);
         }
-        */
     }
 
     async parseEvents(events_to_request){
@@ -231,11 +240,11 @@ class HomeScreen extends React.Component {
 
     render() {
 
-        const displayRoles = this.state.roles.map((data, index) => {
+        const displayRoles = this.props.user.groups.map((data, index) => {
             return (
                 <CustomText
-                    key={data.key}
-                    children={data.name}
+                    key={index}
+                    children={data.name + ' | id_in_group = ' + data.id}
                     type={'normal'}
                     style={{
                         color: '#fff',
@@ -281,7 +290,7 @@ class HomeScreen extends React.Component {
                         data={this.state.entries}
                         onSnapToItem={(index) => this.setState({ activeSlide: index }) }
                     />
-                    <View>
+                    <View style={{alignItems: 'center'}}>
                         {displayRoles}
                     </View>
                     <Image style={{ width: 150, height: 100, marginVertical: 20}}
