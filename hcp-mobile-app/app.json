@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Hoquei Clube Penafiel",
+    "name": "H.C.Penafiel",
     "slug": "HcpMobileApp",
     "privacy": "public",
     "sdkVersion": "32.0.0",
@@ -24,6 +24,9 @@
     ],
     "ios": {
       "supportsTablet": true
+    },
+    "notification":{
+      "icon": "./src/components/img/logo-bw.png"
     }
   }
 }

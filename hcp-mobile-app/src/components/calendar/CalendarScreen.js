@@ -210,12 +210,28 @@ class CalendarScreen extends React.Component {
      */
     async fetchTrainings(date1, date2) {
 
+        let domain = [
+            ['start_datetime', '>=', date1],
+            ['start_datetime', '<=', date2],
+            ['state', '=', 'convocatorias_fechadas'],
+        ];
+        for (let i = 0; i < this.props.user.groups.length; i++) {
+
+            const group = this.props.user.groups[i];
+
+            if(group.name === 'Atleta') {
+                domain = [...domain, ['atletas', 'in', group.id]];
+            }
+            else if (group.name === 'Seccionista') {
+                domain = [...domain, ['seccionistas', 'in', group.id]];
+            }
+            else if (group.name === 'Treinador') {
+                domain = [...domain, ['treinador', 'in', group.id]];
+            }
+        }
+
         const params = {
-            domain: [
-                ['start_datetime', '>=', date1],
-                ['start_datetime', '<=', date2],
-                ['state', '=', 'convocatorias_fechadas'],
-            ],
+            domain: domain,
             fields: [
                 'id',
                 'display_name',

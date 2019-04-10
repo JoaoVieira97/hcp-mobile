@@ -5,7 +5,8 @@ import {
     StyleSheet,
     Dimensions,
     ScrollView,
-    TouchableOpacity
+    TouchableOpacity,
+    Button
 } from 'react-native';
 import {connect} from 'react-redux';
 import {LinearGradient} from 'expo';
@@ -13,6 +14,8 @@ import {colors} from "../../styles/index.style";
 import Carousel, { Pagination } from 'react-native-snap-carousel';
 import CustomText from "../CustomText";
 import {Ionicons} from "@expo/vector-icons";
+
+import { Permissions, Notifications } from 'expo';
 
 class HomeScreen extends React.Component {
 
@@ -25,10 +28,17 @@ class HomeScreen extends React.Component {
             // slider state
             entries: [],
             activeSlide: 0,
+            token: null
         }
     }
 
     async componentDidMount() {
+
+        await this.registerForPushNotificationsAsync();
+
+        console.log(this.state.token)
+
+        await this.addUserToken();
 
         this.setState({
             'name': this.props.user.name,
@@ -37,6 +47,89 @@ class HomeScreen extends React.Component {
         });
 
         await this.fetchEvents();
+    }
+
+    sendNotificationJS(){
+        let title = "Nova convocatória (JS)"
+        let body = "Foste convocado para o jogo deste fim-de-semana"
+        fetch('https://exp.host/--/api/v2/push/send', {
+          body: JSON.stringify({
+            to: this.state.token,
+            title: title,
+            body: body,
+            //data: { message: `${title} - ${body}` },
+          }),
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          method: 'POST',
+        });
+    }
+
+    async sendNotificationOdoo(){
+
+        let userId = this.props.user.id.toString()
+
+        const params = {
+            kwargs: {
+                context: this.props.odoo.context,
+            },
+            model: 'ges.notificacao',
+            method: 'sendNotification',
+            args: [0, userId]
+        };
+
+        const response = await this.props.odoo.rpc_call(
+            '/web/dataset/call_kw',
+            params
+        );
+        console.log("Pedido de notificação realizado")
+    }
+
+    async addUserToken(){
+        let userId = this.props.user.id.toString()
+        let token = this.state.token.toString()
+        
+        console.log(userId)
+        console.log(token)
+
+        const params = {
+            kwargs: {
+                context: this.props.odoo.context,
+            },
+            model: 'ges.notificacao',
+            method: 'addUserToken',
+            args: [0, userId, token]
+        };
+
+        const response = await this.props.odoo.rpc_call(
+            '/web/dataset/call_kw',
+            params
+        );
+    }
+
+    async registerForPushNotificationsAsync() {
+        const { status } = await Permissions.getAsync(Permissions.NOTIFICATIONS);
+
+        let finalStatus = status;
+
+        if (status !== 'granted'){
+            const { status } = await Permissions.askAsync(Permissions.NOTIFICATIONS);
+            finalStatus = status
+        }
+
+        if (finalStatus !== 'granted'){
+            return;
+        }
+        console.log(finalStatus)
+
+        await Notifications.getExpoPushTokenAsync().then( token => {
+            this.setState({
+                token: token
+            })
+          }).catch( err => {
+            console.log('token err', err)
+        })
     }
 
     /**
@@ -295,6 +388,22 @@ class HomeScreen extends React.Component {
                     </View>
                     <Image style={{ width: 150, height: 100, marginVertical: 20}}
                            source={{uri: `data:image/png;base64,${this.state.image}`}}/>
+                    
+                    <View style={{marginBottom: 20}}>
+                        <Button
+                            title={'Enviar notificação Odoo'}
+                            color={colors.gradient1}
+                            onPress={() => this.sendNotificationOdoo()}
+                            style={{marginBottom: 20}}
+                        />
+                    </View>
+                    <View>
+                        <Button
+                            title={'Enviar notificação JavaScript'}
+                            color={colors.gradient1}
+                            onPress={() => this.sendNotificationJS()}
+                        />
+                    </View>
                 </ScrollView>
             </LinearGradient>
         );
