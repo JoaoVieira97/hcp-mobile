@@ -33,6 +33,9 @@ class AgendaItem extends React.PureComponent {
         let color;
         let item = this.props.item;
         switch (this.props.item.type) {
+            case 0:
+                color = colors.gameColor;
+                break;
             case 1:
                 color = colors.trainingColor;
                 break;
@@ -46,32 +49,30 @@ class AgendaItem extends React.PureComponent {
                 onPress={() => {
                     this.props.navigation.navigate('EventScreen',{item})
                 }}
-                style={[
-                    styles.item, {
-                        backgroundColor: '#fff',
-                        flexDirection: 'row',
-                        paddingVertical: 10,
-                        paddingHorizontal: 5
-            }]}>
+                style={styles.item}>
                 <View style={{
-                    height: '100%',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    marginLeft: 10,
-                    marginRight: 15
-                }}>
-                    <MaterialCommunityIcons
-                        name={'hockey-sticks'}
-                        size={28}
-                        color={color}
-                    />
-                </View>
-                <View>
-                    <Text style={{fontWeight: '600', marginBottom: 10, color: color}}>
-                        {this.props.item.title}
-                    </Text>
-                    <Text>{this.props.item.time}</Text>
-                    <Text>{this.props.item.description}</Text>
+                    flex: 1,
+                    flexDirection: 'row',
+                    width: '100%'}}>
+                    <View style={{
+                        height: '100%',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        marginLeft: 10,
+                        marginRight: 15}}>
+                        <MaterialCommunityIcons
+                            name={'hockey-sticks'}
+                            size={28}
+                            color={color}
+                        />
+                    </View>
+                    <View style={{width: '82%'}}>
+                        <Text style={{fontWeight: '600', marginBottom: 10, color: color}}>
+                            {this.props.item.title}
+                        </Text>
+                        <Text>{this.props.item.time}</Text>
+                        <Text>{this.props.item.description}</Text>
+                    </View>
                 </View>
             </TouchableOpacity>
         );
@@ -89,7 +90,7 @@ class CalendarScreen extends React.Component {
             items: {},
             markedDates: {},
             monthsFetched: [],
-            checked: true
+            checked: false
         };
     }
 
@@ -105,14 +106,12 @@ class CalendarScreen extends React.Component {
 
         this.props.navigation.setParams({
             handleThis: this.changeChecked.bind(this),
-            checkValue: true
+            checkValue: this.state.checked
         });
     }
 
-
     /**
-     * Função que busca os eventos compreendidos num dados mês.
-     * Dado o dia, busca todos os eventos desse mês caso não estejam já em memória.
+     * Fetch all events of the month of the given day.
      * @param day
      * @returns {Promise<void>}
      */
@@ -156,78 +155,86 @@ class CalendarScreen extends React.Component {
     };
 
     /**
-     * Função que trata de atualizar a lista dos treinos.
-     */
-    handleRefresh = async () => {
-
-        const today = new Date().toJSON().slice(0,10);
-
-        await this.setState({
-            items: {
-                [today]: [],
-            },
-            markedDates: {},
-            monthsFetched: []
-        });
-
-        // Go to today
-        this.agenda.chooseDay(new Date().toJSON().slice(0,10), true);
-    };
-
-    /**
-     * Retorna o componente que representa um item da agenda.
-     * @param item
-     */
-    renderItem = (item) => {
-        return (
-            <AgendaItem key={item.name} item={item} navigation={this.props.navigation} />
-        );
-    };
-
-    /**
-     * Retorna um componente que representa um dia sem eventos.
-     */
-    renderEmptyDate = () => {
-        return (
-            <View style={styles.emptyDate}>
-                <Text>Nenhum evento para hoje.</Text>
-            </View>
-        );
-    };
-
-    /**
-     * Função que compara se uma linha foi alterada.
-     */
-    rowHasChanged = (r1, r2) => {
-        return r1.name !== r2.name;
-    };
-
-    /**
-     * Buscar todos os treinos entre determinadas datas.
+     * Fetch all trainings.
      * @param date1
      * @param date2
      * @returns {Promise<void>}
      */
     async fetchTrainings(date1, date2) {
 
-        let domain = [
-            ['start_datetime', '>=', date1],
-            ['start_datetime', '<=', date2],
-            ['state', '=', 'convocatorias_fechadas'],
-        ];
-        for (let i = 0; i < this.props.user.groups.length; i++) {
+        // Create aux domain
+        let auxDomain = [];
+        if(this.state.checked === false) {
 
-            const group = this.props.user.groups[i];
+            for (let i = 0; i < this.props.user.groups.length; i++) {
 
-            if(group.name === 'Atleta') {
-                domain = [...domain, ['atletas', 'in', group.id]];
+                const group = this.props.user.groups[i];
+
+                if(group.name === 'Atleta') {
+                    auxDomain = [...auxDomain, ['atletas', 'in', group.id]];
+                }
+                else if (group.name === 'Seccionista') {
+                    auxDomain = [...auxDomain, ['seccionistas', 'in', group.id]];
+                }
+                else if (group.name === 'Treinador') {
+                    auxDomain = [...auxDomain, ['treinador', 'in', group.id]];
+                }
             }
-            else if (group.name === 'Seccionista') {
-                domain = [...domain, ['seccionistas', 'in', group.id]];
-            }
-            else if (group.name === 'Treinador') {
-                domain = [...domain, ['treinador', 'in', group.id]];
-            }
+        }
+
+        // Define domain
+        // (A and B) = & A B
+        // (A and B and C) = & & A B C
+        // (A and (B or C)) = & A or B C
+        // (A and (B or C or D)) = & A or B or C D
+        let domain = [];
+        if (auxDomain.length === 0) {
+            domain = [
+                '&',
+                '&',
+                ['start_datetime', '>=', date1],
+                ['start_datetime', '<=', date2],
+                ['state', '=', 'convocatorias_fechadas']
+            ];
+        }
+        else if (auxDomain.length === 1) {
+            domain = [
+                '&',
+                '&',
+                '&',
+                ['start_datetime', '>=', date1],
+                ['start_datetime', '<=', date2],
+                ['state', '=', 'convocatorias_fechadas'],
+                auxDomain[0]
+            ];
+        }
+        else if (auxDomain.length === 2) {
+            domain = [
+                '&',
+                '&',
+                '&',
+                ['start_datetime', '>=', date1],
+                ['start_datetime', '<=', date2],
+                ['state', '=', 'convocatorias_fechadas'],
+                '|',
+                auxDomain[0],
+                auxDomain[1]
+            ];
+        }
+        else if (auxDomain.length === 3) {
+            domain = [
+                '&',
+                '&',
+                '&',
+                ['start_datetime', '>=', date1],
+                ['start_datetime', '<=', date2],
+                ['state', '=', 'convocatorias_fechadas'],
+                '|',
+                auxDomain[0],
+                '|',
+                auxDomain[1],
+                auxDomain[2]
+            ];
         }
 
         const params = {
@@ -243,18 +250,11 @@ class CalendarScreen extends React.Component {
             order: 'start_datetime ASC'
         };
 
-        // If user wants to see only his events
-        if (this.state.checked == false){
-            params.domain.push(['atletas', '=', this.props.user.id])
-        }
-        // ------------------------------------
-
         const response = await this.props.odoo.search_read('ges.treino', params);
         if (response.success && response.data.length > 0) {
 
             let items = this.state.items;
             let markedDates = this.state.markedDates;
-            const trainingMark = {key:'training', color: colors.trainingColor};
 
             for (let i=0; i < response.data.length; i++){
 
@@ -268,6 +268,7 @@ class CalendarScreen extends React.Component {
                     items[training.date].push(training);
 
                 /*
+                const trainingMark = {key:'training', color: colors.trainingColor};
                 // Add training mark
                 if (markedDates[training.date] === undefined) {
                     markedDates[training.date] = {
@@ -309,35 +310,105 @@ class CalendarScreen extends React.Component {
     };
 
     /**
-     * Buscar todos os jogos entre determinadas datas.
-     *
+     * Fetch all games.
      * @param date1
      * @param date2
      * @returns {Promise<void>}
      */
     async fetchGames(date1, date2) {
 
-        const params = {
-            domain: [
+        // Create aux domain
+        let auxDomain = [];
+        if(this.state.checked === false) {
+
+            for (let i = 0; i < this.props.user.groups.length; i++) {
+
+                const group = this.props.user.groups[i];
+
+                if(group.name === 'Atleta') {
+                    auxDomain = [...auxDomain, ['atletas', 'in', group.id]];
+                }
+                else if (group.name === 'Seccionista') {
+                    auxDomain = [...auxDomain, ['seccionistas', 'in', group.id]];
+                }
+                else if (group.name === 'Treinador') {
+                    auxDomain = [...auxDomain, ['treinador', 'in', group.id]];
+                }
+            }
+        }
+
+        // Define domain
+        // (A and B) = & A B
+        // (A and B and C) = & & A B C
+        // (A and (B or C)) = & A or B C
+        // (A and (B or C or D)) = & A or B or C D
+        let domain = [];
+        if (auxDomain.length === 0) {
+            domain = [
+                '&',
+                '&',
                 ['start_datetime', '>=', date1],
                 ['start_datetime', '<=', date2],
+                ['state', '=', 'convocatorias_fechadas']
+            ];
+        }
+        else if (auxDomain.length === 1) {
+            domain = [
+                '&',
+                '&',
+                '&',
+                ['start_datetime', '>=', date1],
+                ['start_datetime', '<=', date2],
+                ['state', '=', 'convocatorias_fechadas'],
+                auxDomain[0]
+            ];
+        }
+        else if (auxDomain.length === 2) {
+            domain = [
+                '&',
+                '&',
+                '&',
+                ['start_datetime', '>=', date1],
+                ['start_datetime', '<=', date2],
+                ['state', '=', 'convocatorias_fechadas'],
+                '|',
+                auxDomain[0],
+                auxDomain[1]
+            ];
+        }
+        else if (auxDomain.length === 3) {
+            domain = [
+                '&',
+                '&',
+                '&',
+                ['start_datetime', '>=', date1],
+                ['start_datetime', '<=', date2],
+                ['state', '=', 'convocatorias_fechadas'],
+                '|',
+                auxDomain[0],
+                '|',
+                auxDomain[1],
+                auxDomain[2]
+            ];
+        }
+
+        const params = {
+            domain: domain,
+            fields: [
+                'id',
+                'local',
+                'start_datetime',
+                'equipa_adversaria',
+                'escalao'
             ],
-            fields: ['id', 'local', 'start_datetime', 'equipa_adversaria', 'description'],
             order: 'start_datetime ASC'
         };
-
-        // If user wants to see only his events
-        if (this.state.checked == false){
-            params.domain.push(['atletas', '=', this.props.user.id])
-        }
-        // ------------------------------------
 
         const response = await this.props.odoo.search_read('ges.jogo', params);
         if (response.success && response.data.length > 0){
 
             let items = this.state.items;
             let markedDates = this.state.markedDates;
-            const gameMark = {key:'game', color: colors.gameColor};
 
             for (let i=0; i < response.data.length; i++){
 
@@ -349,17 +420,6 @@ class CalendarScreen extends React.Component {
                 }
                 else if(items[game.date].find(item => item.type === 0 && item.id === game.id) === undefined)
                     items[game.date].push(game);
-
-                /*
-                // Add game mark
-                if (markedDates[game.date] === undefined) {
-                    markedDates[game.date] = {
-                        dots: [gameMark]
-                    }
-                }
-                else if(markedDates[game.date].dots.find(item => item.key === gameMark.key) === undefined)
-                    markedDates[game.date].dots.push(gameMark);
-                */
             }
 
             await this.setState({
@@ -371,7 +431,7 @@ class CalendarScreen extends React.Component {
 
     parseGame = (game) =>{
 
-        const description = game.description;
+        const level = game.escalao[1];
         const opponent = game.equipa_adversaria[1];
         const startTime = game.start_datetime;
         const startTimeDate = (startTime.split(" "))[0];
@@ -382,8 +442,8 @@ class CalendarScreen extends React.Component {
         return {
             id: game.id,
             type: 0,
-            title: description,
-            time: 'Início ' + startTimeHour,
+            title: 'Jogo | ' + level + ' | ' + local_name,
+            time: 'Início ' + startTimeHour.slice(0,5) + 'h',
             description: 'Adversário: ' + opponent,
             local: localId,
             localName: local_name,
@@ -391,9 +451,62 @@ class CalendarScreen extends React.Component {
         };
     };
 
+    /**
+     * Handle refresh.
+     * @returns {Promise<void>}
+     */
+    handleRefresh = async () => {
+
+        const today = new Date().toJSON().slice(0,10);
+        await this.setState({
+            items: {
+                [today]: [],
+            },
+            markedDates: {},
+            monthsFetched: []
+        });
+
+        // Go to today
+        this.agenda.chooseDay(new Date().toJSON().slice(0,10), true);
+    };
+
+    /**
+     * Render agenda item.
+     * @param item
+     */
+    renderItem = (item) => {
+
+        const key = (item.type === 0 ? 'game' : 'training') + item.id;
+
+        return (
+            <AgendaItem key={key} item={item} navigation={this.props.navigation} />
+        );
+    };
+
+    /**
+     * Render an message when there is no events.
+     * @returns {*}
+     */
+    renderEmptyDate = () => {
+        return (
+            <View style={styles.emptyDate}>
+                <Text>Nenhum evento para hoje.</Text>
+            </View>
+        );
+    };
+
+    /**
+     * Compare two dates.
+     */
+    rowHasChanged = (r1, r2) => {
+        return r1.name !== r2.name;
+    };
+
+
     async changeChecked() {
+
         const {setParams} = this.props.navigation;
-        if (this.state.checked == false){
+        if (this.state.checked === false){
             await this.setState({checked: true})
             setParams({ checkValue: true })
         } else{
@@ -401,8 +514,7 @@ class CalendarScreen extends React.Component {
             setParams({ checkValue: false })
         }
         console.log(this.state.checked)
-        this.handleRefresh();
-
+        await this.handleRefresh();
     }
 
     static navigationOptions = ({navigation}) => {
@@ -470,12 +582,12 @@ class CalendarScreen extends React.Component {
 
 const styles = StyleSheet.create({
     item: {
-        backgroundColor: 'white',
         flex: 1,
         borderRadius: 5,
         padding: 10,
         marginRight: 10,
-        marginTop: 17
+        marginVertical: 8,
+        backgroundColor: '#fff'
     },
     emptyDate: {
         height: 15,
@@ -486,6 +598,7 @@ const styles = StyleSheet.create({
 
 
 const mapStateToProps = state => ({
+
     odoo: state.odoo.odoo,
     user: state.user
 });

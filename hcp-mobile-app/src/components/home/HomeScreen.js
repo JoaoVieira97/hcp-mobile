@@ -20,25 +20,23 @@ import { Permissions, Notifications } from 'expo';
 class HomeScreen extends React.Component {
 
     constructor(props) {
+
         super(props);
+
         this.state = {
             name: null,
             image: null,
             roles: [],
-            // slider state
-            entries: [],
+            entries: [{
+                type: 2,
+                title: 'Sem eventos'
+            }],
             activeSlide: 0,
-            token: null
-        }
+            token: {}
+        };
     }
 
     async componentDidMount() {
-
-        await this.registerForPushNotificationsAsync();
-
-        console.log(this.state.token)
-
-        await this.addUserToken();
 
         this.setState({
             'name': this.props.user.name,
@@ -47,22 +45,301 @@ class HomeScreen extends React.Component {
         });
 
         await this.fetchEvents();
+
+        await this.registerForPushNotificationsAsync();
+        await this.addUserToken();
     }
+
+    /**
+     * Fetch future events. All events are associated to the current user.
+     * Display the first 5 events from now.
+     * @returns {Promise<void>}
+     */
+    async fetchEvents() {
+
+        // Create aux domain
+        let auxDomain = [];
+        for (let i = 0; i < this.props.user.groups.length; i++) {
+
+            const group = this.props.user.groups[i];
+
+            if(group.name === 'Atleta') {
+                auxDomain = [...auxDomain, ['atletas', 'in', group.id]];
+            }
+            else if (group.name === 'Seccionista') {
+                auxDomain = [...auxDomain, ['seccionistas', 'in', group.id]];
+            }
+            else if (group.name === 'Treinador') {
+                auxDomain = [...auxDomain, ['treinador', 'in', group.id]];
+            }
+        }
+
+        // Get today using "xxxx-xx-xx" format
+        const nowDate = new Date().toJSON().slice(0,10);
+
+        // Define domain
+        // (A and B) = & A B
+        // (A and (B or C)) = & A or B C
+        // (A and (B or C or D)) = & A or B or C D
+        let domain = [];
+        if (auxDomain.length === 0) {
+            domain = [
+                '&',
+                ['start_datetime', '>=', nowDate],
+                ['state', '=', 'convocatorias_fechadas']
+            ];
+        }
+        else if (auxDomain.length === 1) {
+            domain = [
+                '&',
+                '&',
+                ['start_datetime', '>=', nowDate],
+                ['state', '=', 'convocatorias_fechadas'],
+                auxDomain[0]
+            ];
+        }
+        else if (auxDomain.length === 2) {
+            domain = [
+                '&',
+                '&',
+                ['start_datetime', '>=', nowDate],
+                ['state', '=', 'convocatorias_fechadas'],
+                '|',
+                auxDomain[0],
+                auxDomain[1]
+            ];
+        }
+        else if (auxDomain.length === 3) {
+            domain = [
+                '&',
+                '&',
+                ['start_datetime', '>=', nowDate],
+                ['state', '=', 'convocatorias_fechadas'],
+                '|',
+                auxDomain[0],
+                '|',
+                auxDomain[1],
+                auxDomain[2]
+            ];
+        }
+
+        const params = {
+            domain: domain,
+            fields: ['evento_ref'],
+            order: 'start_datetime ASC',
+            limit: 6
+        };
+
+        const response = await this.props.odoo.search_read('ges.evento_desportivo', params);
+        if (response.success) {
+
+            let trainingsIds = [];
+            let gamesIds = [];
+
+            for (let i=0; i<response.data.length; i++) {
+
+                const event = response.data[i].evento_ref.split(",");
+
+                if (event[0] === 'ges.jogo')
+                    gamesIds.push(parseInt(event[1]));
+                else
+                    trainingsIds.push(parseInt(event[1]));
+            }
+
+            if (trainingsIds.length > 0 || gamesIds.length > 0)
+                await this.parseEvents(trainingsIds, gamesIds);
+        }
+    }
+
+    /**
+     * Parsing events. Parsing trainings and games.
+     * @param trainingsIds
+     * @param gamesIds
+     * @returns {Promise<void>}
+     */
+    async parseEvents(trainingsIds, gamesIds) {
+
+        let events = [];
+        let params = {
+            ids: trainingsIds,
+            fields: ['id','display_name','start_datetime','duracao','local'],
+        };
+
+        // Parsing trainings
+        let response = await this.props.odoo.get('ges.treino', params);
+        if(response.success && response.data.length > 0) {
+
+            for (let i = 0; i < response.data.length; i++) {
+
+                const training = response.data[i];
+                events = [...events, {
+                    type: 1,
+                    title: training.display_name,
+                    time: 'Início: ' + (training.start_datetime.split(" "))[1].slice(0,5) + 'h',
+                    description: 'Duração: ' + training.duracao + ' min',
+                    local: training.local[0],
+                    localName: training.local[1],
+                    date: (training.start_datetime.split(" "))[0]
+                }];
+            }
+        }
+
+        // Parsing games
+        params = {
+            ids: gamesIds,
+            fields: ['id','start_datetime','equipa_adversaria','description','local']
+        };
+        response = await this.props.odoo.get('ges.jogo', params);
+        if(response.success && response.data.length > 0) {
+
+            for (let i = 0; i < response.data.length; i++) {
+
+                const game = response.data[i];
+                events = [...events, {
+                    type: 0,
+                    title: game.description,
+                    time: 'Início ' + (game.start_datetime.split(" "))[1].slice(0,5) + 'h',
+                    description: 'Adversário: ' + game.equipa_adversaria[1],
+                    local: game.local[0],
+                    localName: game.local[1],
+                    date: (game.start_datetime.split(" "))[0]
+                }];
+            }
+        }
+
+        this.setState({entries: events})
+    }
+
+    /**
+     * Render carousel item.
+     * @param item
+     * @returns {*}
+     */
+    renderItem ({item}) {
+
+        if(item.type < 2) {
+            let titleColor = (item.type === 0) ? colors.gameColor : colors.trainingColor;
+            return (
+                <View style={styles.slide}>
+                    <View style={styles.slideInnerContainer}>
+                        <View style={{flex: 1}}>
+                            <View style={{
+                                height: '85%',
+                                opacity: 0.5,
+                                backgroundColor: colors.gradient2,
+                                alignItems: 'center'
+                            }}>
+                                <Image
+                                    source={require('../../../assets/hoquei-home-icon.png')}
+                                    resizeMode={"contain"}
+                                    style={{
+                                        height: '60%',
+                                        width: '60%',
+                                    }}
+                                />
+                                <CustomText children={item.title} type={'bold'} style={{color: titleColor}}/>
+                                <CustomText children={item.date + ", " + item.time} style={{color: '#fff'}}/>
+                                <CustomText children={item.description} style={{color: '#fff'}}/>
+                            </View>
+                            <View style={{height: '15%'}}>
+                                <TouchableOpacity style={{
+                                    flex: 1,
+                                    flexDirection: 'row',
+                                    justifyContent: 'flex-end',
+                                    alignItems: 'center',
+                                    paddingHorizontal: 20}}
+                                                  onPress={() => {
+                                                      this.props.navigation.navigate('EventScreen',{item})
+                                                  }}>
+                                    <View style={{marginRight: 15}}>
+                                        <CustomText
+                                            children={'Detalhes'}
+                                            type={'bold'}
+                                            style={{
+                                                fontSize: 14,
+                                                color: colors.gradient2
+                                            }}
+                                        />
+                                    </View>
+                                    <View>
+                                        <Ionicons name={"md-arrow-forward"} color={colors.gradient2} size={26}/>
+                                    </View>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+                    </View>
+                </View>
+            );
+        }
+        else {
+            return (
+                <View style={styles.slide}>
+                    <View style={styles.slideInnerContainer}>
+                        <View style={{
+                            height: '100%',
+                            opacity: 0.5,
+                            backgroundColor: colors.gradient2,
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                        }}>
+                            <Image
+                                source={require('../../../assets/hoquei-home-icon.png')}
+                                resizeMode={"contain"}
+                                style={{
+                                    height: '60%',
+                                    width: '60%',
+                                }}
+                            />
+                            <CustomText children={item.title} type={'bold'} style={{color: '#000'}}/>
+                        </View>
+                    </View>
+                </View>
+            );
+        }
+    }
+
+    get pagination () {
+        const { entries, activeSlide } = this.state;
+        return (
+            <Pagination
+                dotsLength={entries.length}
+                activeDotIndex={activeSlide}
+                containerStyle={{
+                    height: 15,
+                    paddingVertical: 0,
+                    paddingHorizontal: 0
+                }}
+                dotStyle={{
+                    width: 6,
+                    height: 6,
+                    borderRadius: 5,
+                    marginHorizontal: 8,
+                    backgroundColor: colors.gradient2
+                }}
+                inactiveDotStyle={{
+                    backgroundColor: colors.gradient2
+                }}
+                inactiveDotOpacity={0.4}
+                inactiveDotScale={0.6}
+            />
+        );
+    };
+
 
     sendNotificationJS(){
         let title = "Nova convocatória (JS)"
         let body = "Foste convocado para o jogo deste fim-de-semana"
         fetch('https://exp.host/--/api/v2/push/send', {
-          body: JSON.stringify({
-            to: this.state.token,
-            title: title,
-            body: body,
-            //data: { message: `${title} - ${body}` },
-          }),
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          method: 'POST',
+            body: JSON.stringify({
+                to: this.state.token,
+                title: title,
+                body: body,
+                //data: { message: `${title} - ${body}` },
+            }),
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            method: 'POST',
         });
     }
 
@@ -89,7 +366,7 @@ class HomeScreen extends React.Component {
     async addUserToken(){
         let userId = this.props.user.id.toString()
         let token = this.state.token.toString()
-        
+
         console.log(userId)
         console.log(token)
 
@@ -127,209 +404,10 @@ class HomeScreen extends React.Component {
             this.setState({
                 token: token
             })
-          }).catch( err => {
+        }).catch( err => {
             console.log('token err', err)
         })
     }
-
-    /**
-     * Fetch future events. All events are associated to the current user.
-     * Display the first 5 events from now.
-     * @returns {Promise<void>}
-     */
-    async fetchEvents() {
-
-        // Get today using "xxxx-xx-xx" format
-        const nowDate = new Date().toJSON().slice(0,10);
-
-        // Define domain
-        let domain = [['start_datetime', '>=', nowDate]];
-        for (let i = 0; i < this.props.user.groups.length; i++) {
-
-            const group = this.props.user.groups[i];
-
-            if(group.name === 'Atleta') {
-                domain = [...domain, ['atletas', 'in', group.id]];
-            }
-            else if (group.name === 'Seccionista') {
-                domain = [...domain, ['seccionistas', 'in', group.id]];
-            }
-            else if (group.name === 'Treinador') {
-                domain = [...domain, ['treinador', 'in', group.id]];
-            }
-        }
-
-        const params = {
-            domain: domain,
-            fields: ['evento_ref'],
-            order: 'start_datetime ASC',
-            limit: 6
-        };
-
-        const response = await this.props.odoo.search_read('ges.evento_desportivo', params);
-        if (response.success) {
-
-            const events_to_request = [];
-            for (let i=0; i< response.data.length; i++){
-                const event = response.data[i];
-                const id_event = (event.evento_ref.split(","))[1];
-                const type_event = (event.evento_ref.split(","))[0];
-
-                events_to_request.push({
-                    id: id_event,
-                    type: type_event
-                });
-            }
-
-            await this.parseEvents(events_to_request);
-        }
-    }
-
-    async parseEvents(events_to_request){
-
-        let newEntries = [];
-        for (let i=0; i<events_to_request.length; i++){
-            let e = events_to_request[i];
-
-            if (e.type === 'ges.jogo'){ //GAME
-                const get_game = {
-                    ids: [parseInt(e.id)],
-                    fields: ['id', 'local', 'start_datetime', 'equipa_adversaria', 'description'],
-                };
-                let game = (await this.props.odoo.get('ges.jogo', get_game)).data[0];
-
-                let description = game.description;
-                let opponent = game.equipa_adversaria[1];
-                let startTime = game.start_datetime;
-                let startTimeDate = (startTime.split(" "))[0];
-                let startTimeHour = (startTime.split(" "))[1];
-                let localId = game.local[0];
-                let local_name = game.local[1];
-
-                newEntries.push({
-                    type: 0,
-                    title: description,
-                    time: 'Início ' + startTimeHour,
-                    description: 'Adversário: ' + opponent,
-                    local: localId,
-                    localName: local_name,
-                    date: startTimeDate
-                });
-            }
-            else { //TRAINING
-                const get_training = {
-                    ids: [parseInt(e.id)],
-                    fields: ['id','display_name','start_datetime','description','duracao','local'],
-                };
-                let training = (await this.props.odoo.get('ges.treino', get_training)).data[0];
-
-                let description = training.display_name;
-                let duration = training.duracao;
-                let startTime = training.start_datetime;
-                let startTimeDate = (startTime.split(" "))[0];
-                let startTimeHour = (startTime.split(" "))[1];
-                let localId = training.local[0];
-                let local_name = training.local[1];
-
-                newEntries.push({
-                    type: 1,
-                    title: description,
-                    time: 'Início: ' + startTimeHour.slice(0,5) + 'h',
-                    description: 'Duração: ' + duration + ' min',
-                    local: localId,
-                    localName: local_name,
-                    date: startTimeDate
-                });
-            }
-        }
-        this.setState({
-            entries: newEntries
-        })
-    }
-
-    _renderItem ({item, index}) {
-
-        let titleColor = (item.type == 0) ? colors.gameColor : colors.trainingColor;
-        return (
-            <View style={styles.slide}>
-                <View style={styles.slideInnerContainer}>
-                    <View style={{flex: 1}}>
-                        <View style={{
-                            height: '85%',
-                            opacity: 0.5,
-                            backgroundColor: colors.gradient2,
-                            alignItems: 'center'
-                        }}>
-                            <Image
-                                source={require('../img/hoquei-home-icon.png')}
-                                resizeMode={"contain"}
-                                style={{
-                                    height: '60%', 
-                                    width: '60%',
-                                }}
-                            />
-                            <CustomText children={item.title} type={'bold'} style={{color: titleColor}}/>
-                            <CustomText children={item.date + ", " + item.time} style={{color: '#fff'}}/>
-                            <CustomText children={item.description} style={{color: '#fff'}}/>
-                        </View>
-                        <View style={{height: '15%'}}>
-                            <TouchableOpacity style={{
-                                flex: 1,
-                                flexDirection: 'row',
-                                justifyContent: 'flex-end',
-                                alignItems: 'center',
-                                paddingHorizontal: 20}}
-                                onPress={() => {
-                                    this.props.navigation.navigate('EventScreen',{item})
-                                }}>
-                                <View style={{marginRight: 15}}>
-                                    <CustomText
-                                        children={'Detalhes'}
-                                        type={'bold'}
-                                        style={{
-                                            fontSize: 14,
-                                            color: colors.gradient2
-                                        }}
-                                    />
-                                </View>
-                                <View>
-                                    <Ionicons name={"md-arrow-forward"} color={colors.gradient2} size={26}/>
-                                </View>
-                            </TouchableOpacity>
-                        </View>
-                    </View>
-                </View>
-            </View>
-        );
-    }
-
-    get pagination () {
-        const { entries, activeSlide } = this.state;
-        return (
-            <Pagination
-                dotsLength={entries.length}
-                activeDotIndex={activeSlide}
-                containerStyle={{
-                    //backgroundColor: '#000',
-                    height: 15,
-                    paddingVertical: 0,
-                    paddingHorizontal: 0
-                }}
-                dotStyle={{
-                    width: 6,
-                    height: 6,
-                    borderRadius: 5,
-                    marginHorizontal: 8,
-                    backgroundColor: colors.gradient2
-                }}
-                inactiveDotStyle={{
-                    backgroundColor: colors.gradient2
-                }}
-                inactiveDotOpacity={0.4}
-                inactiveDotScale={0.6}
-            />
-        );
-    };
 
     render() {
 
@@ -372,12 +450,12 @@ class HomeScreen extends React.Component {
                         decelerationRate={'fast'}
                         //loop
                         //loopClonesPerSide={3}
-                        autoplay
-                        autoplayDelay={2000}
-                        autoplayInterval={2500}
-                        // layout={'tinder'} // layout={'stack'}
+                        //autoplay
+                        //autoplayDelay={2000}
+                        //autoplayInterval={2500}
+                        // layout={'stack'}
                         // layoutCardOffset={18}
-                        renderItem={this._renderItem.bind(this)}
+                        renderItem={this.renderItem.bind(this)}
                         sliderWidth={sliderWidth}
                         itemWidth={itemWidth}
                         data={this.state.entries}

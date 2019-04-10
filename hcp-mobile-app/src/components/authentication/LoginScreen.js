@@ -17,7 +17,7 @@ import {
 import {Button, TextInput, DefaultTheme} from 'react-native-paper';
 import {MaterialIcons} from "@expo/vector-icons";
 import Odoo from 'react-native-odoo-promise-based';
-import { HOST, PORT, DATABASE } from 'react-native-dotenv';
+import {HOST, PORT, DATABASE} from 'react-native-dotenv';
 import {connect} from 'react-redux';
 import {setOdooInstance} from "../../redux/actions/odoo";
 import {setUserData, setUserImage, setUserGroups} from "../../redux/actions/user";
