@@ -3,7 +3,7 @@ import {View, FlatList, ActivityIndicator, Text, TouchableOpacity} from 'react-n
 import {ListItem} from 'react-native-elements';
 
 import {connect} from 'react-redux';
-import {Ionicons, MaterialIcons} from "@expo/vector-icons";
+import {Ionicons} from "@expo/vector-icons";
 import CustomText from "../../CustomText";
 
 

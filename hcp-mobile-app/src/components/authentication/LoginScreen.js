@@ -17,7 +17,7 @@ import {
 import {Button, TextInput, DefaultTheme} from 'react-native-paper';
 import {MaterialIcons} from "@expo/vector-icons";
 import Odoo from 'react-native-odoo-promise-based';
-import {HOST, PORT, DATABASE} from 'react-native-dotenv';
+import {HOST, PORT, DATABASE } from 'react-native-dotenv';
 import {connect} from 'react-redux';
 import {setOdooInstance} from "../../redux/actions/odoo";
 import {setUserData, setUserImage, setUserGroups} from "../../redux/actions/user";
@@ -90,15 +90,10 @@ class LoginScreen extends React.Component {
     authentication = async () => {
 
         const response = await this.props.odoo.connect();
+        console.log(response);
 
         if (response.success) {
             if (response.data.uid) {
-
-                // Odoo rpc calls require both user's name and password
-                await AsyncStorage.multiSet([
-                    ["username", this.state.username],
-                    ["password", this.state.password]
-                ]);
 
                 // Save data on Redux
                 await this.props.setUserData(
@@ -107,7 +102,21 @@ class LoginScreen extends React.Component {
                 );
                 await this.getUserData();
 
-                return true;
+                if(this.props.user.groups.length > 0)
+                {
+                    // Odoo rpc calls require both user's name and password
+                    await AsyncStorage.multiSet([
+                        ["username", this.state.username],
+                        ["password", this.state.password]
+                    ]);
+                    
+                    return true;
+                }
+                else {
+
+                    Alert.alert("Erro","Por favor, verifique com o administrador os acessos à aplicação.");
+                    return true;
+                }
 
             } else {
                 Alert.alert("Erro","As credenciais estão erradas!");

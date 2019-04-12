@@ -22,11 +22,3 @@ export default class CustomText extends Component {
         return <Text {...allProps}>{this.props.children}</Text>;
     }
 }
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center'
-    }
-});

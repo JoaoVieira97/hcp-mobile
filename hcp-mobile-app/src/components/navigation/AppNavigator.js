@@ -33,6 +33,7 @@ import TrainingScreen from "../management/trainings/TrainingScreen";
 import GameScreen from "../management/games/GameScreen";
 import AthletesScreen from "../athletes/AthletesScreen";
 import AthleteScreen from '../athletes/AthleteScreen';
+import NewTraining from '../management/trainings/NewTraining';
 import OpenedTrainings from "../management/trainings/OpenedTrainings";
 import EventScreen from "../calendar/EventScreen";
 import PendingTrainings from "../management/trainings/PendingTrainings";
@@ -237,6 +238,7 @@ const ManagementNavigator = createMaterialTopTabNavigator({
 // MANAGEMENT STACK
 const ManagementStackNavigator = createStackNavigator({
     ManagementNavigator: {screen: ManagementNavigator},
+    NewTraining: {screen: NewTraining},
     OpenedTrainings: {screen: OpenedTrainings},
     OpenedTraining: {screen: OpenedTraining},
     EditOpenedTraining: {screen: EditOpenedTraining},

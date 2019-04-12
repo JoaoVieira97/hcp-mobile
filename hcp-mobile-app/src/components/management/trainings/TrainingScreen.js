@@ -46,19 +46,15 @@ class TrainingScreen extends Component {
     }
 
     /**
-     * Definir as opções da barra de navegação no topo.
+     * Define training navigator.
      */
     static navigationOptions = {
         title: 'Treinos',
-        tabBarIcon: ({ tintColor }) => (
-            <Ionicons name={"md-fitness"} color={tintColor} size={26}/>
-        ),
-        tabBarColor: "#efefef",
     };
 
     /**
-     * Contar o número de treinos em aberto.
-     * Altera o estado do componente.
+     * Count number of opened trainings.
+     * @returns {Promise<void>}
      */
     async countOpenedTrainings() {
 
@@ -73,31 +69,18 @@ class TrainingScreen extends Component {
             ]
         };
 
-        const response = await this.props.odoo.rpc_call(
-            '/web/dataset/call_kw',
-            params
-        );
-
+        const response = await this.props.odoo.rpc_call('/web/dataset/call_kw', params);
         if (response.success) {
 
             await this.setState({
                 openedTrainingsCounter: response.data,
             });
         }
-
-        /*
-        Alert.alert(
-                    'Erro',
-                    'Aconteceu um erro. Não foi possível contabilizar o número de treiros.',
-                    [{text: 'OK', onPress: () => console.log('OK Pressed')}],
-                    {cancelable: false},
-                );
-         */
     }
 
     /**
-     * Contar o número de treinos com convocatórias fechadas.
-     * Altera o estado do componente.
+     * Count number of closed trainings.
+     * @returns {Promise<void>}
      */
     async countTrainingsThatNeedToClose() {
 
@@ -135,7 +118,7 @@ class TrainingScreen extends Component {
     }
 
     /**
-     * Função que trata de atualizar a lista dos treinos.
+     * Refresh screen.
      */
     handleRefresh = () => {
         this.setState({
@@ -152,8 +135,7 @@ class TrainingScreen extends Component {
     };
 
     /**
-     * Renderizar o item da lista principal.
-     *
+     * Render list item.
      * @param {Object} item
      */
     renderItem = ({ item }) => {
@@ -185,10 +167,7 @@ class TrainingScreen extends Component {
         );
     };
 
-    /**
-     * Renderizar o componente TrainingScreen.
-     *
-     */
+
     render() {
 
         const list = [{
@@ -196,7 +175,7 @@ class TrainingScreen extends Component {
                 icon: 'md-add',
                 subtitle: false,
                 value: -1,
-                onPress: false
+                onPress: 'NewTraining'
             }, {
                 name: 'Convocatórias em aberto',
                 icon: 'md-list-box',

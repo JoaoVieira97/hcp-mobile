@@ -16,6 +16,7 @@
     "react-native-calendars": "^1.22.0",
     "react-native-elements": "^1.0.0",
     "react-native-google-maps-directions": "^2.0.0",
+    "react-native-modal-datetime-picker": "^6.1.0",
     "react-native-odoo-promise-based": "^0.6.4",
     "react-native-paper": "^2.15.0",
     "react-native-snap-carousel": "latest",
