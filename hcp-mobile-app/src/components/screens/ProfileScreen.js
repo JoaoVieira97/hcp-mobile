@@ -2,6 +2,9 @@ import React, { Component } from 'react';
 
 import {Text, View, Button} from 'react-native';
 import {connect} from "react-redux";
+import {setOdooInstance} from "../../redux/actions/odoo";
+import {setUserData, setUserGroups, setUserImage} from "../../redux/actions/user";
+import CustomText from "../home/HomeScreen";
 
 class ProfileScreen extends Component {
 
@@ -19,7 +22,8 @@ class ProfileScreen extends Component {
             name: null,
             numero_camisola: null,
             phone: null,
-            posicao: null
+            posicao: null,
+            groups: []
         }
     };
 
@@ -29,7 +33,7 @@ class ProfileScreen extends Component {
         });
 
         const params = {
-            ids: [49],
+            ids: [this.props.user.groups[0].id], //atleta
             fields: ['birthdate','company_id','dados_antropometricos',
                 'email','escalao','numero_socio','name','numerocamisola','phone','posicao'],
         };
@@ -49,12 +53,21 @@ class ProfileScreen extends Component {
                 name: response.data[0].name,
                 numero_camisola: response.data[0].numerocamisola,
                 phone: response.data[0].phone,
-                posicao: response.data[0].posicao
+                posicao: response.data[0].posicao,
+                groups: this.props.user.groups
             });
         }
+
+        console.log(this.props.user)
+        console.log(this.state.groups)
     }
 
     render() {
+        const displayRoles = this.state.groups.map((data,index) => {
+            return (
+                <View key={index}><Text>{data.name}</Text></View>
+            )
+        });
 
         return (
             <View style={{flex: 1, justifyContent: 'center', alignItems: 'center', paddingVertical: 20}}>
@@ -73,7 +86,12 @@ class ProfileScreen extends Component {
                     <Text style={{fontWeight: "bold", fontSize: 20}}> Nº camisola: {this.state.numero_camisola} </Text>
                     <Text style={{fontWeight: "bold", fontSize: 20}}> Nº telemóvel: {this.state.phone} </Text>
                     <Text style={{fontWeight: "bold", fontSize: 20}}> Posição: {this.state.posicao} </Text>
+                    <Text style={{fontWeight: "bold", fontSize: 20}}> Grupos: </Text>
+                    <View>
+                            {displayRoles}
+                    </View>
                 </View>
+
                 }
             </View>
         );
@@ -81,15 +99,26 @@ class ProfileScreen extends Component {
 
 }
 
-
-
 const mapStateToProps = state => ({
 
     odoo: state.odoo.odoo,
+    user: state.user
 });
 
 const mapDispatchToProps = dispatch => ({
 
+    setOdooInstance: (odoo) => {
+        dispatch(setOdooInstance(odoo))
+    },
+    setUserData: (id, user) => {
+        dispatch(setUserData(id, user))
+    },
+    setUserImage: (image) => {
+        dispatch(setUserImage(image))
+    },
+    setUserGroups: (groups) => {
+        dispatch(setUserGroups(groups))
+    },
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(ProfileScreen);
