@@ -244,7 +244,7 @@ const ManagementStackNavigator = createStackNavigator({
     EditOpenedTraining: {screen: EditOpenedTraining},
     PendingTrainings: {screen: PendingTrainings}
 }, {
-    initialRouteName: 'ManagementNavigator',
+    initialRouteName: 'NewTraining',
     //transitionConfig: () => fromRight(350),
     defaultNavigationOptions: ({navigation}) => {
         return {
@@ -521,7 +521,7 @@ const AppDrawerNavigator = createDrawerNavigator({
         })
     }
 }, {
-    initialRouteName: 'HomeStack',
+    initialRouteName: 'ManagementStack',
     order: ['HomeStack', 'CalendarStack', 'ManagementStack', 'AthletesStack', 'ProfileStack'],
     drawerWidth: WIDTH*0.7,
     contentComponent: CustomDrawerContentComponent,

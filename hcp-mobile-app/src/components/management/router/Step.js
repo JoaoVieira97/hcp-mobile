@@ -4,14 +4,12 @@ import {View, StyleSheet, Dimensions} from 'react-native';
 import {Button,  ProgressBar} from 'react-native-paper';
 import {colors} from "../../../styles/index.style";
 
-class Step extends PureComponent {
+export default class Step extends PureComponent {
 
     constructor(props) {
         super(props);
 
-        this.state = {
-            value: 0
-        };
+        this.state = {};
     }
 
     componentDidMount() {
@@ -22,10 +20,7 @@ class Step extends PureComponent {
 
         return (
             <View style={styles.root}>
-                {this.props.children({
-                    onChangeValue: this.props.onChangeValue,
-                    values: this.props.values,
-                })}
+                {this.props.children}
                 <View style={styles.footer}>
                     <View style={styles.footerProgressBar}>
                         <ProgressBar
@@ -110,5 +105,3 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
     }
 });
-
-export default Step;

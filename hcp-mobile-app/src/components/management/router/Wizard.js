@@ -1,18 +1,19 @@
 import React, { PureComponent } from 'react';
-import { View, Text, Button, Alert } from 'react-native';
+import { View, Alert } from 'react-native';
 
 import Step from './Step';
 
-class Wizard extends PureComponent {
+export default class Wizard extends PureComponent {
+
+    constructor(props) {
+        super(props);
+
+        this.state = {
+            index: 0
+        }
+    }
+
     static Step = Step;
-
-    state = {
-        index: 0,
-
-        values: {
-            ...this.props.initialValues,
-        },
-    };
 
     _nextStep = () => {
         if (this.state.index !== this.props.children.length - 1) {
@@ -30,24 +31,12 @@ class Wizard extends PureComponent {
         }
     };
 
-    _onChangeValue = (name, value) => {
-
-        console.log(name);
-
-        this.setState(prevState => ({
-            values: {
-                ...prevState.values,
-                [name]: value,
-            },
-        }));
-    };
-
     _onSubmit = () => {
-        Alert.alert('Submit', JSON.stringify(this.state.values));
+        Alert.alert('Sucesso', "Treino criado com sucesso.");
     };
 
     render() {
-        console.log('values', this.state);
+
         return (
             <View style={{ flex: 1 }}>
                 {React.Children.map(this.props.children, (el, index) => {
@@ -58,8 +47,6 @@ class Wizard extends PureComponent {
                             nextStep: this._nextStep,
                             prevStep: this._prevStep,
                             isLast: this.state.index === this.props.children.length - 1,
-                            onChangeValue: this._onChangeValue,
-                            values: this.state.values,
                             onSubmit: this._onSubmit,
                         });
                     }
@@ -70,5 +57,3 @@ class Wizard extends PureComponent {
         );
     }
 }
-
-export default Wizard;

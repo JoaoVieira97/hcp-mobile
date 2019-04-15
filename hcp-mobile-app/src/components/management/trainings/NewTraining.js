@@ -2,17 +2,16 @@ import React, {Component} from 'react';
 import {
     StyleSheet,
     View,
-    TouchableOpacity,
+    TouchableOpacity
 } from 'react-native';
 
 import {connect} from 'react-redux';
 import {Ionicons} from "@expo/vector-icons";
 import CustomText from "../../CustomText";
 import Wizard from '../router/Wizard';
-import Input from '../router/Input';
-
 
 import NewTrainingStep1 from './newTrainingSteps/NewTrainingStep1';
+import NewTrainingStep2 from "./newTrainingSteps/NewTrainingStep2";
 
 
 class NewTraining extends Component {
@@ -53,6 +52,26 @@ class NewTraining extends Component {
     });
 
     render() {
+
+        const forms = [
+            {
+                name: 'step1',
+                component: (<NewTrainingStep1 navigation={this.props.navigation} />)
+            },
+            {
+                name: 'step2',
+                component: (<NewTrainingStep2 navigation={this.props.navigation} />)
+            },
+            {
+                name: 'step3',
+                component: (
+                    <View style={styles.container}>
+                        <CustomText type={'bold'} children={'Step 3'} />
+                    </View>
+                )
+            },
+        ];
+
         return (
             <View style={styles.root}>
                 <Wizard
@@ -64,25 +83,7 @@ class NewTraining extends Component {
                 >
                     {forms.map(el => (
                         <Wizard.Step key={el.name}>
-                            {({ onChangeValue, values }) => {
-                                if(el.name === 'step1') {
-                                    return (
-                                        <NewTrainingStep1 onChangeValue={onChangeValue} values={values}/>
-                                    );
-                                }
-                                else {
-                                    return (
-                                        <View style={styles.container}>
-                                            <Input
-                                                onChangeValue={onChangeValue}
-                                                placeholder={el.placeholder}
-                                                value={values[el.name]}
-                                                name={el.name}
-                                            />
-                                        </View>
-                                    );
-                                }
-                            }}
+                            {el.component}
                         </Wizard.Step>
                     ))}
                 </Wizard>
@@ -91,36 +92,6 @@ class NewTraining extends Component {
     }
 }
 
-const forms = [
-    {
-        placeholder: 'Username here...',
-        name: 'step1',
-    },
-    {
-        placeholder: 'Username here...',
-        name: 'username2',
-    },
-    {
-        placeholder: 'Email here...',
-        name: 'email',
-    },
-    {
-        placeholder: 'Avatar here...',
-        name: 'avatar',
-    },
-    {
-        placeholder: 'Avatar here...',
-        name: 'avatar',
-    },
-    {
-        placeholder: 'Avatar here...',
-        name: 'avatar',
-    },
-    {
-        placeholder: 'Avatar here...',
-        name: 'avatar',
-    },
-];
 
 const styles = StyleSheet.create({
     root: {
@@ -128,7 +99,8 @@ const styles = StyleSheet.create({
     },
     container: {
         flex: 1,
-        padding: 20
+        justifyContent: 'center',
+        alignItems: 'center'
     },
 });
 
