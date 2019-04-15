@@ -244,7 +244,7 @@ const ManagementStackNavigator = createStackNavigator({
     EditOpenedTraining: {screen: EditOpenedTraining},
     PendingTrainings: {screen: PendingTrainings}
 }, {
-    initialRouteName: 'NewTraining',
+    initialRouteName: 'ManagementNavigator',
     //transitionConfig: () => fromRight(350),
     defaultNavigationOptions: ({navigation}) => {
         return {
