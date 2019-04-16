@@ -60,10 +60,13 @@ class ProfileScreen extends Component {
         const response = await this.props.odoo.get('res.users', params);
         if (response.success && response.data.length > 0) {
 
-            const birthday =
-                response.data[0].birthdate.slice(8,10) + '/' +
-                response.data[0].birthdate.slice(5,7) + '/' +
-                response.data[0].birthdate.slice(0,4);
+            let birthday = 'Não definido';
+            if(response.data[0].birthdate) {
+                birthday =
+                    response.data[0].birthdate.slice(8,10) + '/' +
+                    response.data[0].birthdate.slice(5,7) + '/' +
+                    response.data[0].birthdate.slice(0,4);
+            }
 
             this.setState({
                 birthday: birthday,
