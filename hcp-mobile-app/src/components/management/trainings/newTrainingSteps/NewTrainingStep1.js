@@ -8,7 +8,6 @@ import {Card} from "react-native-paper";
 import {Ionicons} from "@expo/vector-icons";
 import DateTimePicker from "react-native-modal-datetime-picker";
 import {
-    setAllLocals,
     setEndDateTime,
     setLocalId,
     setStartDateTime
@@ -22,12 +21,6 @@ class NewTrainingStep1 extends Component {
         super(props);
 
         const today = new Date();
-        /*
-        const today12h = new Date(
-            today.getFullYear(), today.getMonth(), today.getDate(), 12, 0, 0
-        );
-         */
-
 
         this.state = {
             isLoading: true,
@@ -36,15 +29,10 @@ class NewTrainingStep1 extends Component {
             isDateTimeEndPickerVisible: false,
             startDateTimeRaw : today,
             endDateTimeRaw: today,
-            locals: props.newTraining.allLocals
         };
     }
 
     async componentDidMount() {
-
-        // Fetch all locals
-        if(this.props.newTraining.allLocals.length === 0)
-            await this.fetchAllLocals();
 
         // Define start date time on clock
         let startDateTimeRaw = undefined;
@@ -64,38 +52,6 @@ class NewTrainingStep1 extends Component {
             isLoading: false,
         }));
     }
-
-    /**
-     * Fetch all locals.
-     * @returns {Promise<void>}
-     */
-    fetchAllLocals = async () => {
-
-        const  params = {
-            fields: ['id', 'display_name'],
-            order: 'descricao ASC'
-        };
-
-        const response = await this.props.odoo.search_read('ges.local', params);
-        if (response.success && response.data.length > 0) {
-
-            this.props.setAllLocals(response.data);
-        }
-        else {
-            this.setState({
-                'isLoading': false
-            }, () => {
-                Alert.alert(
-                    'Erro',
-                    'Não existem locais disponíveis.',
-                    [
-                        {text: 'OK', onPress: () => this.props.navigation.goBack()},
-                    ],
-                    {cancelable: false},
-                );
-            });
-        }
-    };
 
     /**
      * Formats date as "YYYY-MM-DD | HH:MMh".
@@ -273,9 +229,6 @@ const mapDispatchToProps = dispatch => ({
     },
     setEndDateTime: (endDateTime) => {
         dispatch(setEndDateTime(endDateTime))
-    },
-    setAllLocals: (locals) => {
-        dispatch(setAllLocals(locals))
     },
     setLocalId: (localId) => {
         dispatch(setLocalId(localId))

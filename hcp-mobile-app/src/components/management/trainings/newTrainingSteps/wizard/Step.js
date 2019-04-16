@@ -2,22 +2,15 @@ import React, { PureComponent } from 'react';
 import {View, StyleSheet, Dimensions} from 'react-native';
 
 import {Button,  ProgressBar} from 'react-native-paper';
-import {colors} from "../../../styles/index.style";
+import {colors} from "../../../../../styles/index.style";
 
 export default class Step extends PureComponent {
 
     constructor(props) {
         super(props);
-
-        this.state = {};
-    }
-
-    componentDidMount() {
-
     }
 
     render() {
-
         return (
             <View style={styles.root}>
                 {this.props.children}
@@ -50,7 +43,7 @@ export default class Step extends PureComponent {
                                     style={styles.buttonOutside}
                                     onPress={this.props.onSubmit}
                                 >
-                                    Criar
+                                    Concluir
                                 </Button>
                             ) : (
                                 <Button

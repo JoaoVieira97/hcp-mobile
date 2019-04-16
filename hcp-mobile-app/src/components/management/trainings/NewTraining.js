@@ -2,16 +2,26 @@ import React, {Component} from 'react';
 import {
     StyleSheet,
     View,
-    TouchableOpacity
+    TouchableOpacity, Alert
 } from 'react-native';
 
 import {connect} from 'react-redux';
 import {Ionicons} from "@expo/vector-icons";
 import CustomText from "../../CustomText";
-import Wizard from '../router/Wizard';
+import Wizard from './newTrainingSteps/wizard/Wizard';
 
 import NewTrainingStep1 from './newTrainingSteps/NewTrainingStep1';
+import NewTrainingStep3 from "./newTrainingSteps/NewTrainingStep3";
+import {
+    addCoach,
+    resetTraining,
+    setAllCoaches,
+    setAllLocals,
+    setAllSecretaries,
+    setLocalId
+} from "../../../redux/actions/newTraining";
 import NewTrainingStep2 from "./newTrainingSteps/NewTrainingStep2";
+import Loader from "../../screens/Loader";
 
 
 class NewTraining extends Component {
@@ -20,8 +30,51 @@ class NewTraining extends Component {
         super(props);
 
         this.state = {
+            isLoading: true
+        }
+    }
 
+    async componentDidMount() {
+
+        // Define go back function
+        // Used to cancel training
+        this.props.navigation.cancelTraining = () => {
+            this.props.navigation.goBack();
+            this.props.resetTraining();
         };
+
+        // Fetch locals, coaches and secretaries
+        let success = false;
+        if(this.props.newTraining.allLocals.length === 0)
+        {
+            success = await this.fetchAllLocals();
+
+            if(success && this.props.newTraining.allCoaches.length === 0) {
+
+                success = await this.fetchAllCoaches();
+
+                if (success && this.props.newTraining.allSecretaries.length === 0) {
+
+                    success = await this.fetchAllSecretaries();
+                }
+            }
+
+            this.setState({isLoading: false});
+        }
+        if (!success) {
+            this.setState({
+                'isLoading': false
+            }, () => {
+                Alert.alert(
+                    'Erro',
+                    'Algo correu mal. Por favor, contacte o administrador.',
+                    [
+                        {text: 'OK', onPress: () => this.props.navigation.cancelTraining()},
+                    ],
+                    {cancelable: false},
+                );
+            });
+        }
     }
 
     /**
@@ -43,13 +96,138 @@ class NewTraining extends Component {
                 height:42,
                 alignItems:'center',
                 justifyContent:'center',
-                marginLeft: 10}} onPress = {() => navigation.goBack()}>
+                marginLeft: 10}} onPress = {() => navigation.cancelTraining()}>
                 <Ionicons
                     name="md-arrow-back"
                     size={28}
                     color={'#ffffff'} />
             </TouchableOpacity>,
     });
+
+    /**
+     * Fetch all locals. (locais)
+     * @returns {Promise<boolean>}
+     */
+    fetchAllLocals = async () => {
+
+        const  params = {
+            fields: ['id', 'display_name'],
+            order: 'descricao ASC'
+        };
+
+        const response = await this.props.odoo.search_read('ges.local', params);
+        if (response.success && response.data.length > 0) {
+
+            this.props.setAllLocals(response.data);
+            this.props.setLocalId(response.data[0].id);
+
+            return true;
+        }
+
+        return false;
+    };
+
+    /**
+     * Fetch all coaches. (treinadores)
+     * @returns {Promise<boolean>}
+     */
+    fetchAllCoaches = async () => {
+
+        const coachInfo = this.props.user.groups.filter(item => item.name === 'Treinador');
+        if(coachInfo.length > 0) {
+
+            const coachId = coachInfo[0].id;
+
+            const  params = {
+                fields: ['id', 'display_name', 'email', 'image'],
+                order: 'display_name ASC',
+
+            };
+
+            const response = await this.props.odoo.search_read('ges.treinador', params);
+            if (response.success && response.data.length > 0) {
+
+                const allCoaches = response.data.map(item => {
+
+                    if(item.id !== coachId)
+                        return {
+                            ...item,
+                            visible: true
+                        };
+                    else
+                        return {
+                            ...item,
+                            visible: false
+                        };
+                });
+                this.props.setAllCoaches(allCoaches);
+
+                // Add current coach as default
+                if(!this.props.newTraining.coaches.find(item => item === coachId))
+                    this.props.addCoach(coachInfo[0].id);
+
+                return true;
+            }
+        }
+
+        return false;
+    };
+
+
+    /**
+     * Fetch all secretaries. (seccionistas)
+     * @returns {Promise<boolean>}
+     */
+    fetchAllSecretaries = async () => {
+
+        const  params = {
+            fields: ['id', 'display_name', 'email', 'image'],
+            order: 'display_name ASC'
+        };
+
+        const response = await this.props.odoo.search_read('ges.seccionista', params);
+        if (response.success && response.data.length > 0) {
+
+            const allSecretaries = response.data.map(item => (
+                {
+                    ...item,
+                    visible: true
+                }
+            ));
+
+            this.props.setAllSecretaries(allSecretaries);
+
+            return true;
+        }
+
+        return false;
+    };
+
+    createTraining = async () => {
+
+        const coachInfo = this.props.user.groups.filter(item => item.name === 'Treinador');
+        const response = await this.props.odoo.create(
+            'ges.treino',
+            {
+                start: '2019-04-20 09:30:00',
+                stop: '2019-04-20 10:30:00',
+                escalao: 8,
+                treinador: [[6,0,[coachInfo[0].id]]],
+                local: 3,
+                seccionistas: [[6,0,[12]]],
+                atletas: [[6,0,[60, 61, 63]]]
+            }
+        );
+
+        Alert.alert(
+            response.success.toString(),
+            response.data.toString(),
+            [
+                {text: 'OK', onPress: () => this.props.navigation.cancelTraining()},
+            ],
+            {cancelable: false},
+        );
+    };
 
     render() {
 
@@ -64,9 +242,23 @@ class NewTraining extends Component {
             },
             {
                 name: 'step3',
+                component: (<NewTrainingStep3 navigation={this.props.navigation} />)
+            },
+            {
+                name: 'step4',
                 component: (
                     <View style={styles.container}>
-                        <CustomText type={'bold'} children={'Step 3'} />
+                        <TouchableOpacity
+                            style={{
+                                alignItems:'center',
+                                justifyContent:'center',
+                                backgroundColor: '#b8b8b8',
+                                padding: 20
+                            }}
+                            onPress = {this.createTraining.bind(this)}
+                        >
+                            <CustomText type={'bold'} children={'Step 4 - Criar'} />
+                        </TouchableOpacity>
                     </View>
                 )
             },
@@ -87,6 +279,7 @@ class NewTraining extends Component {
                         </Wizard.Step>
                     ))}
                 </Wizard>
+                <Loader isLoading={this.state.isLoading}/>
             </View>
         );
     }
@@ -109,8 +302,29 @@ const styles = StyleSheet.create({
 const mapStateToProps = state => ({
 
     odoo: state.odoo.odoo,
+    user: state.user,
+    newTraining: state.newTraining
 });
 
-const mapDispatchToProps = dispatch => ({});
+const mapDispatchToProps = dispatch => ({
+    resetTraining: () => {
+        dispatch(resetTraining())
+    },
+    setAllLocals: (locals) => {
+        dispatch(setAllLocals(locals))
+    },
+    setLocalId: (localId) => {
+        dispatch(setLocalId(localId))
+    },
+    setAllCoaches: (coaches) => {
+        dispatch(setAllCoaches(coaches))
+    },
+    addCoach: (coachId) => {
+        dispatch(addCoach(coachId))
+    },
+    setAllSecretaries: (secretaries) => {
+        dispatch(setAllSecretaries(secretaries))
+    },
+});
 
 export default connect(mapStateToProps, mapDispatchToProps)(NewTraining);

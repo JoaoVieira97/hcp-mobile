@@ -7,7 +7,11 @@ import {Ionicons} from "@expo/vector-icons";
 
 import Loader from "../../../screens/Loader";
 import {colors} from "../../../../styles/index.style";
-import {addSecretary, removeSecretary, setAllSecretaries} from "../../../../redux/actions/newTraining";
+import {
+    addCoach,
+    removeCoach,
+    setAllCoaches
+} from "../../../../redux/actions/newTraining";
 import {Avatar, ListItem} from "react-native-elements";
 
 class NewTrainingStep2 extends Component {
@@ -17,58 +21,22 @@ class NewTrainingStep2 extends Component {
 
         this.state = {
             isLoading: true,
-            invalidSecretaryId: -1, //used in Picker list
+            coachId: -1,
+            invalidCoachId: -1, //used in Picker list
         };
     }
 
     async componentDidMount() {
 
-        // Fetch all locals
-        if(this.props.newTraining.allSecretaries.length === 0)
-            await this.fetchAllSecretaries();
+        const coachInfo = this.props.user.groups.filter(item => item.name === 'Treinador');
+        if(coachInfo.length > 0) {
 
-        this.setState({
-            isLoading: false
-        });
-    }
-
-    /**
-     * Fetch all secretaries. (seccionistas)
-     * @returns {Promise<void>}
-     */
-    fetchAllSecretaries = async () => {
-
-        const  params = {
-            fields: ['id', 'display_name', 'email'],
-            order: 'display_name ASC'
-        };
-
-        const response = await this.props.odoo.search_read('ges.seccionista', params);
-        if (response.success && response.data.length > 0) {
-
-            const allSecretaries = response.data.map(item => (
-                {
-                    ...item,
-                    visible: true
-                }
-            ));
-            this.props.setAllSecretaries(allSecretaries);
-        }
-        else {
             this.setState({
-                'isLoading': false
-            }, () => {
-                Alert.alert(
-                    'Erro',
-                    'Não existem seccionistas disponíveis.',
-                    [
-                        {text: 'OK', onPress: () => this.props.navigation.goBack()},
-                    ],
-                    {cancelable: false},
-                );
+                isLoading: false,
+                coachId: coachInfo[0].id
             });
         }
-    };
+    }
 
     /**
      * Render list item.
@@ -76,37 +44,82 @@ class NewTrainingStep2 extends Component {
      */
     renderItem = ({ item }) => {
 
-        const secretariesFiltered = this.props.newTraining.allSecretaries.filter(sec => sec.id === item);
-        if (secretariesFiltered.length > 0) {
-            if(item !== this.state.invalidSecretaryId) {
+        const coachesFiltered = this.props.newTraining.allCoaches.filter(coach => coach.id === item);
+        if (coachesFiltered.length > 0) {
+            if(item !== this.state.invalidCoachId) {
 
-                return (
-                    <ListItem
-                        title={secretariesFiltered[0].display_name}
-                        subtitle={secretariesFiltered[0].email}
-                        leftAvatar={() => (
-                            <Avatar
-                                rounded
-                                source={require('../../../../../assets/user-account.png')}
-                                size="small"
-                            />
-                        )}
-                        rightAvatar={() => (
-                            <TouchableOpacity
-                                onPress={() => {
-                                    this.props.removeSecretary(item);
-                                }}
-                                style={{
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    height: 20,
-                                    width: 40,
-                                }}>
-                                <Ionicons name={"md-close"} size={26} color={colors.redText}/>
-                            </TouchableOpacity>
-                        )}
-                    />
-                );
+                if(item !== this.state.coachId)
+                    return (
+                        <ListItem
+                            title={coachesFiltered[0].display_name}
+                            subtitle={coachesFiltered[0].email}
+                            leftAvatar={() => {
+                                if(coachesFiltered[0].image){
+                                    return (
+                                        <Avatar
+                                            rounded
+                                            source={{
+                                                uri: `data:image/png;base64,${coachesFiltered[0].image}`,
+                                            }}
+                                            size="small"
+                                        />
+                                    );
+                                }
+                                else
+                                    return (
+                                        <Avatar
+                                            rounded
+                                            source={require('../../../../../assets/user-account.png')}
+                                            size="small"
+                                        />
+                                    );
+                            }}
+                            rightAvatar={() => (
+                                <TouchableOpacity
+                                    onPress={() => {
+                                        this.props.removeCoach(item);
+                                    }}
+                                    style={{
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        height: 20,
+                                        width: 40,
+                                    }}>
+                                    <Ionicons name={"md-close"} size={26} color={colors.redText}/>
+                                </TouchableOpacity>
+                            )}
+                        />
+                    );
+                else {
+                    return (
+                        <ListItem
+                            disabled
+                            title={coachesFiltered[0].display_name}
+                            subtitle={coachesFiltered[0].email}
+                            leftAvatar={() => {
+                                if(coachesFiltered[0].image){
+                                    return (
+                                        <Avatar
+                                            rounded
+                                            source={{
+                                                uri: `data:image/png;base64,${coachesFiltered[0].image}`,
+                                            }}
+                                            size="small"
+                                        />
+                                    );
+                                }
+                                else
+                                    return (
+                                        <Avatar
+                                            rounded
+                                            source={require('../../../../../assets/user-account.png')}
+                                            size="small"
+                                        />
+                                    );
+                            }}
+                        />
+                    );
+                }
             }
         }
 
@@ -114,97 +127,93 @@ class NewTrainingStep2 extends Component {
     };
 
     /**
-     * Add secretary to the selected list.
+     * Add coach to the selected list.
      * @param id
      * @returns {Promise<void>}
      */
-    onSecretarySelect = async (id) => {
+    onCoachSelect = async (id) => {
 
-        this.props.addSecretary(id);
+        this.props.addCoach(id);
     };
-
 
     render() {
 
-        const allSecretariesFiltered = this.props.newTraining.allSecretaries.filter(item => item.visible);
-        const allSecretaries = allSecretariesFiltered.map(item =>
+        const allCoachesFiltered = this.props.newTraining.allCoaches.filter(item => item.visible);
+        const allCoaches = allCoachesFiltered.map(item =>
             <Picker.Item label={item.display_name} value={item.id} key={item.id} />
         );
 
         const pickerText= (
             <Picker.Item
-                label={"Selecione um seccionista"}
-                value={this.state.invalidSecretaryId}
-                key={this.state.invalidSecretaryId}
+                label={"Selecione um treinador"}
+                value={this.state.invalidCoachId}
+                key={this.state.invalidCoachId}
             />
         );
-        const secretaries = [pickerText, ...allSecretaries];
+        const coaches = [pickerText, ...allCoaches];
 
         let firstTitle;
-        const secretariesSelectedCount = this.props.newTraining.secretaries.length;
-        if (secretariesSelectedCount === 1)
+        const coachesSelectedCount = this.props.newTraining.coaches.length;
+        if (coachesSelectedCount === 1)
             firstTitle = (
                 <Text style={{fontSize: 18, fontWeight: '400'}}>
-                    {secretariesSelectedCount + ' selecionado'}
+                    {coachesSelectedCount + ' selecionado'}
                 </Text>
             );
         else {
             firstTitle = (
                 <Text style={{fontSize: 18, fontWeight: '400'}}>
-                    {secretariesSelectedCount + ' selecionados'}
+                    {coachesSelectedCount + ' selecionados'}
                 </Text>
             );
         }
 
         return (
             <View style={styles.container}>
-                {
-                    !this.state.isLoading &&
-                    <Animatable.View animation={"fadeIn"}>
-                        <Card elevation={6}>
-                                <Card.Title
-                                    title="Seccionistas"
-                                    subtitle="Adicione pelo menos um seccionista a este treino."
-                                    left={(props) => <Ionicons name="md-clipboard" size={20} color={'#000'} {...props}/>}
-                                />
-                                <Card.Content>
-                                    <View style={{
-                                        maxHeight: 200,
-                                        borderBottomWidth: 1,
-                                        borderBottomColor: '#000'
-                                    }}>
-                                        {firstTitle}
-                                        <ScrollView>
-                                            <FlatList
-                                                keyExtractor={item => item.toString()}
-                                                data={this.props.newTraining.secretaries}
-                                                renderItem={this.renderItem}
-                                                ListEmptyComponent={() => (
-                                                    <Text>Nenhum secretário selecionado.</Text>
-                                                )}
-                                            />
-                                        </ScrollView>
-                                    </View>
-                                    <View style={{marginTop: 30}}>
-                                        <Text style={{fontSize: 18, fontWeight: '400'}}>Adicionar</Text>
-                                        <View style={{
-                                            borderRadius: 5,
-                                            backgroundColor: '#f2f2f2',
-                                            justifyContent: 'center'
-                                        }}>
-                                            <Picker
-                                                selectedValue={this.state.invalidSecretaryId}
-                                                onValueChange={
-                                                    itemValue => (this.onSecretarySelect(itemValue))
-                                                }>
-                                                {secretaries}
-                                            </Picker>
-                                        </View>
-                                    </View>
-                                </Card.Content>
-                        </Card>
-                    </Animatable.View>
-                }
+                <Animatable.View animation={"fadeIn"}>
+                    <Card elevation={6}>
+                        <Card.Title
+                            title="Treinadores"
+                            subtitle="Adicione treinadores a este treino."
+                            left={(props) => <Ionicons name="md-contacts" size={20} color={'#000'} {...props}/>}
+                        />
+                        <Card.Content>
+                            <View style={{
+                                maxHeight: 200,
+                                borderBottomWidth: 1,
+                                borderBottomColor: '#000'
+                            }}>
+                                {firstTitle}
+                                <ScrollView>
+                                    <FlatList
+                                        keyExtractor={item => item.toString()}
+                                        data={this.props.newTraining.coaches}
+                                        renderItem={this.renderItem}
+                                        ListEmptyComponent={() => (
+                                            <Text>Nenhum treinador selecionado.</Text>
+                                        )}
+                                    />
+                                </ScrollView>
+                            </View>
+                            <View style={{marginTop: 30}}>
+                                <Text style={{fontSize: 18, fontWeight: '400'}}>Adicionar</Text>
+                                <View style={{
+                                    borderRadius: 5,
+                                    backgroundColor: '#f2f2f2',
+                                    justifyContent: 'center'
+                                }}>
+                                    <Picker
+                                        selectedValue={this.state.invalidCoachId}
+                                        onValueChange={
+                                            itemValue => (this.onCoachSelect(itemValue))
+                                        }>
+                                        {coaches}
+                                    </Picker>
+                                </View>
+                            </View>
+                        </Card.Content>
+                    </Card>
+                </Animatable.View>
                 <Loader isLoading={this.state.isLoading}/>
             </View>
         );
@@ -222,19 +231,20 @@ const styles = StyleSheet.create({
 const mapStateToProps = state => ({
 
     odoo: state.odoo.odoo,
+    user: state.user,
     newTraining: state.newTraining
 });
 
 const mapDispatchToProps = dispatch => ({
 
-    setAllSecretaries: (secretaries) => {
-        dispatch(setAllSecretaries(secretaries))
+    setAllCoaches: (coaches) => {
+        dispatch(setAllCoaches(coaches))
     },
-    addSecretary: (secretaryId) => {
-        dispatch(addSecretary(secretaryId))
+    addCoach: (coachId) => {
+        dispatch(addCoach(coachId))
     },
-    removeSecretary: (secretaryId) => {
-        dispatch(removeSecretary(secretaryId))
+    removeCoach: (coachId) => {
+        dispatch(removeCoach(coachId))
     }
 });
 

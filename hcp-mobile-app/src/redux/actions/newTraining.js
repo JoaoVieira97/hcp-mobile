@@ -1,5 +1,37 @@
 // NEW TRAINING actions
 
+export function resetTraining() {
+    return {
+        type: 'RESET'
+    }
+}
+
+export function setStep(id) {
+    return {
+        type: 'SET_STEP',
+        stepId: id
+    }
+}
+
+export function increaseStep() {
+    return {
+        type: 'INCREASE_STEP'
+    }
+}
+
+export function decreaseStep() {
+    return {
+        type: 'DECREASE_STEP'
+    }
+}
+
+export function addSecretaryFlag(flag) {
+    return {
+        type: 'ADD_SECRETARY_FLAG',
+        flag: flag
+    }
+}
+
 export function setStartDateTime(startDateTime) {
     return {
         type: 'SET_START_DATE_TIME',
@@ -28,6 +60,27 @@ export function setLocalId(localId) {
     }
 }
 
+export function setAllCoaches(allCoaches) {
+    return {
+        type: 'SET_ALL_COACHES',
+        allCoaches: allCoaches
+    }
+}
+
+export function addCoach(coachId) {
+    return {
+        type: 'ADD_COACH',
+        id: coachId
+    }
+}
+
+export function removeCoach(coachId) {
+    return {
+        type: 'REMOVE_COACH',
+        id: coachId
+    }
+}
+
 export function setAllSecretaries(allSecretaries) {
     return {
         type: 'SET_ALL_SECRETARIES',
@@ -48,29 +101,3 @@ export function removeSecretary(secretaryId) {
         id: secretaryId
     }
 }
-
-
-export function setFirstStep(startDateTime, endDateTime, localId) {
-    return {
-        type: 'SET_FIRST_STEP',
-        startDateTime: startDateTime,
-        endDateTime: endDateTime,
-        localId: localId
-    }
-}
-
-export function setSecondStep(coachId, secretaries) {
-    return {
-        type: 'SET_SECOND_STEP',
-        coachId: coachId,
-        secretaries: secretaries
-    }
-}
-
-export function setThirdStep(athletes) {
-    return {
-        type: 'SET_THIRD_STEP',
-        athletes: athletes
-    }
-}
-

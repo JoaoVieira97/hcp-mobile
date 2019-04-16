@@ -3,21 +3,74 @@
 
 const INITIAL_STATE = {
     stepId: 0,
+    allLocals: [],
+    allCoaches: [],
+    allSecretaries: [],
+    addSecretaryFlag: undefined,
+
     startDateTime: "Selecione o horário de ínicio", // start
     endDateTime: "Selecione o horário de fim", // stop
     localId: -1, // local
-    allLocals: [],
     degreeId: {}, // escalao
-    coachId: {}, // treinador
-    athletes: [], // atletas - array
-    secretaries: [], // seccionistas - array,
-    allSecretaries: [],
+    coaches: [], // treinador
+    athletes: [], // atletas
+    secretaries: [], // seccionistas
 };
 
 // take the previous state and an action, and return the next state
 export default function newTrainingReducer (state = INITIAL_STATE, action) {
 
     switch (action.type) {
+
+        case 'RESET':
+            return {
+                ...INITIAL_STATE
+            };
+
+        case 'SET_STEP':
+            return {
+                ...state,
+                stepId: action.stepId
+            };
+
+        case 'INCREASE_STEP':
+            return {
+                ...state,
+                stepId: state.stepId + 1
+            };
+
+        case 'DECREASE_STEP':
+            return {
+                ...state,
+                stepId: state.stepId - 1
+            };
+
+        case 'SET_ALL_LOCALS':
+            return {
+                ...state,
+                allLocals: action.allLocals
+            };
+
+        case 'SET_ALL_COACHES':
+            return {
+                ...state,
+                allCoaches: action.allCoaches
+            };
+
+        case 'SET_ALL_SECRETARIES':
+            return {
+                ...state,
+                allSecretaries: action.allSecretaries
+            };
+
+        case 'ADD_SECRETARY_FLAG':
+            return {
+                ...state,
+                addSecretaryFlag: action.flag
+            };
+
+
+
 
         case 'SET_START_DATE_TIME':
             return {
@@ -31,22 +84,34 @@ export default function newTrainingReducer (state = INITIAL_STATE, action) {
                 endDateTime: action.endDateTime
             };
 
-        case 'SET_ALL_LOCALS':
-            return {
-                ...state,
-                allLocals: action.allLocals
-            };
-
         case 'SET_LOCAL_ID':
             return {
                 ...state,
                 localId: action.localId
             };
 
-        case 'SET_ALL_SECRETARIES':
+        case 'ADD_COACH':
             return {
                 ...state,
-                allSecretaries: action.allSecretaries
+                allCoaches: state.allCoaches.map(item => {
+                    if (item.id === action.id)
+                        item.visible = false;
+
+                    return item;
+                }),
+                coaches: (action.id !== -1) ? [...state.coaches, action.id] : state.coaches
+            };
+
+        case 'REMOVE_COACH':
+            return {
+                ...state,
+                allCoaches: state.allCoaches.map(item => {
+                    if (item.id === action.id)
+                        item.visible = true;
+
+                    return item;
+                }),
+                coaches: state.coaches.filter(item => item !== action.id)
             };
 
         case 'ADD_SECRETARY':
@@ -58,7 +123,7 @@ export default function newTrainingReducer (state = INITIAL_STATE, action) {
 
                     return item;
                 }),
-                secretaries: (action.id !== -1) ? [...state.secretaries, action.id] : state.secretaries
+                secretaries: (action.id !== -1) ? [action.id, ...state.secretaries] : state.secretaries
             };
 
         case 'REMOVE_SECRETARY':
@@ -72,32 +137,6 @@ export default function newTrainingReducer (state = INITIAL_STATE, action) {
                 }),
                 secretaries: state.secretaries.filter(item => item !== action.id)
             };
-
-        case 'SET_FIRST_STEP':
-            return {
-                ...state,
-                stepId: 0,
-                startDateTime: action.startDateTime,
-                endDateTime: action.endDateTime,
-                localId: action.localId
-            };
-
-        case 'SET_SECOND_STEP':
-            return {
-                ...state,
-                stepId: 1,
-                coachId: action.coachId,
-                secretaries: action.secretaries,
-            };
-
-        case 'SET_THIRD_STEP':
-            return {
-                ...state,
-                stepId: 2,
-                athletes: action.athletes,
-            };
-
-
 
         default:
             return state;

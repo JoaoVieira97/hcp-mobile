@@ -81,7 +81,7 @@ class OpenedTrainings extends Component {
 
     async componentDidMount() {
 
-        await this.fetchTrainings();
+        await this.fetchTrainings(20, true);
         /*
         this.willFocus = this.props.navigation.addListener('willFocus', () => {
             this.setState({
@@ -132,7 +132,11 @@ class OpenedTrainings extends Component {
      *
      * @param limit
      */
-    async fetchTrainings(limit=20) {
+    async fetchTrainings(limit=20, clear=false) {
+
+        if(clear) {
+            await this.props.clearAllTrainings();
+        }
 
         const idsFetched = this.props.trainingsList.map(training => {return training.id});
         const params = {

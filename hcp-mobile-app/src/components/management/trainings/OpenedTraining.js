@@ -212,6 +212,10 @@ class OpenedTraining extends React.Component {
             this.setState({
                 coaches: coachesNames
             });
+        } else {
+            this.setState({
+                coaches: ['Nenhum treinador atribuído']
+            });
         }
     }
 
@@ -229,7 +233,6 @@ class OpenedTraining extends React.Component {
                     text: 'Confirmar',
                     onPress: async () => {
 
-                        /*
                         const params = {
                             kwargs: {
                                 context: this.props.odoo.context,
@@ -254,8 +257,8 @@ class OpenedTraining extends React.Component {
                                 this.props.navigation.goBack();
                             }, 1100);
                         }
-                        */
 
+                        /*
                         await this.props.removeTraining(this.state.training.id);
                         await this.setState({animation: true});
                         this.animation.play();
@@ -263,6 +266,7 @@ class OpenedTraining extends React.Component {
                         setTimeout(() => {
                             this.props.navigation.goBack();
                         }, 1100);
+                         */
                     }
                 },
             ],
