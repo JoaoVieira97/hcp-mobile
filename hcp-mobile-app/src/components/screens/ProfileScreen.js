@@ -1,10 +1,24 @@
 import React, { Component } from 'react';
 
-import {Text, View, Button} from 'react-native';
+
+import {
+    ScrollView,
+    Text,
+    View,
+    Image,
+    TouchableOpacity,
+    StyleSheet
+} from 'react-native';
+
+import { Button } from 'react-native-paper';
+
+
 import {connect} from "react-redux";
 import {setOdooInstance} from "../../redux/actions/odoo";
 import {setUserData, setUserGroups, setUserImage} from "../../redux/actions/user";
-import CustomText from "../home/HomeScreen";
+
+import {colors} from "../../styles/index.style";
+import CustomText from "../CustomText";
 
 class ProfileScreen extends Component {
 
@@ -12,55 +26,39 @@ class ProfileScreen extends Component {
         super(props);
 
         this.state = {
-            isPressed: false,
             birthdate: null,
-            company: null,
-            dados_antropometricos: [],
             email: null,
-            escalao: null,
-            numero_socio: null,
-            name: null,
-            numero_camisola: null,
             phone: null,
-            posicao: null,
-            groups: []
         }
     };
 
-    async getInformations(){
-        this.setState({
-            isPressed: true
-        });
+    async componentDidMount() {
+        /*
+        const params = {
+            ids: [this.props.user.groups[0].id], //atleta
+            fields: ['birthdate', 'company_id', 'dados_antropometricos',
+                'email', 'escalao', 'numero_socio', 'name', 'numerocamisola', 'phone', 'posicao'],
+        };*/
 
         const params = {
             ids: [this.props.user.groups[0].id], //atleta
-            fields: ['birthdate','company_id','dados_antropometricos',
-                'email','escalao','numero_socio','name','numerocamisola','phone','posicao'],
+            fields: ['birthdate', 'phone', 'email'],
         };
 
 
         let response = await this.props.odoo.get('ges.atleta', params);
 
-        if (response.success) {
+        if (response.success && response.data.length > 0) {
 
             this.setState({
                 birthdate: response.data[0].birthdate,
-                company: response.data[0].company_id[1],
-                dados_antropometricos: response.data[0].dados_antropometricos,
                 email: response.data[0].email,
-                escalao: response.data[0].escalao[1],
-                numero_socio: response.data[0].numero_socio,
-                name: response.data[0].name,
-                numero_camisola: response.data[0].numerocamisola,
-                phone: response.data[0].phone,
-                posicao: response.data[0].posicao,
-                groups: this.props.user.groups
+                phone: response.data[0].phone
             });
         }
-
-        console.log(this.props.user)
-        console.log(this.state.groups)
     }
+
+    /*
 
     render() {
         const displayRoles = this.state.groups.map((data,index) => {
@@ -96,8 +94,124 @@ class ProfileScreen extends Component {
             </View>
         );
     }
+*/
+
+    resetPassword(){
+
+
+    }
+
+    render() {
+        let image;
+
+        if(this.props.user.image !== false){
+            image =(
+                 <Image style={styles.avatar} source={{uri: `data:image/png;base64,${this.props.user.image}`}}/>
+            )
+        }
+
+        else{
+            image = (
+                <Image style={styles.avatar} source={require('../../../assets/user-account.png')}/>
+            )
+        }
+        /*const displayRoles = this.props.user.groups.map((data,index) => {
+            return (
+                <View key={index}>
+                    <Text>{data.name} / </Text>
+                </View>
+            )
+        });*/
+
+        const displayRoles = this.props.user.groups.map((data, index) => {
+            return (
+                <CustomText
+                    key={index}
+                    children={data.name + ' | '}
+                    type={'normal'}
+                />
+            );
+        });
+
+        return (
+            <ScrollView style={styles.container}>
+                <View style={styles.header}></View>
+                {image}
+                <View style={styles.body}>
+                    <View style={styles.bodyContent}>
+                        <CustomText style={styles.name}>{this.props.user.name}</CustomText>
+                        <View style={styles.groups}>
+                            {displayRoles}
+                        </View>
+                        <CustomText> Data de nascimento: {this.state.birthdate}</CustomText>
+                        <CustomText> Email: {this.state.email}</CustomText>
+                        <CustomText> Nº telemóvel: {this.state.phone}</CustomText>
+
+                        <Button style={styles.buttonContainer}>
+                            <CustomText>Estatísticas</CustomText>
+                        </Button>
+                        <Button style={styles.buttonContainer}>
+                            <CustomText>Dados antropométricos</CustomText>
+                        </Button>
+                        <Button style={styles.buttonContainer} onPress={this.resetPassword}>
+                            <CustomText>Reset password</CustomText>
+                        </Button>
+                    </View>
+                </View>
+            </ScrollView>
+        );
+    }
 
 }
+
+const styles = StyleSheet.create({
+    header:{
+        backgroundColor: colors.background1,
+        height:200,
+    },
+    avatar: {
+        width: 130,
+        height: 130,
+        borderRadius: 63,
+        borderWidth: 4,
+        borderColor: "white",
+        marginBottom:10,
+        alignSelf:'center',
+        position: 'absolute',
+        marginTop:130,
+    },
+    name:{
+        fontSize:22,
+        color:"#0d0d0d",
+        fontWeight:'600',
+    },
+    body:{
+        marginTop:40,
+    },
+    bodyContent: {
+        flex: 1,
+        alignItems: 'center',
+        padding:30,
+    },
+    groups:{
+        width:'100%',
+        fontSize:20,
+        color: "#0d0d0d",
+        marginTop:10,
+        marginBottom:50,
+    },
+    buttonContainer: {
+        marginTop:10,
+        height:45,
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom:5,
+        width:250,
+        borderRadius:30,
+        backgroundColor: colors.background1,
+    },
+});
 
 const mapStateToProps = state => ({
 
