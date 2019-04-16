@@ -3,7 +3,7 @@ import { View, Alert } from 'react-native';
 
 import Step from './Step';
 import {connect} from "react-redux";
-import {decreaseStep, increaseStep, setStep} from "../../../../../redux/actions/newTraining";
+import {decreaseStep, increaseStep, resetTraining, setStep} from "../../../../../redux/actions/newTraining";
 
 class Wizard extends PureComponent {
 
@@ -13,6 +13,10 @@ class Wizard extends PureComponent {
 
     static Step = Step;
 
+    /**
+     * When user press next.
+     * @private
+     */
     _nextStep = () => {
         if (this.props.newTraining.stepId !== this.props.children.length - 1) {
 
@@ -27,6 +31,10 @@ class Wizard extends PureComponent {
         }
     };
 
+    /**
+     * When user press previous.
+     * @private
+     */
     _prevStep = () => {
 
         if (this.props.newTraining.stepId !== 0) {
@@ -46,8 +54,46 @@ class Wizard extends PureComponent {
         }
     };
 
-    _onSubmit = () => {
-        Alert.alert('Sucesso', "Treino criado com sucesso.");
+    /**
+     * When user press submit.
+     * @private
+     */
+    _onSubmit = async () => {
+
+        const coachInfo = this.props.user.groups.filter(item => item.name === 'Treinador');
+        const response = await this.props.odoo.create(
+            'ges.treino',
+            {
+                start: '2019-04-20 19:30:00',
+                stop: '2019-04-20 20:30:00',
+                escalao: 8,
+                treinador: [[6,0,[coachInfo[0].id]]],
+                local: 3,
+                seccionistas: [[6,0,[12]]],
+                atletas: [[6,0,[60, 61, 63]]]
+            }
+        );
+
+        if(response.success) {
+            Alert.alert(
+                "Sucesso",
+                "Treino de teste criado com sucesso. ID: " + response.data.toString(),
+                [
+                    {text: 'OK', onPress: () => this.props.navigation.cancelTraining()},
+                ],
+                {cancelable: false},
+            );
+        }
+        else {
+            Alert.alert(
+                "Erro",
+                "Treino de teste não foi criado.",
+                [
+                    {text: 'OK', onPress: () => this.props.navigation.cancelTraining()},
+                ],
+                {cancelable: false},
+            );
+        }
     };
 
     render() {
@@ -76,11 +122,15 @@ class Wizard extends PureComponent {
 
 const mapStateToProps = state => ({
 
+    odoo: state.odoo.odoo,
+    user: state.user,
     newTraining: state.newTraining
 });
 
 const mapDispatchToProps = dispatch => ({
-
+    resetTraining: () => {
+        dispatch(resetTraining())
+    },
     setStep: (id) => {
         dispatch(setStep(id))
     },

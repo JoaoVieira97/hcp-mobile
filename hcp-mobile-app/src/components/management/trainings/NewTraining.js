@@ -22,6 +22,7 @@ import {
 } from "../../../redux/actions/newTraining";
 import NewTrainingStep2 from "./newTrainingSteps/NewTrainingStep2";
 import Loader from "../../screens/Loader";
+import NewTrainingStep4 from "./newTrainingSteps/NewTrainingStep4";
 
 
 class NewTraining extends Component {
@@ -173,7 +174,6 @@ class NewTraining extends Component {
         return false;
     };
 
-
     /**
      * Fetch all secretaries. (seccionistas)
      * @returns {Promise<boolean>}
@@ -203,31 +203,6 @@ class NewTraining extends Component {
         return false;
     };
 
-    createTraining = async () => {
-
-        const coachInfo = this.props.user.groups.filter(item => item.name === 'Treinador');
-        const response = await this.props.odoo.create(
-            'ges.treino',
-            {
-                start: '2019-04-20 09:30:00',
-                stop: '2019-04-20 10:30:00',
-                escalao: 8,
-                treinador: [[6,0,[coachInfo[0].id]]],
-                local: 3,
-                seccionistas: [[6,0,[12]]],
-                atletas: [[6,0,[60, 61, 63]]]
-            }
-        );
-
-        Alert.alert(
-            response.success.toString(),
-            response.data.toString(),
-            [
-                {text: 'OK', onPress: () => this.props.navigation.cancelTraining()},
-            ],
-            {cancelable: false},
-        );
-    };
 
     render() {
 
@@ -246,33 +221,13 @@ class NewTraining extends Component {
             },
             {
                 name: 'step4',
-                component: (
-                    <View style={styles.container}>
-                        <TouchableOpacity
-                            style={{
-                                alignItems:'center',
-                                justifyContent:'center',
-                                backgroundColor: '#b8b8b8',
-                                padding: 20
-                            }}
-                            onPress = {this.createTraining.bind(this)}
-                        >
-                            <CustomText type={'bold'} children={'Step 4 - Criar'} />
-                        </TouchableOpacity>
-                    </View>
-                )
+                component: (<NewTrainingStep4 navigation={this.props.navigation} />)
             },
         ];
 
         return (
             <View style={styles.root}>
-                <Wizard
-                    initialValues={{
-                        username: '',
-                        email: '',
-                        avatar: '',
-                    }}
-                >
+                <Wizard navigation={this.props.navigation}>
                     {forms.map(el => (
                         <Wizard.Step key={el.name}>
                             {el.component}

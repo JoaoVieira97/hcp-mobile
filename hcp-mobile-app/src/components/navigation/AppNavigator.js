@@ -28,7 +28,7 @@ import AuthenticationLoading from "../authentication/AuthenticationLoading";
 import LoginScreen from '../authentication/LoginScreen';
 import HomeScreen from '../home/HomeScreen';
 import CalendarScreen from '../calendar/CalendarScreen';
-import ProfileScreen from '../screens/ProfileScreen';
+import ProfileScreen from '../profile/ProfileScreen';
 import TrainingScreen from "../management/trainings/TrainingScreen";
 import GameScreen from "../management/games/GameScreen";
 import AthletesScreen from "../athletes/AthletesScreen";
@@ -335,6 +335,11 @@ const ProfileStackNavigator = createStackNavigator({
     transitionConfig: () => fromRight(600),
     defaultNavigationOptions: ({navigation}) => {
         return {
+            headerStyle: {
+                elevation: 0, // remove shadow on Android
+                shadowOpacity: 0, // remove shadow on iOS
+                backgroundColor: colors.gradient2
+            },
             headerTitle:
                 <CustomText
                     type={'bold'}
@@ -347,6 +352,7 @@ const ProfileStackNavigator = createStackNavigator({
             headerTitleStyle: {
                 color: '#ffffff',
             },
+            /*
             headerBackground: (
                 <LinearGradient
                     colors={[colors.gradient1, colors.gradient2]}
@@ -355,7 +361,7 @@ const ProfileStackNavigator = createStackNavigator({
                     end={[0.8, 0]}
                 />
             ),
-
+            */
             headerLeft: (
                 <TouchableOpacity style={{
                     width:42,
@@ -521,7 +527,7 @@ const AppDrawerNavigator = createDrawerNavigator({
         })
     }
 }, {
-    initialRouteName: 'ManagementStack',
+    initialRouteName: 'ProfileStack',
     order: ['HomeStack', 'CalendarStack', 'ManagementStack', 'AthletesStack', 'ProfileStack'],
     drawerWidth: WIDTH*0.7,
     contentComponent: CustomDrawerContentComponent,

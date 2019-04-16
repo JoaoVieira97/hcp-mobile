@@ -24,9 +24,6 @@ class HomeScreen extends React.Component {
         super(props);
 
         this.state = {
-            name: null,
-            image: null,
-            roles: [],
             entries: [{
                 type: 2,
                 title: 'Sem eventos'
@@ -37,12 +34,6 @@ class HomeScreen extends React.Component {
     }
 
     async componentDidMount() {
-
-        this.setState({
-            'name': this.props.user.name,
-            'image': this.props.user.image,
-            'roles': []
-        });
 
         await this.fetchEvents();
 
@@ -411,20 +402,6 @@ class HomeScreen extends React.Component {
 
     render() {
 
-        const displayRoles = this.props.user.groups.map((data, index) => {
-            return (
-                <CustomText
-                    key={index}
-                    children={data.name + ' | id_in_group = ' + data.id}
-                    type={'normal'}
-                    style={{
-                        color: '#fff',
-                        marginBottom: 2
-                    }}
-                />
-            );
-        });
-
         return (
 
             <LinearGradient
@@ -461,12 +438,6 @@ class HomeScreen extends React.Component {
                         data={this.state.entries}
                         onSnapToItem={(index) => this.setState({ activeSlide: index }) }
                     />
-                    <View style={{alignItems: 'center'}}>
-                        {displayRoles}
-                    </View>
-                    <Image style={{ width: 150, height: 100, marginVertical: 20}}
-                           source={{uri: `data:image/png;base64,${this.state.image}`}}/>
-                    
                     <View style={{marginBottom: 20}}>
                         <Button
                             title={'Enviar notificação Odoo'}

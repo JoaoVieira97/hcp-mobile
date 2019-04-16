@@ -35,6 +35,7 @@ class OpenedTraining extends React.Component {
             training: {},
             coaches: ['A carregar...'],
             athletes: [],
+            startTime: ""
         }
     }
 
@@ -44,7 +45,16 @@ class OpenedTraining extends React.Component {
             training => training.id === this.props.navigation.getParam('id')
         );
 
+        const date_hour = training.display_start.split(' ');
+        const date =
+            date_hour[0].slice(8,10) + '/' +
+            date_hour[0].slice(5,7) + '/' +
+            date_hour[0].slice(0,4);
+
+        const hour = date_hour[1].slice(0,5) + 'h';
+
         this.setState({
+            startTime: date + '  |  ' + hour,
             training: training
         });
     }
@@ -385,7 +395,7 @@ class OpenedTraining extends React.Component {
         }, {
             name: 'Início',
             icon: 'md-time',
-            subtitle: this.state.training.display_start,
+            subtitle: this.state.startTime,
         }, {
             name: 'Local',
             icon: 'md-pin',

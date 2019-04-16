@@ -14,6 +14,10 @@ class TrainingItem extends React.PureComponent {
     render() {
 
         const date_hour = this.props.training.display_start.split(' ');
+        const date =
+            date_hour[0].slice(8,10) + '/' +
+            date_hour[0].slice(5,7) + '/' +
+            date_hour[0].slice(0,4);
 
         let color;
         switch (this.props.index % 2) {
@@ -33,7 +37,7 @@ class TrainingItem extends React.PureComponent {
                             {'Treino ' + this.props.training.escalao[1] + ' | '}
                         </Text>
                         <Text style={{fontSize: 16, fontWeight: '400'}}>
-                            {date_hour[0]}
+                            {date}
                         </Text>
                     </View>
                 )}
