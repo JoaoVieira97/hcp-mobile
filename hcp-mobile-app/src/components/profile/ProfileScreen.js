@@ -60,7 +60,7 @@ class ProfileScreen extends Component {
         const response = await this.props.odoo.get('res.users', params);
         if (response.success && response.data.length > 0) {
 
-            let birthday = 'Não definido';
+            let birthday = 'Não definida';
             if(response.data[0].birthdate) {
                 birthday =
                     response.data[0].birthdate.slice(8,10) + '/' +
@@ -183,7 +183,7 @@ class ProfileScreen extends Component {
                                 </CustomText>
                             </View>
                             <View style={{marginTop: 15}}>
-                                <CustomText type={'bold'} style={styles.contentTitle}>DATE DE NASCIMENTO</CustomText>
+                                <CustomText type={'bold'} style={styles.contentTitle}>DATA DE NASCIMENTO</CustomText>
                                 <CustomText type={'normal'} style={styles.contentValue}>
                                     {this.state.birthday}
                                 </CustomText>
