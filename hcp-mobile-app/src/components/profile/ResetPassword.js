@@ -1,22 +1,22 @@
 import React, { Component } from 'react';
 import {
-    ScrollView,
+    Alert,
     View,
-    StyleSheet
+    StyleSheet, TouchableOpacity, AsyncStorage, KeyboardAvoidingView
 } from 'react-native';
 
-import {Avatar, Button, DefaultTheme, TextInput} from 'react-native-paper';
-
+import {Button, TextInput, DefaultTheme, HelperText} from 'react-native-paper';
 import {connect} from "react-redux";
 import {setOdooInstance} from "../../redux/actions/odoo";
-import {setUserData, setUserGroups, setUserImage} from "../../redux/actions/user";
+import {setUserData} from "../../redux/actions/user";
 
 import {colors} from "../../styles/index.style";
 import CustomText from "../CustomText";
-import * as Animatable from "react-native-animatable";
-import Loader from "../screens/Loader";
-import Logo from "../../../assets/logo.png";
-import {MaterialIcons} from "@expo/vector-icons";
+import {Ionicons} from "@expo/vector-icons";
+import Odoo from "react-native-odoo-promise-based";
+import {DATABASE, HOST, PORT} from "react-native-dotenv";
+import { Constants } from 'expo';
+import { Header } from 'react-navigation';
 
 class ResetPassword extends Component {
 
@@ -24,104 +24,310 @@ class ResetPassword extends Component {
         super(props);
 
         this.state = {
-            isLoading: true,
-            old_password: '',
-            new_password: '',
-            confirmed_password: '',
-            isValidOld: false,
-            isValidNew: false,
+            isResetDisabled: true,
+            isNewPasswordInputDisabled: true,
+            isLoading: false,
+            username: "",
+            oldPassword: "",
+            oldPasswordInput: "",
+            newPassword: "",
+            newPasswordError: false,
+            repeatNewPassword: "",
         }
     };
 
-    /*async componentDidMount() {
+    async componentDidMount() {
 
-        this.setState({isLoading: false});
-    }*/
+        await this.fetchOldPassword();
+
+        this._oldPasswordInput.focus();
+    }
 
     /**
-     * Fetch normal user data.
+     * Define header navigation options.
+     */
+    static navigationOptions = ({navigation}) => ({
+        headerTitle:
+            <CustomText
+                type={'bold'}
+                children={'REDEFINIR PALAVRA-PASSE'}
+                style={{
+                    color: '#ffffff',
+                    fontSize: 16
+                }}
+            />,
+        headerLeft:
+            <TouchableOpacity style={{
+                width:42,
+                height:42,
+                alignItems:'center',
+                justifyContent:'center',
+                marginLeft: 10}} onPress = {() => navigation.goBack()}>
+                <Ionicons
+                    name="md-arrow-back"
+                    size={28}
+                    color={'#ffffff'} />
+            </TouchableOpacity>
+    });
+
+    /**
+     *
      * @returns {Promise<void>}
      */
-    fetchPassword = async (text) => {
+    fetchOldPassword = async () => {
 
-        this.setState({old_password: text})
-
-        const params = {
-            ids: [this.props.user.id],
-            fields: []
-        };
-
-        const response = await this.props.odoo.get('res.users', params);
-        if (response.success && response.data.length > 0) {
-
-            console.log(response.data)
-        }
-    }
-
-    async savePassword() {
-        console.log('OLA!!!!');
-        console.log(this.props.user.id);
+        // TODO: fix this to get encrypted password and not the plain Text
+        const oldPassword = await AsyncStorage.getItem('password');
+        this.setState({
+            'oldPassword': oldPassword
+        });
 
         const params = {
             ids: [this.props.user.id],
-            fields: [],
+            fields: ['password', 'login']
         };
 
         const response = await this.props.odoo.get('res.users', params);
-        if (response.success && response.data.length > 0) {
+        if(response.success && response.data.length > 0) {
 
-            console.log(response.data)
+            this.setState({
+                'username': response.data[0].login,
+                //'oldPassword': response.data[0].password
+            });
         }
+    };
 
-    }
+    /**
+     * Reset user password.
+     * @returns {Promise<void>}
+     */
+    resetPassword = async () => {
+
+        this.setState({
+            'isResetDisabled': true,
+            'isLoading': true,
+        });
+
+        const fields = {
+            'password': this.state.newPassword
+        };
+
+        const response = await this.props.odoo.update('res.users', [this.props.user.id], fields);
+        if(response.success && response.data) {
+
+            const odoo = new Odoo({
+                host: HOST,
+                port: PORT,
+                database: DATABASE,
+                username: this.state.username,
+                password: this.state.newPassword
+            });
+
+            // Save odoo data on store
+            await this.props.setOdooInstance(odoo);
+            await this.authentication();
+
+            this.setState({
+                'isResetDisabled': false,
+                'isLoading': false,
+            });
+
+            Alert.alert(
+                'Sucesso',
+                'A palavra-passe foi redefinida com sucesso.',
+                [
+                    {text: 'OK', onPress: () => this.props.navigation.goBack()}
+                ],
+                {cancelable: false},
+            );
+        }
+        else {
+
+            this.setState({
+                'isResetDisabled': false,
+                'isLoading': false,
+            });
+
+            Alert.alert(
+                'Erro',
+                'Ocorreu um erro ao tentar redifinir a palavra-passe.',
+                    [
+                    {text: 'OK', onPress: () => this.props.navigation.goBack()}
+                    ],
+                {cancelable: false},
+            );
+        }
+    };
+
+    /**
+     * User authentication again to reload odoo instance.
+     * @returns {Promise<void>}
+     */
+    authentication = async () => {
+
+        const response = await this.props.odoo.connect();
+        if (response.success) {
+            if (response.data.uid) {
+
+                // Save data on Redux
+                await this.props.setUserData(
+                    response.data.uid.toString(),
+                    response.data.name.toString()
+                );
+
+                // Odoo rpc calls require both user's name and password
+                await AsyncStorage.multiSet([
+                    ["username", this.state.username],
+                    ["password", this.state.newPassword]
+                ]);
+            }
+        }
+    };
+
+    /**
+     * Old password change handler.
+     * @param value
+     * @returns {Promise<void>}
+     */
+    onOldPasswordChangeValue = async (value) => {
+
+        await this.setState({'oldPasswordInput': value});
+
+        if (value === this.state.oldPassword) {
+            this.setState({'isNewPasswordInputDisabled': false});
+
+            this._newPasswordInput.focus();
+        }
+        else
+            this.setState({'isNewPasswordInputDisabled': true});
+    };
+
+    /**
+     * Confirm if new and repeat password are equals.
+     * @param value
+     * @returns {Promise<void>}
+     */
+    onNewPasswordChangeValue = async (value) => {
+
+        await this.setState({'newPassword': value});
+
+        if (value === this.state.oldPassword) {
+            this.setState({'newPasswordError': true});
+        }
+        else if (value !== '' && value === this.state.repeatNewPassword) {
+
+            this.setState({
+                'isResetDisabled': false,
+                'newPasswordError': false
+            });
+        }
+        else {
+            this.setState({
+                'isResetDisabled': true,
+                'newPasswordError': false
+            });
+        }
+    };
+
+    /**
+     * Confirm if new and repeat password are equals.
+     * @param value
+     * @returns {Promise<void>}
+     */
+    onConfirmPasswordChangeValue = async (value) => {
+
+        await this.setState({'repeatNewPassword': value});
+
+        if (this.state.newPassword === value) {
+            this._repeatNewPasswordInput.blur();
+            this.setState({'isResetDisabled': false});
+        }
+        else {
+            this.setState({'isResetDisabled': true});
+        }
+    };
 
 
     render() {
-
         return (
-            <View style={styles.container}>
-                <TextInput
-                    label='Password atual'
-                    value={this.state.old_password}
-                    onChangeText={text => this.fetchPassword(text)}
-                />
-                <TextInput
-                    label='Nova password'
-                    value={this.state.new_password}
-                    onChangeText={text => this.fetchPassword(text)}
-                />
-                <TextInput
-                    label='Confirme password'
-                    value={this.state.confirmed_password}
-                    onChangeText={text => this.fetchPassword(text)}
-                />
+            <KeyboardAvoidingView
+                behavior="padding"
+                keyboardVerticalOffset = {Header.HEIGHT}
+                style={[styles.container, {justifyContent: 'center'}]}>
+                <View style={styles.inputTextContent}>
+                    <TextInput
+                        ref={ref => {this._oldPasswordInput = ref}}
+                        value={this.state.oldPasswordInput}
+                        label='Palavra-passe atual'
+                        onChangeText={text => this.onOldPasswordChangeValue(text)}
+                        autoCapitalize={'none'}
+                        secureTextEntry={true}
+                        theme={{ colors: {
+                                ...DefaultTheme.colors,
+                                primary: colors.blueText,
+                            }}}
+                        style={styles.input}
+                    />
+                </View>
+                <View style={styles.inputTextContent}>
+                    <TextInput
+                        ref={ref => {this._newPasswordInput = ref}}
+                        label='Defina a nova palavra-passe'
+                        value={this.state.newPassword}
+                        onChangeText={text => this.onNewPasswordChangeValue(text)}
+                        disabled={this.state.isNewPasswordInputDisabled}
+                        autoCapitalize={'none'}
+                        secureTextEntry={true}
+                        returnKeyType={'next'}
+                        error={this.state.newPasswordError}
+                        theme={{ colors: {
+                                ...DefaultTheme.colors,
+                                primary: colors.blueText,
+                            }}}
+                        style={styles.input}
+                    />
+                    {
+                        this.state.newPasswordError &&
+                        <HelperText
+                            type="error"
+                            visible={this.state.newPasswordError}
+                        >
+                            Introduza uma palavra-passe diferente da original!
+                        </HelperText>
+                    }
+                </View>
+                <View style={styles.inputTextContent}>
+                    <TextInput
+                        ref={ref => {this._repeatNewPasswordInput = ref}}
+                        label='Confirme a nova palavra-passe'
+                        value={this.state.repeatNewPassword}
+                        onChangeText={text => this.onConfirmPasswordChangeValue(text)}
+                        disabled={this.state.isNewPasswordInputDisabled}
+                        autoCapitalize={'none'}
+                        secureTextEntry={true}
+                        theme={{ colors: {
+                                ...DefaultTheme.colors,
+                                primary: colors.blueText,
+                            }}}
+                        style={styles.input}
+                    />
+                </View>
                 <View style={styles.buttonContent}>
                     <Button
                         dark
                         color={'rgba(173, 46, 83, 0.15)'}
                         mode="contained"
                         contentStyle={{height: 55}}
-                        onPress={this.savePassword}
+                        onPress={this.resetPassword.bind(this)}
+                        disabled={this.state.isResetDisabled}
+                        loading={this.state.isLoading}
                     >
-                        Guardar
-                    </Button>
-                    <Button
-                        dark
-                        color={'rgba(173, 46, 83, 0.15)'}
-                        mode="contained"
-                        contentStyle={{height: 55}}
-                        onPress={() => console.log('Pressed')}
-                    >
-                        Cancelar
+                        Redefinir
                     </Button>
                 </View>
-            </View>
-
-
+            </KeyboardAvoidingView>
         );
     }
-
-
 }
 
 const styles = StyleSheet.create({
@@ -129,63 +335,20 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: colors.gradient2,
         paddingHorizontal: 20,
-        paddingBottom: 10
+        //paddingTop: 30
     },
-    header: {
-        width: '100%',
-        alignItems: 'center',
-    },
-    headerImage: {
-        elevation: 5,
-    },
-    headerName: {
-        color: '#fff',
-        fontSize: 20,
+    inputTextContent: {
         marginTop: 10,
-        textShadowColor: colors.gradient1
-    },
-    headerRoles: {
-        color: '#fff',
-        fontSize: 15,
-        marginTop: 5,
-        textShadowColor: colors.gradient1,
-        letterSpacing: 2
-    },
-    athleteContent: {
-        flexDirection: 'row',
-        marginTop: 10,
-        padding: 15,
-        borderRadius: 10,
         width: '100%',
-        backgroundColor: 'rgba(173, 46, 83, 0.15)'
     },
-    athleteTitle: {
-        color: 'rgba(255, 255, 255, 0.45)',
-        fontSize: 12,
-        letterSpacing: 5
-    },
-    athleteValue: {
-        color: '#fff',
-        fontSize: 25,
-    },
-    content: {
-        marginTop: 10,
-        padding: 15,
-        borderRadius: 10,
-        width: '100%',
-        backgroundColor: 'rgba(173, 46, 83, 0.15)'
-    },
-    contentTitle: {
-        color: 'rgba(255, 255, 255, 0.45)',
-        fontSize: 12,
-        letterSpacing: 2
-    },
-    contentValue: {
-        color: '#fff',
-        fontSize: 16
+    input: {
+        //marginBottom: 10,
+        //backgroundColor: 'rgba(173, 46, 83, 0.15)'
     },
     buttonContent: {
-        marginTop: 10,
+        //position: 'absolute',
+        //bottom: 20,
+        marginTop: 50,
         width: '100%',
     }
 });
@@ -203,13 +366,7 @@ const mapDispatchToProps = dispatch => ({
     },
     setUserData: (id, user) => {
         dispatch(setUserData(id, user))
-    },
-    setUserImage: (image) => {
-        dispatch(setUserImage(image))
-    },
-    setUserGroups: (groups) => {
-        dispatch(setUserGroups(groups))
-    },
+    }
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(ResetPassword);

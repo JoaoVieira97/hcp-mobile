@@ -336,6 +336,8 @@ class LoginScreen extends React.Component {
                                 primary: colors.blueText,
                             }}}
                             autoCapitalize={'none'}
+                            autoComplete={'email'}
+                            keyboardType={'email-address'}
                         />
                         <View>
                             <TextInput

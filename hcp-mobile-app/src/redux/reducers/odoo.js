@@ -10,7 +10,6 @@ export default function odooReducer (state = INITIAL_STATE, action) {
 
     switch (action.type) {
         case 'SET_ODOO_CONNECTION_INSTANCE':
-
             return {
                 ...state,
                 odoo: action.odoo
