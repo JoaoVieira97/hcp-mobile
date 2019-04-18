@@ -41,6 +41,7 @@ import OpenedTraining from "../management/trainings/OpenedTraining";
 import EditOpenedTraining from "../management/trainings/EditOpenedTraining";
 import CustomText from "../CustomText";
 import LoadingScreen from "../screens/LoadingScreen";
+import ResetPassword from "../profile/ResetPassword";
 
 const styles = StyleSheet.create({
     container: {
@@ -331,6 +332,7 @@ const AthletesStackNavigator = createStackNavigator({
 // PROFILE STACK
 const ProfileStackNavigator = createStackNavigator({
     ProfileScreen: {screen: ProfileScreen},
+    ResetPassword: {screen: ResetPassword},
 }, {
     transitionConfig: () => fromRight(600),
     defaultNavigationOptions: ({navigation}) => {

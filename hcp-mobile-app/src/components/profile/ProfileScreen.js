@@ -15,6 +15,7 @@ import {colors} from "../../styles/index.style";
 import CustomText from "../CustomText";
 import * as Animatable from "react-native-animatable";
 import Loader from "../screens/Loader";
+import ResetPassword from "./ResetPassword";
 
 class ProfileScreen extends Component {
 
@@ -196,7 +197,7 @@ class ProfileScreen extends Component {
                                 color={'rgba(173, 46, 83, 0.15)'}
                                 mode="contained"
                                 contentStyle={{height: 55}}
-                                onPress={() => console.log('Pressed')}
+                                onPress={() => this.props.navigation.navigate('ResetPassword')}
                             >
                                 Redifinir palavra-passe
                             </Button>
