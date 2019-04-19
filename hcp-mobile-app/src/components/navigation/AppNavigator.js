@@ -42,6 +42,7 @@ import EditOpenedTraining from "../management/trainings/EditOpenedTraining";
 import CustomText from "../CustomText";
 import LoadingScreen from "../screens/LoadingScreen";
 import ResetPassword from "../profile/ResetPassword";
+import ChatScreen from "../chat/ChatScreen";
 
 const styles = StyleSheet.create({
     container: {
@@ -381,6 +382,56 @@ const ProfileStackNavigator = createStackNavigator({
     }
 });
 
+// CHAT STACK
+const ChatStackNavigator = createStackNavigator({
+    ChatScreen: {screen: ChatScreen},
+}, {
+    transitionConfig: () => fromRight(600),
+    defaultNavigationOptions: ({navigation}) => {
+        return {
+            headerStyle: {
+                elevation: 0, // remove shadow on Android
+                shadowOpacity: 0, // remove shadow on iOS
+                backgroundColor: colors.gradient2
+            },
+            headerTitle:
+                <CustomText
+                    type={'bold'}
+                    children={'PERFIL'}
+                    style={{
+                        color: '#ffffff',
+                        fontSize: 16
+                    }}
+                />,
+            headerTitleStyle: {
+                color: '#ffffff',
+            },
+            /*
+            headerBackground: (
+                <LinearGradient
+                    colors={[colors.gradient1, colors.gradient2]}
+                    style={{ flex: 1 }}
+                    start={[0, 0]}
+                    end={[0.8, 0]}
+                />
+            ),
+            */
+            headerLeft: (
+                <TouchableOpacity style={{
+                    width:42,
+                    height:42,
+                    alignItems:'center',
+                    justifyContent:'center',
+                    marginLeft: 10}} onPress = {() => navigation.openDrawer()}>
+                    <Ionicons
+                        name="md-menu"
+                        size={30}
+                        color={'#ffffff'}/>
+                </TouchableOpacity>
+            )
+        }
+    }
+});
 
 const CustomDrawerContentComponent = (props) => {
 
@@ -527,10 +578,30 @@ const AppDrawerNavigator = createDrawerNavigator({
                 color={'#000000'}
             />
         })
+    },
+    ChatStack: {
+        screen: ChatStackNavigator,
+        navigationOptions: ({
+            drawerLabel:
+                <View style={{marginVertical: 15}}>
+                    <CustomText
+                        type={'bold'}
+                        children={'Chat'}
+                        style={{
+                            fontSize: 16
+                        }}
+                    />
+                </View>,
+            drawerIcon: <Ionicons
+                name="md-chatboxes"
+                size={27}
+                color={'#000000'}
+            />
+        })
     }
 }, {
     initialRouteName: 'ProfileStack',
-    order: ['HomeStack', 'CalendarStack', 'ManagementStack', 'AthletesStack', 'ProfileStack'],
+    order: ['HomeStack', 'CalendarStack', 'ManagementStack', 'AthletesStack', 'ProfileStack', 'ChatStack'],
     drawerWidth: WIDTH*0.7,
     contentComponent: CustomDrawerContentComponent,
     contentOptions: {

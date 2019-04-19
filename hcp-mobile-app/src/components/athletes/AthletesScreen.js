@@ -33,7 +33,8 @@ class AthletesScreen extends Component {
                 ['id', '>=', '0'], // ['posicao', '=', 'CP']
 
             ],
-            fields: ['id', 'display_name', 'image', 'escalao', 'numerocamisola' ],
+            fields: ['id', 'user_id', 'display_name', 'image', 'escalao', 'numerocamisola' ],
+            //fields: [],
             order:  'numerocamisola ASC',
         };
 
@@ -52,7 +53,8 @@ class AthletesScreen extends Component {
                                 'name': aux.display_name,
                                 'image': aux.image,
                                 'squad_number': aux.numerocamisola,
-                                'echelon': aux.escalao[1]
+                                'echelon': aux.escalao[1],
+                                'user_id': aux.user_id[0],
                             };
 
                             this.setState(state => {
