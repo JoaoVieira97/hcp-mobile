@@ -43,6 +43,7 @@ import CustomText from "../CustomText";
 import LoadingScreen from "../screens/LoadingScreen";
 import ResetPassword from "../profile/ResetPassword";
 import ChatScreen from "../chat/ChatScreen";
+import ChannelsScreen from "../chat/ChannelsScreen";
 
 const styles = StyleSheet.create({
     container: {
@@ -385,6 +386,7 @@ const ProfileStackNavigator = createStackNavigator({
 // CHAT STACK
 const ChatStackNavigator = createStackNavigator({
     ChatScreen: {screen: ChatScreen},
+    ChannelsScreen: {screen: ChannelsScreen}
 }, {
     transitionConfig: () => fromRight(600),
     defaultNavigationOptions: ({navigation}) => {
@@ -397,7 +399,7 @@ const ChatStackNavigator = createStackNavigator({
             headerTitle:
                 <CustomText
                     type={'bold'}
-                    children={'PERFIL'}
+                    children={'CHAT'}
                     style={{
                         color: '#ffffff',
                         fontSize: 16
@@ -406,7 +408,6 @@ const ChatStackNavigator = createStackNavigator({
             headerTitleStyle: {
                 color: '#ffffff',
             },
-            /*
             headerBackground: (
                 <LinearGradient
                     colors={[colors.gradient1, colors.gradient2]}
@@ -415,7 +416,6 @@ const ChatStackNavigator = createStackNavigator({
                     end={[0.8, 0]}
                 />
             ),
-            */
             headerLeft: (
                 <TouchableOpacity style={{
                     width:42,

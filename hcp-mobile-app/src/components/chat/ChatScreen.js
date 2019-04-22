@@ -3,7 +3,8 @@ import React, {Component} from 'react';
 import {
     View,
     Text,
-    Button
+    Button,
+    FlatList
 } from 'react-native';
 
 import {connect} from 'react-redux';
@@ -78,7 +79,7 @@ class ChatScreen extends Component {
         }
     }
 
-    async SendMessage(){
+    async sendMessage(){
         //def message_post(self, body='', subject=None, message_type='notification', subtype=None, parent_id=False, attachments=None, content_subtype='html', **kwargs):
         const params = {
             kwargs: {
@@ -86,7 +87,7 @@ class ChatScreen extends Component {
             },
             model: 'mail.channel',
             method: 'message_post',
-            args: [1,'<p>sim,sim,sim</p>', null, 'comment', null, false, null, 'html']
+            args: [1,body='<p>sim,sim,sim</p>',subtype='mail.mt_comment']
         };
 
         const response = await this.props.odoo.rpc_call(
@@ -130,6 +131,12 @@ class ChatScreen extends Component {
                     title={'Enviar mensagem para o geral (not working)'}
                     color={colors.gradient1}
                     onPress={() => this.sendMessage()}
+                    style={{marginBottom: 20}}
+                />
+                <Button
+                    title={'Página de conversas'}
+                    color={colors.gradient1}
+                    onPress={() => this.props.navigation.navigate('ChannelsScreen')}
                     style={{marginBottom: 20}}
                 />
             </View>
