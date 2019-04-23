@@ -2,7 +2,8 @@ import React, {Component} from 'react';
 
 import {
     View,
-    FlatList
+    FlatList,
+    ActivityIndicator
 } from 'react-native';
 
 import {
@@ -19,7 +20,9 @@ class ChannelsScreen extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            channels: []
+            channels: [],
+            isLoading: true,
+            isRefreshing: false,
         }
     }
 
@@ -53,10 +56,9 @@ class ChannelsScreen extends Component {
 
             const msg = {
                 body: aux.last_message.body.replace(regex, ''),
-                author: aux.last_message.author_id[1]
+                author: aux.last_message.author_id[1],
+                date: aux.last_message.date
             };
-
-            console.log(msg)
 
             return msg
         
@@ -114,7 +116,12 @@ class ChannelsScreen extends Component {
 
             }).then(() => {
                 console.log(this.state.channels)
-            });
+            }).then(() => {
+                this.setState({
+                    isLoading: false,
+                    isRefreshing: false
+                });
+            })
     }
 
     renderItem = ({ item }) => {
@@ -123,11 +130,11 @@ class ChannelsScreen extends Component {
             <ListItem
                 title={'#' + item.name}
                 titleStyle={{fontWeight: 'bold'}}
-                subtitle={item.last_message.author + ': ' + item.last_message.body}
+                subtitle={item.last_message.author + ':' + item.last_message.body + '\n(' + item.last_message.date + ')'}
                 leftAvatar={this.channelImage(item.image)}
                 chevron
                 onPress={() => (
-                    this.props.navigation.navigate('ChatScreen')
+                    this.props.navigation.navigate('ChannelScreen',{item})
                 )}
             />
         );
@@ -172,6 +179,48 @@ class ChannelsScreen extends Component {
         }}/>
     );
 
+    renderHeader = () => (
+        <SearchBar
+            placeholder={"Pesquisar por nome"}
+            lightTheme
+            round
+            onClear={this.handleSearchClear}
+            onChangeText={this.handleSearch}
+            value={this.state.searchText}
+        />
+    );
+
+    renderFooter = () => {
+
+        if(!this.state.isLoading) {
+            return null;
+        }
+
+        return (
+            <View style={{
+                paddingVertical: 20,
+                borderTopWidth: 1,
+                borderTopColor: '#ced0ce'
+            }}>
+                <ActivityIndicator
+                    size={'large'}
+                    color={'#ced0ce'}
+                />
+            </View>
+        );
+    };
+
+    handleRefresh = () => {
+        this.setState({
+            channels: [],
+            isRefreshing: true,
+            isLoading: false
+        },
+        () => {
+            this.getChannels()
+        });
+    };
+
     render() {
 
         return (
@@ -181,6 +230,10 @@ class ChannelsScreen extends Component {
                     data={this.state.channels}
                     renderItem={this.renderItem}
                     ItemSeparatorComponent={this.renderSeparator}
+                    ListHeaderComponent={this.renderHeader}
+                    ListFooterComponent={this.renderFooter}
+                    refreshing={this.state.isRefreshing}
+                    onRefresh={this.handleRefresh}
                 />
             </View>
         );

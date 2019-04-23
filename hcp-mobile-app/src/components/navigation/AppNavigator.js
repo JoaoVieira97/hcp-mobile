@@ -44,6 +44,7 @@ import LoadingScreen from "../screens/LoadingScreen";
 import ResetPassword from "../profile/ResetPassword";
 import ChatScreen from "../chat/ChatScreen";
 import ChannelsScreen from "../chat/ChannelsScreen";
+import ChannelScreen from "../chat/ChannelScreen";
 
 const styles = StyleSheet.create({
     container: {
@@ -386,7 +387,8 @@ const ProfileStackNavigator = createStackNavigator({
 // CHAT STACK
 const ChatStackNavigator = createStackNavigator({
     ChatScreen: {screen: ChatScreen},
-    ChannelsScreen: {screen: ChannelsScreen}
+    ChannelsScreen: {screen: ChannelsScreen},
+    ChannelScreen: {screen: ChannelScreen}
 }, {
     transitionConfig: () => fromRight(600),
     defaultNavigationOptions: ({navigation}) => {
