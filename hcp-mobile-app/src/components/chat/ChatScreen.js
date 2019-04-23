@@ -87,7 +87,13 @@ class ChatScreen extends Component {
             },
             model: 'mail.channel',
             method: 'message_post',
-            args: [1,body='<p>sim,sim,sim</p>',subtype='mail.mt_comment']
+            args: [
+                1, 
+                body='Teste',
+                subject='Comentário',
+                message_type='comment',
+                subtype='mail.mt_comment'
+            ]
         };
 
         const response = await this.props.odoo.rpc_call(
@@ -98,8 +104,22 @@ class ChatScreen extends Component {
         if (response.success){
             console.log(response)
         } else{
-            console.log('error')
+            console.log(response)
         }
+    }
+
+    async getMessages(){
+        var params = {
+            domain: [
+                ['id', '=', ['10694', '10708']],
+            ],
+            fields: [],
+            limit: 5
+        }; //params
+        this.props.odoo.search_read('mail.message', params)
+            .then(response => {
+                console.log(response)
+            });
     }
 
     render() {
@@ -128,7 +148,7 @@ class ChatScreen extends Component {
                     style={{marginBottom: 20}}
                 />
                 <Button
-                    title={'Enviar mensagem para o geral (not working)'}
+                    title={'Enviar mensagem para o geral'}
                     color={colors.gradient1}
                     onPress={() => this.sendMessage()}
                     style={{marginBottom: 20}}
@@ -137,6 +157,12 @@ class ChatScreen extends Component {
                     title={'Página de conversas'}
                     color={colors.gradient1}
                     onPress={() => this.props.navigation.navigate('ChannelsScreen')}
+                    style={{marginBottom: 20}}
+                />
+                <Button
+                    title={'Message'}
+                    color={colors.gradient1}
+                    onPress={() => this.getMessages()}
                     style={{marginBottom: 20}}
                 />
             </View>
