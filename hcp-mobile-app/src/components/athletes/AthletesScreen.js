@@ -1,10 +1,13 @@
 import React, {Component} from 'react';
 
-import {View, FlatList, ActivityIndicator, Alert} from 'react-native';
+import {View, FlatList, ActivityIndicator, Alert, TouchableOpacity} from 'react-native';
 import {ListItem, Avatar, Badge, SearchBar} from 'react-native-elements';
 import {connect} from 'react-redux';
 import {Ionicons} from "@expo/vector-icons";
 import _ from 'lodash';
+import CustomText from "../CustomText";
+import {LinearGradient} from "expo";
+import {colors} from "../../styles/index.style";
 
 class AthletesScreen extends Component {
 
@@ -12,6 +15,7 @@ class AthletesScreen extends Component {
         super(props);
 
         this.state = {
+            echelon:{},
             data: [],
             fullData: [],
             isLoading: true,
@@ -20,26 +24,59 @@ class AthletesScreen extends Component {
         }
     };
 
-    componentDidMount() {
+    async componentDidMount() {
 
-        this.getAthletesSub20();
+        await this.setState({
+            echelon: this.props.navigation.getParam('echelon'),
+        });
+
+        console.log(this.state.echelon);
+
+        this.getAthletesByEchelon(this.state.echelon.id);
     }
 
+    /**
+     * Define header navigation options.
+     */
 
-    getAthletesSub20(limit = 20) {
+    static navigationOptions = ({navigation}) => ({
+        headerTitle: //'Atletas',
+            <CustomText
+                type={'bold'}
+                children={'ATLETAS'}
+                style={{
+                    color: '#ffffff',
+                    fontSize: 16
+                }}
+            />,
+        headerLeft:
+            <TouchableOpacity style={{
+                width:42,
+                height:42,
+                alignItems:'center',
+                justifyContent:'center',
+                marginLeft: 10}} onPress = {() => navigation.goBack()}>
+                <Ionicons
+                    name="md-arrow-back"
+                    size={28}
+                    color={'#ffffff'} />
+            </TouchableOpacity>
+    });
+
+    getAthletesByEchelon(echelonId) {
 
         const params = {
             domain: [
-                ['id', '>=', '0'], // ['posicao', '=', 'CP']
+                ['id', '>=', '0'],
 
             ],
             fields: ['id', 'user_id', 'display_name', 'image', 'escalao', 'numerocamisola' ],
-            //fields: [],
+
             order:  'numerocamisola ASC',
         };
 
         this.props.odoo.search_read('ges.atleta', params)
-            .then(response => {
+            .then(async response => {
 
                 if (response.success) {
 
@@ -47,13 +84,13 @@ class AthletesScreen extends Component {
                     for (let i = 0; i < size; i++) {
 
                         const aux = response.data[i];
-                        if (aux.escalao[0] === 8) {
+                        if (aux.escalao[0] === echelonId) {
 
                             const athlete = {
                                 'name': aux.display_name,
                                 'image': aux.image,
                                 'squad_number': aux.numerocamisola,
-                                'echelon': aux.escalao[1],
+                                'echelon': this.state.echelon.denomination,
                                 'user_id': aux.user_id[0],
                             };
 
@@ -211,7 +248,7 @@ class AthletesScreen extends Component {
             isLoading: false
         },
         () => {
-            this.getAthletesSub20()
+            this.getAthletesByEchelon(this.state.echelon.id)
         });
     };
 

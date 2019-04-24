@@ -45,6 +45,7 @@ import ResetPassword from "../profile/ResetPassword";
 import ChatScreen from "../chat/ChatScreen";
 import ChannelsScreen from "../chat/ChannelsScreen";
 import ChannelScreen from "../chat/ChannelScreen";
+import EchelonsScreen from "../athletes/EchelonsScreen";
 
 const styles = StyleSheet.create({
     container: {
@@ -289,17 +290,18 @@ const ManagementStackNavigator = createStackNavigator({
 
 // PROFILE STACK
 const AthletesStackNavigator = createStackNavigator({
+    EchelonsScreen: {screen: EchelonsScreen},
     AthletesScreen: {screen: AthletesScreen},
     AthleteScreen: {screen: AthleteScreen}
 }, {
-    initialRouteName: 'AthletesScreen',
-    transitionConfig: () => fromBottom(600),
+    initialRouteName: 'EchelonsScreen',
+    transitionConfig: () => fromRight(600),
     defaultNavigationOptions: ({navigation}) => {
         return {
             headerTitle:
                 <CustomText
                     type={'bold'}
-                    children={'ATLETAS'}
+                    children={'ESCALÕES'}
                     style={{
                         color: '#ffffff',
                         fontSize: 16
@@ -602,7 +604,7 @@ const AppDrawerNavigator = createDrawerNavigator({
         })
     }
 }, {
-    initialRouteName: 'ProfileStack',
+    initialRouteName: 'HomeStack',
     order: ['HomeStack', 'CalendarStack', 'ManagementStack', 'AthletesStack', 'ProfileStack', 'ChatStack'],
     drawerWidth: WIDTH*0.7,
     contentComponent: CustomDrawerContentComponent,
