@@ -23,7 +23,6 @@ import {setOdooInstance} from "../../redux/actions/odoo";
 import {setUserData, setUserImage, setUserGroups} from "../../redux/actions/user";
 import {colors} from "../../styles/index.style";
 import Logo from "../../../assets/logo.png";
-import Loader from '../screens/Loader';
 
 
 class LoginScreen extends React.Component {
@@ -34,8 +33,10 @@ class LoginScreen extends React.Component {
         this.state = {
             username: "",
             password: "",
-            error: "",
+            usernameError: false,
+            passwordError: false,
             isLoading: false,
+            isLoginDisabled: false,
             hidePassword: true,
         };
 
@@ -90,7 +91,6 @@ class LoginScreen extends React.Component {
     authentication = async () => {
 
         const response = await this.props.odoo.connect();
-        console.log(response);
 
         if (response.success) {
             if (response.data.uid) {
@@ -260,7 +260,6 @@ class LoginScreen extends React.Component {
                     }
                 }
             }
-
             await this.props.setUserGroups(result);
         }
     }
@@ -271,6 +270,8 @@ class LoginScreen extends React.Component {
      * @returns {Promise<void>}
      */
     handleLoginPressed = async() => {
+
+        Keyboard.dismiss();
 
         if(this.state.username && this.state.password) {
 
@@ -287,9 +288,9 @@ class LoginScreen extends React.Component {
             await this.props.setOdooInstance(odoo);
 
             // Authentication
-            this.setState({isLoading: true});
+            this.setState({isLoading: true, isLoginDisabled: true});
             const loginResponse = await this.authentication();
-            this.setState({isLoading: false});
+            this.setState({isLoading: false, isLoginDisabled: false});
 
             if(loginResponse) {
 
@@ -298,7 +299,10 @@ class LoginScreen extends React.Component {
             }
         }
         else {
-            this.setState({error: true});
+            if(!this.state.username)
+                this.setState({usernameError: true});
+            if(!this.state.password)
+                this.setState({passwordError: true});
         }
     };
 
@@ -328,9 +332,9 @@ class LoginScreen extends React.Component {
                             onChangeText={(text) => this.setState({username: text, error: false})}
                             mode={'flat'}
                             style={styles.input}
-                            label={'Nome de utilizador'}
+                            label={'E-mail'}
                             value={this.state.username}
-                            error={this.state.error}
+                            error={this.state.usernameError}
                             theme={{ colors: {
                                 ...DefaultTheme.colors,
                                 primary: colors.blueText,
@@ -347,7 +351,7 @@ class LoginScreen extends React.Component {
                                 style={styles.input}
                                 label={'Palavra-passe'}
                                 value={this.state.password}
-                                error={this.state.error}
+                                error={this.state.passwordError}
                                 secureTextEntry={this.state.hidePassword}
                                 theme={{ colors: {
                                     ...DefaultTheme.colors,
@@ -370,10 +374,11 @@ class LoginScreen extends React.Component {
                             contentStyle={styles.loginButtonInside}
                             style={styles.loginButtonOutside}
                             onPress={this.handleLoginPressed}
+                            disabled={this.state.isLoginDisabled}
+                            loading={this.state.isLoading}
                         >
                             Login
                         </Button>
-                        <Loader isLoading={this.state.isLoading}/>
                     </View>
                 </TouchableWithoutFeedback>
             </KeyboardAvoidingView>

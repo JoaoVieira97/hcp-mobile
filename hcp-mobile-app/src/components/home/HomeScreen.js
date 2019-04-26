@@ -4,12 +4,9 @@ import {
     Image,
     StyleSheet,
     Dimensions,
-    ScrollView,
     TouchableOpacity,
-    Button
 } from 'react-native';
 import {connect} from 'react-redux';
-import {LinearGradient} from 'expo';
 import {colors} from "../../styles/index.style";
 import Carousel, { Pagination } from 'react-native-snap-carousel';
 import CustomText from "../CustomText";
@@ -66,7 +63,8 @@ class HomeScreen extends React.Component {
         }
 
         // Get today using "xxxx-xx-xx" format
-        const nowDate = new Date().toJSON().slice(0,10);
+        const now = new Date().toJSON().split('T');
+        const nowDate = now[0] + ' ' + now[1].slice(0,8);
 
         // Define domain
         // (A and B) = & A B
@@ -126,6 +124,7 @@ class HomeScreen extends React.Component {
 
             let trainingsIds = [];
             let gamesIds = [];
+            let eventsOrder = [];
 
             for (let i=0; i<response.data.length; i++) {
 
@@ -135,10 +134,12 @@ class HomeScreen extends React.Component {
                     gamesIds.push(parseInt(event[1]));
                 else
                     trainingsIds.push(parseInt(event[1]));
+
+                eventsOrder.push({type: event[0], id: event[1]})
             }
 
             if (trainingsIds.length > 0 || gamesIds.length > 0)
-                await this.parseEvents(trainingsIds, gamesIds);
+                await this.parseEvents(trainingsIds, gamesIds, eventsOrder);
         }
     }
 
@@ -146,14 +147,17 @@ class HomeScreen extends React.Component {
      * Parsing events. Parsing trainings and games.
      * @param trainingsIds
      * @param gamesIds
+     * @param eventsOrder
      * @returns {Promise<void>}
      */
-    async parseEvents(trainingsIds, gamesIds) {
+    async parseEvents(trainingsIds, gamesIds, eventsOrder) {
 
-        let events = [];
+        let trainings = [];
+        let games = [];
+        let finalEvents = [];
         let params = {
             ids: trainingsIds,
-            fields: ['id','display_name','start_datetime','duracao','local'],
+            fields: ['id','display_name','start_datetime','duracao','local', 'escalao'],
         };
 
         // Parsing trainings
@@ -163,14 +167,23 @@ class HomeScreen extends React.Component {
             for (let i = 0; i < response.data.length; i++) {
 
                 const training = response.data[i];
-                events = [...events, {
+                const level = training.escalao[1];
+                const date_hour = training.start_datetime.split(' ');
+                const date =
+                    date_hour[0].slice(8,10) + '/' +
+                    date_hour[0].slice(5,7) + '/' +
+                    date_hour[0].slice(0,4);
+                const hour = date_hour[1].slice(0,5) + 'h';
+
+                trainings = [...trainings, {
+                    id: training.id,
                     type: 1,
-                    title: training.display_name,
-                    time: 'Início: ' + (training.start_datetime.split(" "))[1].slice(0,5) + 'h',
+                    title: 'Treino | ' + level,
+                    date: date,
+                    time: hour,
                     description: 'Duração: ' + training.duracao + ' min',
                     local: training.local[0],
                     localName: training.local[1],
-                    date: (training.start_datetime.split(" "))[0]
                 }];
             }
         }
@@ -178,7 +191,7 @@ class HomeScreen extends React.Component {
         // Parsing games
         params = {
             ids: gamesIds,
-            fields: ['id','start_datetime','equipa_adversaria','description','local']
+            fields: ['id','start_datetime', 'escalao', 'equipa_adversaria', 'local']
         };
         response = await this.props.odoo.get('ges.jogo', params);
         if(response.success && response.data.length > 0) {
@@ -186,19 +199,44 @@ class HomeScreen extends React.Component {
             for (let i = 0; i < response.data.length; i++) {
 
                 const game = response.data[i];
-                events = [...events, {
+
+                const level = game.escalao[1];
+                const opponent = game.equipa_adversaria[1];
+                const date_hour = game.start_datetime.split(' ');
+                const date =
+                    date_hour[0].slice(8,10) + '/' +
+                    date_hour[0].slice(5,7) + '/' +
+                    date_hour[0].slice(0,4);
+                const hour = date_hour[1].slice(0,5) + 'h';
+                const localId = game.local[0];
+                const local_name = game.local[1];
+
+                games = [...games, {
+                    id: game.id,
                     type: 0,
-                    title: game.description,
-                    time: 'Início ' + (game.start_datetime.split(" "))[1].slice(0,5) + 'h',
-                    description: 'Adversário: ' + game.equipa_adversaria[1],
-                    local: game.local[0],
-                    localName: game.local[1],
-                    date: (game.start_datetime.split(" "))[0]
+                    title: 'Jogo | ' + level,
+                    date: date,
+                    time: hour,
+                    description: 'Adversário: ' + opponent,
+                    local: localId,
+                    localName: local_name,
                 }];
             }
         }
 
-        this.setState({entries: events})
+        eventsOrder.forEach(item => {
+            if (item.type === 'ges.treino')
+            {
+                const training = trainings.find(training => training.id === parseInt(item.id));
+                finalEvents.push(training);
+            }
+            else {
+                const game = games.find(game => game.id === parseInt(item.id));
+                finalEvents.push(game);
+            }
+        });
+
+        this.setState({entries: finalEvents})
     }
 
     /**
@@ -209,28 +247,44 @@ class HomeScreen extends React.Component {
     renderItem ({item}) {
 
         if(item.type < 2) {
-            let titleColor = (item.type === 0) ? colors.gameColor : colors.trainingColor;
+            const backgroundColor = (item.type === 0) ? 'rgba(173, 46, 83, 0.15)' : 'rgba(47,45,59,0.38)';
+            const textColor = (item.type === 0) ? colors.redColor : 'rgb(76,76,76)';
             return (
                 <View style={styles.slide}>
                     <View style={styles.slideInnerContainer}>
                         <View style={{flex: 1}}>
                             <View style={{
                                 height: '85%',
-                                opacity: 0.5,
-                                backgroundColor: colors.gradient2,
+                                paddingLeft: 10,
+                                paddingRight: 10,
+                                backgroundColor: backgroundColor,
                                 alignItems: 'center'
                             }}>
                                 <Image
                                     source={require('../../../assets/hoquei-home-icon.png')}
                                     resizeMode={"contain"}
                                     style={{
-                                        height: '60%',
-                                        width: '60%',
+                                        height: '50%',
+                                        width: '50%',
+                                        opacity: 0.7
                                     }}
                                 />
-                                <CustomText children={item.title} type={'bold'} style={{color: titleColor}}/>
-                                <CustomText children={item.date + ", " + item.time} style={{color: '#fff'}}/>
-                                <CustomText children={item.description} style={{color: '#fff'}}/>
+                                <CustomText
+                                    children={item.title}
+                                    type={'bold'}
+                                    style={{color: textColor, textAlign: 'center', fontSize: 17}}/>
+                                <CustomText
+                                    children={item.description}
+                                    type={'regular'}
+                                    style={{color: textColor, textAlign: 'center', marginTop: 6}}/>
+                                <CustomText
+                                    children={item.date}
+                                    type={'regular'}
+                                    style={{color: textColor, textAlign: 'center', marginTop: 6}}/>
+                                <CustomText
+                                    children={item.time}
+                                    type={'regular'}
+                                    style={{color: textColor, textAlign: 'center', marginTop: 6}}/>
                             </View>
                             <View style={{height: '15%'}}>
                                 <TouchableOpacity style={{
@@ -401,44 +455,33 @@ class HomeScreen extends React.Component {
     }
 
     render() {
-
         return (
-
-            <LinearGradient
-                colors={[colors.gradient1, colors.gradient2]}
-                style={styles.container}
-                start={[0, 0.2]}
-                end={[0, 0.7]}>
-                <ScrollView contentContainerStyle={{alignItems: 'center'}}>
+            <View style={{flex: 1, backgroundColor: colors.greyColor}}>
+                <View style={{justifyContent: 'center', paddingTop: 30}}>
                     <CustomText
-                        children={'Próximos Eventos'}
-                        type={'semi-bold'}
+                        children={'EVENTOS FUTUROS'}
+                        type={'bold'}
                         style={{
-                            color: '#fff',
-                            marginBottom: 8
+                            color: '#000',
+                            fontSize: 18,
+                            marginLeft: 20,
+                            textAlign: 'center'
                         }}
                     />
-                    { this.pagination }
+
                     <Carousel
-                        /*
-                        https://github.com/archriss/react-native-snap-carousel/blob/master/doc/PROPS_METHODS_AND_GETTERS.md
-                         */
                         enableMomentum={false}
                         decelerationRate={'fast'}
-                        //loop
-                        //loopClonesPerSide={3}
-                        //autoplay
-                        //autoplayDelay={2000}
-                        //autoplayInterval={2500}
-                        // layout={'stack'}
-                        // layoutCardOffset={18}
                         renderItem={this.renderItem.bind(this)}
                         sliderWidth={sliderWidth}
                         itemWidth={itemWidth}
                         data={this.state.entries}
                         onSnapToItem={(index) => this.setState({ activeSlide: index }) }
                     />
-                    <View style={{marginBottom: 20}}>
+                    { this.pagination }
+                    {
+                        /*
+                        <View style={{marginBottom: 20}}>
                         <Button
                             title={'Enviar notificação Odoo'}
                             color={colors.gradient1}
@@ -453,8 +496,10 @@ class HomeScreen extends React.Component {
                             onPress={() => this.sendNotificationJS()}
                         />
                     </View>
-                </ScrollView>
-            </LinearGradient>
+                         */
+                    }
+                </View>
+            </View>
         );
     }
 }
@@ -493,7 +538,7 @@ const styles = StyleSheet.create({
     slideInnerContainer: {
         flex: 1,
         width: slideWidth,
-        backgroundColor: '#9b6976',
+        backgroundColor: '#fff', //'#9b6976'
         // border
         borderRadius: entryBorderRadius,
         overflow: 'hidden',

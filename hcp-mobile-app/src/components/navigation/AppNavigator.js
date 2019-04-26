@@ -17,7 +17,7 @@ import {
     createMaterialTopTabNavigator,
     DrawerItems
 } from 'react-navigation';
-
+import { Avatar } from 'react-native-paper';
 import { fromRight, fromBottom } from 'react-navigation-transitions';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo';
@@ -108,6 +108,17 @@ const styles = StyleSheet.create({
 
 const WIDTH = Dimensions.get('window').width;
 
+const userAvatar = (
+    <View style={{
+        width: 36, height: 36, borderRadius: 18,
+        elevation: 5, shadowOpacity: 5,
+        backgroundColor: '#fff',
+        justifyContent: 'center', alignItems: 'center',
+    }}>
+        <Avatar.Image size={30} source={require('../../../assets/user-account.png')} />
+    </View>
+);
+
 
 // HOME STACK
 const HomeStackNavigator = createStackNavigator({
@@ -120,28 +131,18 @@ const HomeStackNavigator = createStackNavigator({
             headerStyle: {
                 elevation: 0, // remove shadow on Android
                 shadowOpacity: 0, // remove shadow on iOS
-                backgroundColor: colors.gradient1
+                backgroundColor: colors.greyColor
             },
-            headerTitle:
+            headerTitle: (
                 <CustomText
                     type={'bold'}
                     children={'INÍCIO'}
                     style={{
-                        color: '#ffffff',
-                        
+                        color: colors.redColor,
                         fontSize: 16
                     }}
-                />,
-            /*
-            headerBackground: (
-                <LinearGradient
-                    colors={[colors.gradient1, colors.gradient2]}
-                    style={{ flex: 1 }}
-                    start={[0, 0]}
-                    end={[0.8, 0]}
                 />
             ),
-            */
             headerLeft: (
                 <TouchableOpacity style={{
                     width:42,
@@ -152,20 +153,19 @@ const HomeStackNavigator = createStackNavigator({
                     <Ionicons
                         name="md-menu"
                         size={30}
-                        color={'#ffffff'}/>
+                        color={colors.redColor}/>
                 </TouchableOpacity>
             ),
             headerRight: (
-                <TouchableOpacity style={{
-                    width:42,
-                    height:42,
-                    alignItems:'center',
-                    justifyContent:'center',
-                    marginRight: 10}} >
-                    <Ionicons
-                        name="md-notifications"
-                        size={27}
-                        color={'#ffffff'}/>
+                <TouchableOpacity
+                    onPress = {() => navigation.navigate('ProfileStack')}
+                    style={{
+                        width:42,
+                        height:42,
+                        alignItems:'center',
+                        justifyContent:'center',
+                        marginRight: 10}}>
+                    {userAvatar}
                 </TouchableOpacity>
             )
         }

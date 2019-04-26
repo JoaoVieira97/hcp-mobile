@@ -1,6 +1,11 @@
 import { StyleSheet } from 'react-native';
 
 export const colors = {
+
+    // FINAL COLORS
+    greyColor: '#dbdbdb',
+    redColor: '#ad2e53',
+
     // BACKGROUND COLORS
     background1: '#d7e8ff', // used in LoginScreen
 
