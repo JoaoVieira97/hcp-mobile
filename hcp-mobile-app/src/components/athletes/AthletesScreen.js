@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
 
-import {View, FlatList, ActivityIndicator, Alert, TouchableOpacity} from 'react-native';
-import {ListItem, Avatar, Badge, SearchBar} from 'react-native-elements';
+import {View, FlatList, ActivityIndicator, Alert, TouchableOpacity, StyleSheet} from 'react-native';
+import {ListItem, Avatar, Badge, SearchBar, Icon} from 'react-native-elements';
 import {connect} from 'react-redux';
 import {Ionicons} from "@expo/vector-icons";
 import _ from 'lodash';
@@ -16,6 +16,7 @@ class AthletesScreen extends Component {
 
         this.state = {
             echelon:{},
+            position:'',
             data: [],
             fullData: [],
             isLoading: true,
@@ -32,7 +33,7 @@ class AthletesScreen extends Component {
 
         console.log(this.state.echelon);
 
-        this.getAthletesByEchelon(this.state.echelon.id);
+        await this.getAthletesByEchelon(this.state.echelon.id);
     }
 
     /**
@@ -63,23 +64,22 @@ class AthletesScreen extends Component {
             </TouchableOpacity>
     });
 
-    getAthletesByEchelon(echelonId) {
+    async getAthletesByEchelon(echelonId) {
 
         const params = {
             domain: [
                 ['id', '>=', '0'],
 
             ],
-            fields: ['id', 'user_id', 'display_name', 'image', 'escalao', 'numerocamisola' ],
+            fields: ['id', 'user_id', 'display_name', 'image', 'escalao', 'numerocamisola', 'posicao'],
 
-            order:  'numerocamisola ASC',
+            order:  'posicao DESC, numerocamisola ASC',
         };
 
-        this.props.odoo.search_read('ges.atleta', params)
+        await this.props.odoo.search_read('ges.atleta', params)
             .then(async response => {
 
                 if (response.success) {
-
                     const size = response.data.length;
                     for (let i = 0; i < size; i++) {
 
@@ -92,6 +92,7 @@ class AthletesScreen extends Component {
                                 'squad_number': aux.numerocamisola,
                                 'echelon': this.state.echelon.denomination,
                                 'user_id': aux.user_id[0],
+                                'position': aux.posicao,
                             };
 
                             this.setState(state => {
@@ -161,15 +162,52 @@ class AthletesScreen extends Component {
         );
     };
 
-    renderItem = ({ item }) => {
+    renderPosition = (athlete) => {
 
+        let atualPosition = athlete.position;
+        let flag = false;
+        let previousPosition;
+        const size = this.state.fullData.length;
+
+        for(let i = 0 ; i< size && flag===false ; i++){
+
+            let aux = this.state.fullData[i];
+
+            if( athlete.user_id ===  aux.user_id) {
+                flag = true;
+                if( i > 0 ) previousPosition = this.state.fullData[i-1].position;
+                else return(
+                    <CustomText>
+                        {atualPosition}
+                    </CustomText>
+                );
+            }
+        }
+
+        if(atualPosition !== previousPosition){
+            return(
+                <CustomText>
+                    {atualPosition}
+                </CustomText>
+            )
+        }
+
+        else return(
+            <CustomText style={{color: '#fff'}}>
+                 GR
+            </CustomText>
+        )
+    }
+
+    renderItem =  ({item}) => {
         return (
             <ListItem
                 title={item.name}
                 subtitle={item.echelon}
+                leftElement={this.renderPosition(item)}
                 leftAvatar={this.leftAvatar(item.image, item.squad_number.toString())}
                 chevron={() => (
-                    <Ionicons name="ios-arrow-up" color={'#c7c7c7'} size={13} />
+                    <Ionicons name="ios-arrow-up" color={'#c7c7c7'} size={13}/>
                 )}
                 onPress={() => (
                     this.props.navigation.navigate('AthleteScreen', {athlete: item})
@@ -271,6 +309,12 @@ class AthletesScreen extends Component {
     }
 }
 
+
+const styles = StyleSheet.create({
+    athleteValue: {
+        color: '#fff',
+    },
+});
 
 
 const mapStateToProps = state => ({

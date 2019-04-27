@@ -46,6 +46,7 @@ import ChatScreen from "../chat/ChatScreen";
 import ChannelsScreen from "../chat/ChannelsScreen";
 import ChannelScreen from "../chat/ChannelScreen";
 import EchelonsScreen from "../athletes/EchelonsScreen";
+import TesteUpload from "../profile/TesteUpload";
 
 const styles = StyleSheet.create({
     container: {
@@ -338,6 +339,7 @@ const AthletesStackNavigator = createStackNavigator({
 const ProfileStackNavigator = createStackNavigator({
     ProfileScreen: {screen: ProfileScreen},
     ResetPassword: {screen: ResetPassword},
+    TesteUpload: {screen: TesteUpload},
 }, {
     transitionConfig: () => fromRight(600),
     defaultNavigationOptions: ({navigation}) => {

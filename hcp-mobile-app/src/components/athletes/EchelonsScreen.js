@@ -71,24 +71,27 @@ class EchelonsScreen extends Component {
                     }
                 }
 
-                const echelon = {
-                    'id': responseEchelon.id,
-                    'denomination': responseEchelon.designacao,
-                    'numberAthletes': numberAthletes,
-                };
+                if(numberAthletes > 0) {
 
-                this.setState(state => {
+                    const echelon = {
+                        'id': responseEchelon.id,
+                        'denomination': responseEchelon.designacao,
+                        'numberAthletes': numberAthletes,
+                    };
 
-                    const data = [...state.data, echelon];
+                    this.setState(state => {
 
-                    return {
-                        data
-                    }
-                }, () => {
-                    this.setState({
-                        fullData: this.state.data
+                        const data = [...state.data, echelon];
+
+                        return {
+                            data
+                        }
+                    }, () => {
+                        this.setState({
+                            fullData: this.state.data
+                        });
                     });
-                });
+                }
             }
 
             this.setState({
@@ -97,6 +100,7 @@ class EchelonsScreen extends Component {
             });
 
         }
+
         else{
 
             this.setState({

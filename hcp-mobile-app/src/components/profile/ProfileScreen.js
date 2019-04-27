@@ -5,8 +5,8 @@ import {
     StyleSheet
 } from 'react-native';
 
-import {Avatar, Button} from 'react-native-paper';
-
+import { Button} from 'react-native-paper';
+import { Avatar } from 'react-native-elements';
 import {connect} from "react-redux";
 import {setOdooInstance} from "../../redux/actions/odoo";
 import {setUserData, setUserGroups, setUserImage} from "../../redux/actions/user";
@@ -104,19 +104,23 @@ class ProfileScreen extends Component {
         let userImage;
         if(this.props.user.image !== false) {
             userImage = (
-                <Avatar.Image
-                    size={105}
+                <Avatar
+                    size="large"
+                    rounded
                     source={{uri: `data:image/png;base64,${this.props.user.image}`}}
-                    style={styles.headerImage}
+                    //style={styles.headerImage}
+                    onPress={() => this.props.navigation.navigate('TesteUpload')}
                 />
             );
         }
         else{
             userImage = (
-                <Avatar.Image
-                    size={105}
+                <Avatar
+                    size="large"
+                    rounded
                     source={require('../../../assets/user-account.png')}
-                    style={styles.headerImage}
+                    //style={styles.headerImage}
+                    onPress={() => this.props.navigation.navigate('TesteUpload')}
                 />
             )
         }

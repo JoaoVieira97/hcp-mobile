@@ -6,6 +6,7 @@ import {connect} from 'react-redux';
 import {Ionicons} from "@expo/vector-icons";
 
 import {colors} from "../../styles/index.style";
+import CustomText from "../CustomText";
 
 class AthleteScreen extends Component {
 
@@ -30,12 +31,20 @@ class AthleteScreen extends Component {
     static navigationOptions = ({navigation}) => {
 
         return ({
-            headerTitle: navigation.getParam('athlete').name,
+            headerTitle:
+                <CustomText
+                    type={'bold'}
+                    children={navigation.getParam('athlete').name}
+                    style={{
+                        color: '#ffffff',
+                        fontSize: 16
+                    }}
+                />,
             headerLeft: null,
             headerRight: <Ionicons
                 name="md-close"
                 size={30}
-                color="black"
+                color="white"
                 style={{paddingRight: 20}}
                 onPress = {() => navigation.navigate('AthletesScreen')}
             />
