@@ -456,7 +456,7 @@ class HomeScreen extends React.Component {
 
     render() {
         return (
-            <View style={{flex: 1, backgroundColor: colors.greyColor}}>
+            <View style={{flex: 1, backgroundColor: colors.grayColor}}>
                 <View style={{justifyContent: 'center', paddingTop: 30}}>
                     <CustomText
                         children={'EVENTOS FUTUROS'}

@@ -64,8 +64,8 @@ class Wizard extends PureComponent {
         const response = await this.props.odoo.create(
             'ges.treino',
             {
-                start: '2019-04-20 19:30:00',
-                stop: '2019-04-20 20:30:00',
+                start: '2019-05-10 19:30:00',
+                stop: '2019-05-10 20:30:00',
                 escalao: 8,
                 treinador: [[6,0,[coachInfo[0].id]]],
                 local: 3,
@@ -73,6 +73,8 @@ class Wizard extends PureComponent {
                 atletas: [[6,0,[60, 61, 63]]]
             }
         );
+
+        console.log(response);
 
         if(response.success) {
             Alert.alert(

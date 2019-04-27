@@ -1,11 +1,10 @@
 import React, {Component} from 'react';
 
-import {View, FlatList, ActivityIndicator, Alert} from 'react-native';
-import {ListItem, Avatar, Badge, SearchBar} from 'react-native-elements';
+import {View, FlatList, ActivityIndicator, Text} from 'react-native';
+import {ListItem, Avatar} from 'react-native-elements';
 import {connect} from 'react-redux';
-import {Ionicons} from "@expo/vector-icons";
-import _ from 'lodash';
-import CustomText from "../CustomText";
+import {colors} from "../../styles/index.style";
+
 
 class EchelonsScreen extends Component {
 
@@ -14,96 +13,61 @@ class EchelonsScreen extends Component {
 
         this.state = {
             data: [],
-            fullData: [],
             isLoading: true,
-            isRefreshing: false,
-            searchText: ''
+            isRefreshing: false
         }
     };
 
-    componentDidMount() {
+    async componentDidMount() {
 
-        this.getEchelons();
+        await this.getEchelons();
     }
-
 
     async getEchelons() {
 
         const params = {
-            domain: [
-                ['id', '>=', '0'],
-
-            ],
-            fields: [ 'id', 'designacao'],
+            fields: [ 'id', 'designacao', 'idade_min', 'idade_max'],
             order: 'id ASC',
         };
 
-        let response = await this.props.odoo.search_read('ges.escalao', params);
+        const response = await this.props.odoo.search_read('ges.escalao', params);
+        if(response.success && response.data.length > 0){
 
-        if(response.success){
+            let data = [];
+            for (let i = 0; i < response.data.length; i++) {
 
-            const paramsAthletes = {
-                domain: [
-                    ['id', '>=', '0'],
+                let echelon = response.data[i];
+                const params = {
+                    kwargs: {
+                        context: this.props.odoo.context,
+                    },
+                    model: 'ges.atleta',
+                    method: 'search_count',
+                    args: [
+                        [['escalao', '=', echelon.id]],
+                    ]
+                };
 
-                ],
-                fields: ['id', 'escalao'],
-            };
+                const responseCount = await this.props.odoo.rpc_call('/web/dataset/call_kw', params);
+                if (responseCount.success && responseCount.data > 0) {
 
-            let athletes = await this.props.odoo.search_read('ges.atleta', paramsAthletes);
-            const sizeAthletes = athletes.data.length;
-            let numberAthletes = 0;
-
-            const size = response.data.length;
-
-            for (let i = 0; i < size; i++) {
-
-                const responseEchelon = response.data[i];
-
-                if (athletes.success) {
-
-                    numberAthletes=0;
-
-                    for (let j = 0; j < sizeAthletes; j++) {
-
-                        const responseAthlete = athletes.data[j];
-
-                        if (responseAthlete.escalao[0] === responseEchelon.id) numberAthletes++;
-                    }
-                }
-
-                if(numberAthletes > 0) {
-
-                    const echelon = {
-                        'id': responseEchelon.id,
-                        'denomination': responseEchelon.designacao,
-                        'numberAthletes': numberAthletes,
-                    };
-
-                    this.setState(state => {
-
-                        const data = [...state.data, echelon];
-
-                        return {
-                            data
-                        }
-                    }, () => {
-                        this.setState({
-                            fullData: this.state.data
-                        });
+                    data.push({
+                        'id': echelon.id,
+                        'denomination': echelon.designacao,
+                        'numberAthletes': responseCount.data,
+                        'minAge': echelon.idade_min,
+                        'maxAge': echelon.idade_max,
                     });
                 }
             }
 
             this.setState({
+                data: data,
                 isLoading: false,
                 isRefreshing: false
             });
-
         }
-
-        else{
-
+        else {
             this.setState({
                 isLoading: false,
                 isRefreshing: false
@@ -112,19 +76,64 @@ class EchelonsScreen extends Component {
 
     }
 
-    renderItem = ({ item }) => {
+    renderItem = ({ item, index }) => {
+
+        let color = index%2 ?'#fff' : '#efefef';
+        let avatar;
+        if (item.denomination.includes('Sub'))
+        {
+            const echelonNumber = (item.denomination.split(' '))[1];
+            avatar = (
+                <Avatar
+                    size="small"
+                    rounded
+                    title={'S' + echelonNumber}
+                    activeOpacity={0.7}
+                />
+            );
+        }
+        else
+            avatar = (
+                <Avatar
+                    size="small"
+                    rounded
+                    title={item.denomination.slice(0,1)}
+                    activeOpacity={0.7}
+                />
+            );
 
         return (
             <ListItem
-                title={
-                    <CustomText style={{fontSize: 15,}}> {item.denomination} </CustomText>
-                }
-                subtitle={
-                    <CustomText style={{marginLeft: 5,color: '#707070',}}> {'( '+item.numberAthletes.toString()+ ' )'} </CustomText>
-                }
-                chevron={() => (
-                    <Ionicons name="ios-arrow-forward" color={'#c7c7c7'} size={13} />
+                title={(
+                    <View style={{flex: 1, flexDirection: 'row'}}>
+                        <Text style={{fontSize: 16, fontWeight: '700'}}>
+                            {'Escalão | '}
+                        </Text>
+                        <Text style={{fontSize: 16, fontWeight: '400'}}>
+                            {item.denomination}
+                        </Text>
+                    </View>
                 )}
+                subtitle={(
+                    <View  style={{flex: 1, flexDirection: 'column'}}>
+                        <Text style={{color: colors.darkGrayColor}}>
+                            {'Número de atletas: ' + item.numberAthletes}
+                        </Text>
+                        <View style={{flex: 1, flexDirection: 'row'}}>
+                            <Text style={{color: colors.darkGrayColor}}>
+                                {'Idades: '}
+                            </Text>
+                            <Text style={{color: colors.darkGrayColor}}>
+                                {item.minAge + ' - ' + item.maxAge}
+                            </Text>
+                        </View>
+                    </View>
+                )}
+                leftAvatar={avatar}
+                chevron
+                containerStyle={{
+                    backgroundColor: color
+                }}
                 onPress={() => (
                     this.props.navigation.navigate('AthletesScreen', {echelon: item})
                 )}
@@ -132,34 +141,24 @@ class EchelonsScreen extends Component {
         );
     };
 
-
     renderFooter = () => {
-
-        if(!this.state.isLoading) {
-            return null;
-        }
 
         return (
             <View style={{
                 paddingVertical: 20,
-                borderTopWidth: 1,
-                borderTopColor: '#ced0ce'
+                //borderTopWidth: 1,
+                //borderTopColor: '#c9cbc9'
             }}>
-                <ActivityIndicator
-                    size={'large'}
-                    color={'#ced0ce'}
-                />
+                {
+                    this.state.isLoading &&
+                    <ActivityIndicator
+                        size={'large'}
+                        color={colors.loadingColor}
+                    />
+                }
             </View>
         );
     };
-
-    renderSeparator = () => (
-        <View style={{
-            height: 1,
-            width: '100%',
-            backgroundColor: '#ced0ce',
-        }}/>
-    );
 
     handleRefresh = () => {
         this.setState({
@@ -167,8 +166,8 @@ class EchelonsScreen extends Component {
                 isRefreshing: true,
                 isLoading: false
             },
-            () => {
-                this.getEchelons()
+            async () => {
+                await this.getEchelons()
             });
     };
 
@@ -179,7 +178,6 @@ class EchelonsScreen extends Component {
                 keyExtractor={item => item.denomination}
                 data={this.state.data}
                 renderItem={this.renderItem}
-                ItemSeparatorComponent={this.renderSeparator}
                 ListFooterComponent={this.renderFooter}
                 refreshing={this.state.isRefreshing}
                 onRefresh={this.handleRefresh}

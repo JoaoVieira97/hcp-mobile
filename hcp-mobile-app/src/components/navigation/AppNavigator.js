@@ -40,13 +40,11 @@ import PendingTrainings from "../management/trainings/PendingTrainings";
 import OpenedTraining from "../management/trainings/OpenedTraining";
 import EditOpenedTraining from "../management/trainings/EditOpenedTraining";
 import CustomText from "../CustomText";
-import LoadingScreen from "../screens/LoadingScreen";
 import ResetPassword from "../profile/ResetPassword";
 import ChatScreen from "../chat/ChatScreen";
 import ChannelsScreen from "../chat/ChannelsScreen";
 import ChannelScreen from "../chat/ChannelScreen";
 import EchelonsScreen from "../athletes/EchelonsScreen";
-import TesteUpload from "../profile/TesteUpload";
 
 const styles = StyleSheet.create({
     container: {
@@ -132,7 +130,7 @@ const HomeStackNavigator = createStackNavigator({
             headerStyle: {
                 elevation: 0, // remove shadow on Android
                 shadowOpacity: 0, // remove shadow on iOS
-                backgroundColor: colors.greyColor
+                backgroundColor: colors.grayColor
             },
             headerTitle: (
                 <CustomText
@@ -296,9 +294,14 @@ const AthletesStackNavigator = createStackNavigator({
     AthleteScreen: {screen: AthleteScreen}
 }, {
     initialRouteName: 'EchelonsScreen',
-    transitionConfig: () => fromRight(600),
+    //transitionConfig: () => fromRight(600),
     defaultNavigationOptions: ({navigation}) => {
         return {
+            headerStyle: {
+                //elevation: 0, // remove shadow on Android
+                //shadowOpacity: 0, // remove shadow on iOS
+                backgroundColor: colors.grayColor
+            },
             headerTitle:
                 <CustomText
                     type={'bold'}
@@ -339,29 +342,28 @@ const AthletesStackNavigator = createStackNavigator({
 const ProfileStackNavigator = createStackNavigator({
     ProfileScreen: {screen: ProfileScreen},
     ResetPassword: {screen: ResetPassword},
-    TesteUpload: {screen: TesteUpload},
 }, {
-    transitionConfig: () => fromRight(600),
+    //transitionConfig: () => fromRight(600),
     defaultNavigationOptions: ({navigation}) => {
         return {
             headerStyle: {
-                elevation: 0, // remove shadow on Android
-                shadowOpacity: 0, // remove shadow on iOS
-                backgroundColor: colors.gradient2
+                //elevation: 0, // remove shadow on Android
+                //shadowOpacity: 0, // remove shadow on iOS
+                backgroundColor: colors.grayColor
             },
-            headerTitle:
+            headerTitle: (
                 <CustomText
                     type={'bold'}
                     children={'PERFIL'}
                     style={{
-                        color: '#ffffff',
+                        color: '#fff',
                         fontSize: 16
                     }}
-                />,
+                />
+            ),
             headerTitleStyle: {
                 color: '#ffffff',
             },
-            /*
             headerBackground: (
                 <LinearGradient
                     colors={[colors.gradient1, colors.gradient2]}
@@ -370,7 +372,6 @@ const ProfileStackNavigator = createStackNavigator({
                     end={[0.8, 0]}
                 />
             ),
-            */
             headerLeft: (
                 <TouchableOpacity style={{
                     width:42,

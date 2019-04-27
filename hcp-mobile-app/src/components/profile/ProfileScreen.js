@@ -2,10 +2,11 @@ import React, { Component } from 'react';
 import {
     ScrollView,
     View,
-    StyleSheet
+    StyleSheet,
+    CameraRoll,
 } from 'react-native';
-
-import { Button} from 'react-native-paper';
+import { ImagePicker, Permissions } from 'expo';
+import {Button} from 'react-native-paper';
 import { Avatar } from 'react-native-elements';
 import {connect} from "react-redux";
 import {setOdooInstance} from "../../redux/actions/odoo";
@@ -29,6 +30,7 @@ class ProfileScreen extends Component {
             level: undefined,
             birthday: undefined,
             email: undefined,
+            isEditActive: false
         }
     };
 
@@ -98,48 +100,132 @@ class ProfileScreen extends Component {
         }
     };
 
-    render() {
+    /**
+     * Pick an image from local storage.
+     * @returns {Promise<void>}
+     * @private
+     */
+    _pickImage = async () => {
 
-        // User image
-        let userImage;
-        if(this.props.user.image !== false) {
-            userImage = (
-                <Avatar
-                    size="large"
-                    rounded
-                    source={{uri: `data:image/png;base64,${this.props.user.image}`}}
-                    //style={styles.headerImage}
-                    onPress={() => this.props.navigation.navigate('TesteUpload')}
-                />
-            );
-        }
-        else{
-            userImage = (
-                <Avatar
-                    size="large"
-                    rounded
-                    source={require('../../../assets/user-account.png')}
-                    //style={styles.headerImage}
-                    onPress={() => this.props.navigation.navigate('TesteUpload')}
-                />
-            )
-        }
+        await Permissions.getAsync(Permissions.CAMERA);
+        await Permissions.getAsync(Permissions.CAMERA_ROLL);
+        //await Permissions.askAsync(Permissions.CAMERA);
+        //await Permissions.askAsync(Permissions.CAMERA_ROLL);
 
-        // User roles
-        let rolesText = this.props.user.groups[0].name;
-        this.props.user.groups.forEach((item, index) => {
-            if(index !== 0) {
-                rolesText = rolesText + ' | ' + item.name;
-            }
+        let result = await ImagePicker.launchImageLibraryAsync({
+            allowsEditing: true,
+            mediaTypes: 'Images',
+            aspect: [4, 3],
+            quality: 1,
+            base64: true
         });
 
-        return (
-            <ScrollView contentContainerStyle={styles.container}>
-                {
-                    !this.state.isLoading &&
-                    <Animatable.View animation={"fadeIn"}>
+        console.log(result);
+
+        if (!result.cancelled) {
+            //this.setState({ image: result.uri });
+        }
+    };
+
+    /**
+     * Pick camera.
+     * @returns {Promise<void>}
+     * @private
+     */
+    _pickCamera = async () => {
+
+        await Permissions.getAsync(Permissions.CAMERA);
+        await Permissions.getAsync(Permissions.CAMERA_ROLL);
+        //await Permissions.askAsync(Permissions.CAMERA);
+        //await Permissions.askAsync(Permissions.CAMERA_ROLL);
+
+        let result = await ImagePicker.launchCameraAsync({
+            allowsEditing: true,
+            aspect: [4, 3],
+            quality: 1,
+            base64: true
+        });
+
+        console.log(result);
+
+        if (!result.cancelled) {
+            //this.setState({ image: result.uri });
+        }
+        //CameraRoll.saveToCameraRoll(this.state.image);
+    };
+
+    render() {
+
+        let content;
+        if (this.state.isLoading) {
+            content = (
+                <Loader isLoading={this.state.isLoading}/>
+            );
+        }
+        else {
+            // User image
+            let userImage;
+            if(this.props.user.image !== false) {
+                userImage = (
+                    <Avatar
+                        size={90}
+                        rounded
+                        source={{uri: `data:image/png;base64,${this.props.user.image}`}}
+                        onPress={() => this.setState(state => ({isEditActive: !state.isEditActive}))}
+                        containerStyle={{elevation: 5}}
+                    />
+                );
+            }
+            else{
+                userImage = (
+                    <Avatar
+                        size={90}
+                        rounded
+                        source={require('../../../assets/user-account.png')}
+                        onPress={() => this.setState(state => ({isEditActive: !state.isEditActive}))}
+                    />
+                )
+            }
+
+            // User roles
+            let rolesText = this.props.user.groups[0].name;
+            this.props.user.groups.forEach((item, index) => {
+                if(index !== 0) {
+                    rolesText = rolesText + ' | ' + item.name;
+                }
+            });
+
+            content = (
+                <Animatable.View animation={"fadeIn"}>
+                    <ScrollView contentContainerStyle={{paddingHorizontal: 20, paddingTop: 20}}>
                         <View style={styles.header}>
-                            {userImage}
+                            <View style={{flex: 1, flexDirection: 'row'}}>
+                                <Animatable.View
+                                    animation={this.state.isEditActive ? "fadeInRight" : "fadeOutRight"}
+                                    style={styles.headerIconLeft}>
+                                    <Avatar
+                                        size={40}
+                                        rounded
+                                        icon={{name: 'create', type: 'ionicons'}}
+                                        onPress={this._pickImage}
+                                        activeOpacity={0.7}
+                                    />
+                                </Animatable.View>
+                                <View style={styles.headerImage}>
+                                    {userImage}
+                                </View>
+                                <Animatable.View
+                                    animation={this.state.isEditActive ? "fadeInLeft" : "fadeOutLeft"}
+                                    style={styles.headerIconRight}>
+                                    <Avatar
+                                        size={40}
+                                        rounded
+                                        icon={{name: 'camera', type: 'ionicons'}}
+                                        onPress={this._pickCamera}
+                                        activeOpacity={0.7}
+                                    />
+                                </Animatable.View>
+                            </View>
                             <CustomText type={'bold'} style={styles.headerName}>{this.props.user.name}</CustomText>
                             <CustomText type={'normal'} style={styles.headerRoles}>{rolesText}</CustomText>
                         </View>
@@ -197,8 +283,8 @@ class ProfileScreen extends Component {
                         <View style={styles.buttonContent}>
                             <Button
                                 icon="lock"
-                                dark
-                                color={'rgba(173, 46, 83, 0.15)'}
+                                //dark
+                                color={'#fff'}
                                 mode="contained"
                                 contentStyle={{height: 55}}
                                 onPress={() => this.props.navigation.navigate('ResetPassword')}
@@ -208,103 +294,125 @@ class ProfileScreen extends Component {
                         </View>
                         {
                             this.state.isAthlete &&
-                                <View>
-                                    <View style={styles.buttonContent}>
-                                        <Button
-                                            dark
-                                            color={'rgba(173, 46, 83, 0.15)'}
-                                            mode="contained"
-                                            contentStyle={{height: 55}}
-                                            onPress={() => console.log('Pressed')}
-                                        >
-                                            Estatísticas
-                                        </Button>
-                                    </View>
-                                    <View style={styles.buttonContent}>
-                                        <Button
-                                            dark
-                                            color={'rgba(173, 46, 83, 0.15)'}
-                                            mode="contained"
-                                            contentStyle={{height: 55}}
-                                            onPress={() => console.log('Pressed')}
-                                        >
-                                            Dados antropométricos
-                                        </Button>
-                                    </View>
+                            <View style={{paddingBottom: 20}}>
+                                <View style={styles.buttonContent}>
+                                    <Button
+                                        //dark
+                                        color={'#fff'}
+                                        mode="contained"
+                                        contentStyle={{height: 55}}
+                                        onPress={() => console.log('Pressed')}
+                                    >
+                                        Estatísticas
+                                    </Button>
                                 </View>
+                                <View style={styles.buttonContent}>
+                                    <Button
+                                        //dark
+                                        color={'#fff'}
+                                        mode="contained"
+                                        contentStyle={{height: 55}}
+                                        onPress={() => console.log('Pressed')}
+                                    >
+                                        Dados antropométricos
+                                    </Button>
+                                </View>
+                            </View>
                         }
-                        <Loader isLoading={this.state.isLoading}/>
-                    </Animatable.View>
-                }
-            </ScrollView>
-        );
-    }
+                    </ScrollView>
+                </Animatable.View>
+            );
+        }
 
+        return (
+            <View style={styles.container}>
+                { content }
+            </View>
+        );
+
+    }
 }
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: colors.gradient2,
-        paddingHorizontal: 20,
-        paddingBottom: 10
+        backgroundColor: colors.grayColor,
+        //paddingHorizontal: 20,
+        //paddingBottom: 10
     },
     header: {
         width: '100%',
         alignItems: 'center',
     },
     headerImage: {
-        elevation: 5,
+        width: '50%',
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 200,
+    },
+    headerIconLeft: {
+        width: '25%',
+        justifyContent: 'center',
+        zIndex: 100,
+        alignItems: 'flex-end',
+    },
+    headerIconRight: {
+        width: '25%',
+        justifyContent: 'center',
+        zIndex: 100,
+        alignItems: 'flex-start',
     },
     headerName: {
-        color: '#fff',
+        color: '#000',
         fontSize: 20,
         marginTop: 10,
-        textShadowColor: colors.gradient1
     },
     headerRoles: {
-        color: '#fff',
+        color: colors.redColor,
         fontSize: 15,
         marginTop: 5,
-        textShadowColor: colors.gradient1,
         letterSpacing: 2
     },
     athleteContent: {
         flexDirection: 'row',
+        width: '100%',
         marginTop: 10,
         padding: 15,
-        borderRadius: 10,
-        width: '100%',
-        backgroundColor: 'rgba(173, 46, 83, 0.15)'
+        borderRadius: 7,
+        borderColor: '#fff',
+        backgroundColor: '#fff',
+        elevation: 2
     },
     athleteTitle: {
-        color: 'rgba(255, 255, 255, 0.45)',
+        color: '#000',
         fontSize: 12,
         letterSpacing: 5
     },
     athleteValue: {
-        color: '#fff',
+        color: colors.redColor,
         fontSize: 25,
     },
     content: {
-        marginTop: 10,
-        padding: 15,
-        borderRadius: 10,
         width: '100%',
-        backgroundColor: 'rgba(173, 46, 83, 0.15)'
+        marginTop: 10,
+        marginBottom: 10,
+        padding: 15,
+        borderRadius: 7,
+        backgroundColor: '#fff',
+        elevation: 2
     },
     contentTitle: {
-        color: 'rgba(255, 255, 255, 0.45)',
+        color: '#000',
         fontSize: 12,
         letterSpacing: 2
     },
     contentValue: {
-        color: '#fff',
+        color: colors.redColor,
         fontSize: 16
     },
     buttonContent: {
-        marginTop: 10,
         width: '100%',
+        paddingBottom: 10,
     }
 });
 
