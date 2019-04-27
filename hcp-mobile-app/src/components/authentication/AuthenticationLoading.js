@@ -8,8 +8,8 @@ import Odoo from 'react-native-odoo-promise-based';
 
 import {connect} from 'react-redux';
 import {setOdooInstance} from "../../redux/actions/odoo";
-import {setUserData, setUserImage, setUserGroups} from "../../redux/actions/user";
-import {HOST, PORT, DATABASE} from 'react-native-dotenv';
+import {setUserData, setUserImage, setUserGroups, setPartnerId} from "../../redux/actions/user";
+import { HOST, PORT, DATABASE } from 'react-native-dotenv';
 
 import Loader from '../screens/Loader';
 
@@ -115,7 +115,7 @@ class AuthenticationLoading extends React.Component {
         // Define parameters
         const params = {
             ids: [this.props.user.id],
-            fields: ['image', 'groups_id'],
+            fields: ['image', 'groups_id', 'partner_id'],
         };
 
         // Get data
@@ -123,9 +123,9 @@ class AuthenticationLoading extends React.Component {
 
         // Check and and save user data on store
         if(response.success) {
-
             await this.props.setUserImage(response.data[0].image);
             await this.fetchUserGroups(response.data[0].groups_id);
+            await this.props.setPartnerId(response.data[0].partner_id[0]);
         }
     }
 
@@ -270,6 +270,9 @@ const mapDispatchToProps = dispatch => ({
     },
     setUserGroups: (groups) => {
         dispatch(setUserGroups(groups))
+    },
+    setPartnerId: (partner_id) => {
+        dispatch(setPartnerId(partner_id))
     },
 });
 

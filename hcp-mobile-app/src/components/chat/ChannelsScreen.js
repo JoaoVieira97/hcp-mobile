@@ -31,7 +31,7 @@ class ChannelsScreen extends Component {
 
     async componentDidMount() {
         
-        this.getChannels();
+        await this.getChannels();
 
     }
 
@@ -76,9 +76,9 @@ class ChannelsScreen extends Component {
         }
     }
 
-    getChannels(){
+    async getChannels(){
         
-        var params = {
+        let params = {
             domain: [
                 ['id', '>=', '0'],
             ],
@@ -90,44 +90,40 @@ class ChannelsScreen extends Component {
             ],
         };
 
-        this.props.odoo.search_read('mail.channel', params)
-            .then(response => {
+        let channelsList = [];
+
+        let response = await this.props.odoo.search_read('mail.channel', params);
                 
-                if (response.success){
+        if (response.success){
                     
-                    const size = response.data.length;
+            const size = response.data.length;
+            for (let i = 0; i < size; i++) {
 
-                    for (let i = 0; i < size; i++) {
+                let aux = response.data[i];
 
-                        const aux = response.data[i];
+                let last_message = await this.getLastMessage(parseInt(aux.id));
+                
+                let channel = {
+                    id: aux.id,
+                    name: '#' + aux.display_name,
+                    description: aux.description,
+                    image: aux.image,
+                    last_message: last_message
+                };
 
-                        this.getLastMessage(parseInt(aux.id))
-                            .then(last_message => {
+                channelsList.push(channel);
 
-                                const channel = {
-                                    id: aux.id,
-                                    name: '#' + aux.display_name,
-                                    description: aux.description,
-                                    image: aux.image,
-                                    last_message: last_message
-                                };
-        
-                                this.setState({
-                                    channels: [...this.state.channels, channel],
-                                    filteredChannels: [...this.state.filteredChannels, channel]
-                                })
+            }
 
-                        })
-                    
-                    }
+            await this.setState({
+                channels: channelsList,
+                filteredChannels: channelsList,
+                isLoading: false,
+                isRefreshing: false
+            });
 
-                }
-            }).then(() => {
-                this.setState({
-                    isLoading: false,
-                    isRefreshing: false
-                });
-            })
+        }
+
     }
 
     renderItem = ({ item }) => {
@@ -140,7 +136,7 @@ class ChannelsScreen extends Component {
                 leftAvatar={this.channelImage(item.image)}
                 chevron
                 onPress={() => (
-                    this.props.navigation.navigate('ChannelScreen',{item})
+                    this.props.navigation.navigate('ConcreteChat',{item})
                 )}
             />
         );
@@ -248,8 +244,8 @@ class ChannelsScreen extends Component {
             isRefreshing: true,
             isLoading: false
         },
-        () => {
-            this.getChannels()
+        async () => {
+            await this.getChannels()
         });
     };
 
