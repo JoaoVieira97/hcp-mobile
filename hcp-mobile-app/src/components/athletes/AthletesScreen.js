@@ -8,6 +8,7 @@ import _ from 'lodash';
 import CustomText from "../CustomText";
 import {LinearGradient} from "expo";
 import {colors} from "../../styles/index.style";
+import {fromRight, fromBottom} from "react-navigation-transitions";
 
 class AthletesScreen extends Component {
 
@@ -41,6 +42,7 @@ class AthletesScreen extends Component {
      */
 
     static navigationOptions = ({navigation}) => ({
+        //transitionConfig: () => fromBottom(600),
         headerTitle: //'Atletas',
             <CustomText
                 type={'bold'}
@@ -194,7 +196,7 @@ class AthletesScreen extends Component {
 
         else return(
             <CustomText style={{color: '#fff'}}>
-                 GR
+                {atualPosition}
             </CustomText>
         )
     }

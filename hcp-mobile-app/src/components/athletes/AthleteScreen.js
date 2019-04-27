@@ -1,10 +1,19 @@
 import React, {Component} from 'react';
 
-import {View, Text, Image, Button, ActivityIndicator} from 'react-native';
+import {
+    ScrollView,
+    View,
+    StyleSheet
+} from 'react-native';
+
+import { Button} from 'react-native-paper';
+import { Avatar } from 'react-native-elements';
 
 import {connect} from 'react-redux';
 import {Ionicons} from "@expo/vector-icons";
 
+import * as Animatable from "react-native-animatable";
+import Loader from "../screens/Loader";
 import {colors} from "../../styles/index.style";
 import CustomText from "../CustomText";
 
@@ -14,15 +23,28 @@ class AthleteScreen extends Component {
         super(props);
 
         this.state = {
-            athlete: {}
+            isLoading: true,
+            athlete: {},
+            /*const athlete =
+                {
+                'name':
+                'image':,
+                'squad_number':
+                'echelon': this.state.echelon.denomination,
+                'user_id':
+                'position': aux.posicao,
+                 };*/
         }
     }
 
     async componentDidMount() {
 
         await this.setState({
-            athlete: this.props.navigation.getParam('athlete')
+            athlete: this.props.navigation.getParam('athlete'),
+            //isLoading: false,
         });
+
+        this.setState({isLoading: false});
 
         console.log(this.state.athlete)
     
@@ -37,7 +59,8 @@ class AthleteScreen extends Component {
                     children={navigation.getParam('athlete').name}
                     style={{
                         color: '#ffffff',
-                        fontSize: 16
+                        fontSize: 20,
+                        marginLeft: 5,
                     }}
                 />,
             headerLeft: null,
@@ -75,26 +98,198 @@ class AthleteScreen extends Component {
 
     render() {
 
-        return (
-            <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
-                <Text style={{fontWeight: '700', fontSize: 20}}>
-                    {this.state.athlete.squad_number}
-                </Text>
-                <Text style={{fontWeight: '500', fontSize: 15}}>
-                    {this.state.athlete.echelon}
-                </Text>
-                <Image style={{ width: 250, height: 250}}
-                       source={{uri: `data:image/png;base64,${this.state.athlete.image}`}}/>
-                <Button
-                    title={'Enviar notificação'}
-                    color={colors.gradient1}
-                    onPress={() => this.sendNotification()}
-                    style={{marginBottom: 20}}
+        // User image
+        let userImage;
+        if(this.state.athlete.image !== false) {
+            userImage = (
+                <Avatar
+                    size="small"
+                    rounded
+                    source={{uri: `data:image/png;base64,${this.state.athlete.image}`}}
+                    //style={styles.headerImage}
                 />
-            </View>
+            );
+        }
+        else{
+            userImage = (
+                <Avatar
+                    size="large"
+                    rounded
+                    source={require('../../../assets/user-account.png')}
+                    containerStyle={styles.headerImage}
+                />
+            )
+        }
+
+        return (
+            <ScrollView contentContainerStyle={styles.container}>
+                {
+                    !this.state.isLoading &&
+                    <Animatable.View animation={"fadeIn"}>
+                        <View style={styles.header}>
+                            {userImage}
+                            <CustomText type={'bold'} style={styles.headerName}>{this.state.athlete.name}</CustomText>
+                        </View>
+
+                        <View style={styles.athleteContent}>
+                            <View style={{width: '50%', alignItems: 'center'}}>
+                                <CustomText type={'bold'} style={styles.athleteValue}>
+                                    {this.state.athlete.squad_number}
+                                </CustomText>
+                                <CustomText type={'bold'} style={styles.athleteTitle}>CAMISOLA</CustomText>
+                            </View>
+                            <View style={{width: '50%', alignItems: 'center'}}>
+                                {
+                                    this.state.athlete.echelon.includes('Sub') &&
+                                    <View style={{flex: 1, flexDirection: 'row', justifyContent: 'center'}}>
+                                        <CustomText
+                                            type={'bold'}
+                                            style={[styles.athleteValue, {fontSize: 10, marginTop: 16, marginRight: 3}]}
+                                        >SUB
+                                        </CustomText>
+                                        <CustomText type={'bold'} style={styles.athleteValue}>
+                                            {
+                                                this.state.athlete.echelon.slice(4)
+                                            }
+                                        </CustomText>
+                                    </View>
+                                }
+                                {
+                                    !this.state.athlete.echelon.includes('Sub') &&
+                                    <CustomText type={'bold'} style={styles.athleteValue}>
+                                        {
+                                            this.state.athlete.echelon
+                                        }
+                                    </CustomText>
+                                }
+                                <CustomText type={'bold'} style={styles.athleteTitle}>ESCALÃO</CustomText>
+                            </View>
+                        </View>
+
+                        <View style={styles.content}>
+                            <View>
+                                <CustomText type={'bold'} style={styles.contentTitle}>E-MAIL</CustomText>
+                                <CustomText type={'normal'} style={styles.contentValue}>
+                                    A ACRESCENTAR...
+                                </CustomText>
+                            </View>
+                            <View style={{marginTop: 15}}>
+                                <CustomText type={'bold'} style={styles.contentTitle}>DATA DE NASCIMENTO</CustomText>
+                                <CustomText type={'normal'} style={styles.contentValue}>
+                                    A ACRESCENTAR...
+                                </CustomText>
+                            </View>
+                        </View>
+
+                        <View>
+                            <View style={styles.buttonContent}>
+                                <Button
+                                    dark
+                                    color={'rgba(173, 46, 83, 0.15)'}
+                                    mode="contained"
+                                    contentStyle={{height: 55}}
+                                    onPress={() => console.log('Pressed')}
+                                >
+                                    Estatísticas
+                                </Button>
+                            </View>
+                            <View style={styles.buttonContent}>
+                                <Button
+                                    dark
+                                    color={'rgba(173, 46, 83, 0.15)'}
+                                    mode="contained"
+                                    contentStyle={{height: 55}}
+                                    onPress={() => console.log('Pressed')}
+                                >
+                                    Dados antropométricos
+                                </Button>
+                            </View>
+                            <View style={styles.buttonContent}>
+                                <Button
+                                    dark
+                                    color={'rgba(173, 46, 83, 0.15)'}
+                                    mode="contained"
+                                    contentStyle={{height: 55}}
+                                    onPress={() => this.sendNotification()}
+                                >
+                                    Enviar notificação
+                                </Button>
+                            </View>
+                        </View>
+                        <Loader isLoading={this.state.isLoading}/>
+                    </Animatable.View>
+                }
+            </ScrollView>
         );
     }
 }
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: colors.gradient2,
+        paddingHorizontal: 20,
+        paddingBottom: 10
+    },
+    header: {
+        width: '100%',
+        alignItems: 'center',
+    },
+    headerImage: {
+        //elevation: 5,
+        marginTop: 15,
+    },
+    headerName: {
+        color: '#fff',
+        fontSize: 20,
+        marginTop: 10,
+        textShadowColor: colors.gradient1
+    },
+    headerRoles: {
+        color: '#fff',
+        fontSize: 15,
+        marginTop: 5,
+        textShadowColor: colors.gradient1,
+        letterSpacing: 2
+    },
+    athleteContent: {
+        flexDirection: 'row',
+        marginTop: 10,
+        padding: 15,
+        borderRadius: 10,
+        width: '100%',
+        backgroundColor: 'rgba(173, 46, 83, 0.15)'
+    },
+    athleteTitle: {
+        color: 'rgba(255, 255, 255, 0.45)',
+        fontSize: 12,
+        letterSpacing: 5
+    },
+    athleteValue: {
+        color: '#fff',
+        fontSize: 25,
+    },
+    content: {
+        marginTop: 10,
+        padding: 15,
+        borderRadius: 10,
+        width: '100%',
+        backgroundColor: 'rgba(173, 46, 83, 0.15)'
+    },
+    contentTitle: {
+        color: 'rgba(255, 255, 255, 0.45)',
+        fontSize: 12,
+        letterSpacing: 2
+    },
+    contentValue: {
+        color: '#fff',
+        fontSize: 16
+    },
+    buttonContent: {
+        marginTop: 10,
+        width: '100%',
+    }
+});
 
 const mapStateToProps = state => ({
     odoo: state.odoo.odoo,

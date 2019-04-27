@@ -5,6 +5,7 @@ import {ListItem, Avatar, Badge, SearchBar} from 'react-native-elements';
 import {connect} from 'react-redux';
 import {Ionicons} from "@expo/vector-icons";
 import _ from 'lodash';
+import CustomText from "../CustomText";
 
 class EchelonsScreen extends Component {
 
@@ -115,10 +116,14 @@ class EchelonsScreen extends Component {
 
         return (
             <ListItem
-                title={item.denomination + '   ( '+ item.numberAthletes+' )'}
-                //subtitle={item.echelon}
+                title={
+                    <CustomText style={{fontSize: 15,}}> {item.denomination} </CustomText>
+                }
+                subtitle={
+                    <CustomText style={{marginLeft: 5,color: '#707070',}}> {'( '+item.numberAthletes.toString()+ ' )'} </CustomText>
+                }
                 chevron={() => (
-                    <Ionicons name="ios-arrow-up" color={'#c7c7c7'} size={13} />
+                    <Ionicons name="ios-arrow-forward" color={'#c7c7c7'} size={13} />
                 )}
                 onPress={() => (
                     this.props.navigation.navigate('AthletesScreen', {echelon: item})
