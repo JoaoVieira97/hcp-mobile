@@ -14,6 +14,7 @@ import {
 
 import {connect} from 'react-redux';
 
+import _ from 'lodash';
 
 class ChannelsScreen extends Component {
 
@@ -21,8 +22,10 @@ class ChannelsScreen extends Component {
         super(props);
         this.state = {
             channels: [],
+            filteredChannels: [],
             isLoading: true,
             isRefreshing: false,
+            filter: '',
         }
     }
 
@@ -54,10 +57,14 @@ class ChannelsScreen extends Component {
 
             const regex = /(<([^>]+)>)/ig;
 
+            let full_date = aux.last_message.date;
+            let date = full_date.split(' ');
+            let days = date[0].split('-');
+
             const msg = {
                 body: aux.last_message.body.replace(regex, ''),
                 author: aux.last_message.author_id[1],
-                date: aux.last_message.date
+                date: days[2] + '-' + days[1] + '-' + days[0] + ' ' + date[1]
             };
 
             return msg
@@ -89,6 +96,7 @@ class ChannelsScreen extends Component {
                 if (response.success){
                     
                     const size = response.data.length;
+
                     for (let i = 0; i < size; i++) {
 
                         const aux = response.data[i];
@@ -97,15 +105,16 @@ class ChannelsScreen extends Component {
                             .then(last_message => {
 
                                 const channel = {
-                                    'id': aux.id,
-                                    'name': aux.display_name,
-                                    'description': aux.description,
-                                    'image': aux.image,
-                                    'last_message': last_message
+                                    id: aux.id,
+                                    name: '#' + aux.display_name,
+                                    description: aux.description,
+                                    image: aux.image,
+                                    last_message: last_message
                                 };
         
                                 this.setState({
-                                    channels: [...this.state.channels, channel]
+                                    channels: [...this.state.channels, channel],
+                                    filteredChannels: [...this.state.filteredChannels, channel]
                                 })
 
                         })
@@ -113,9 +122,6 @@ class ChannelsScreen extends Component {
                     }
 
                 }
-
-            }).then(() => {
-                console.log(this.state.channels)
             }).then(() => {
                 this.setState({
                     isLoading: false,
@@ -128,7 +134,7 @@ class ChannelsScreen extends Component {
 
         return (
             <ListItem
-                title={'#' + item.name}
+                title={item.name}
                 titleStyle={{fontWeight: 'bold'}}
                 subtitle={item.last_message.author + ':' + item.last_message.body + '\n(' + item.last_message.date + ')'}
                 leftAvatar={this.channelImage(item.image)}
@@ -179,6 +185,31 @@ class ChannelsScreen extends Component {
         }}/>
     );
 
+    handleSearchClear = () => {
+
+        this.setState({
+            filter: '',
+            filteredChannels: this.state.channels
+        });
+        
+    };
+
+    contains = ({name}, text) => {
+
+        // case insensitive
+        return name.toUpperCase().includes(text.toUpperCase());
+    };
+
+    handleSearch = (text) => {
+        const data = _.filter(this.state.channels, channel => {
+            return this.contains(channel, text);
+        });
+        this.setState({
+            filter: text,
+            filteredChannels: data
+        });
+    };
+
     renderHeader = () => (
         <SearchBar
             placeholder={"Pesquisar por nome"}
@@ -186,7 +217,7 @@ class ChannelsScreen extends Component {
             round
             onClear={this.handleSearchClear}
             onChangeText={this.handleSearch}
-            value={this.state.searchText}
+            value={this.state.filter}
         />
     );
 
@@ -213,6 +244,7 @@ class ChannelsScreen extends Component {
     handleRefresh = () => {
         this.setState({
             channels: [],
+            filteredChannels: [],
             isRefreshing: true,
             isLoading: false
         },
@@ -227,7 +259,7 @@ class ChannelsScreen extends Component {
             <View>
                 <FlatList
                     keyExtractor={item => item.id}
-                    data={this.state.channels}
+                    data={this.state.filteredChannels}
                     renderItem={this.renderItem}
                     ItemSeparatorComponent={this.renderSeparator}
                     ListHeaderComponent={this.renderHeader}
