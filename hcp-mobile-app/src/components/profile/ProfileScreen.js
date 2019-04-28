@@ -31,8 +31,8 @@ class ProfileScreen extends Component {
             birthday: undefined,
             email: undefined,
             isEditActive: false,
-            image: false,
-        }
+            image: false
+        };
     };
 
     async componentDidMount() {
@@ -109,23 +109,32 @@ class ProfileScreen extends Component {
      */
     _pickImage = async () => {
 
-        await Permissions.getAsync(Permissions.CAMERA);
-        await Permissions.getAsync(Permissions.CAMERA_ROLL);
-        //await Permissions.askAsync(Permissions.CAMERA);
-        //await Permissions.askAsync(Permissions.CAMERA_ROLL);
+        // GET OR ASK PERMISSIONS
+        let granted = false;
+        const {status} = await Permissions.getAsync(Permissions.CAMERA, Permissions.CAMERA_ROLL);
+        if (status !== 'granted') {
 
-        let result = await ImagePicker.launchImageLibraryAsync({
-            allowsEditing: true,
-            mediaTypes: 'Images',
-            aspect: [4, 4],
-            quality: 1,
-            base64: true
-        });
+            const statusCamera = await Permissions.askAsync(Permissions.CAMERA);
+            const statusCameraRoll = await Permissions.askAsync(Permissions.CAMERA_ROLL);
+            granted = statusCamera.status === 'granted' && statusCameraRoll.status === 'granted';
+        }
+        else
+            granted = true;
 
-        if (!result.cancelled) {
+        if (granted) {
+            const result = await ImagePicker.launchImageLibraryAsync({
+                allowsEditing: true,
+                mediaTypes: 'Images',
+                aspect: [4, 4],
+                quality: 1,
+                base64: true
+            });
 
-            this.setState({image: result.base64});
-            this.updateImageAlert(result.base64);
+            if (!result.cancelled) {
+
+                this.setState({image: result.base64});
+                this.updateImageAlert(result.base64);
+            }
         }
     };
 
@@ -136,27 +145,34 @@ class ProfileScreen extends Component {
      */
     _pickCamera = async () => {
 
-        //await Permissions.getAsync(Permissions.CAMERA);
-        //await Permissions.getAsync(Permissions.CAMERA_ROLL);
-        await Permissions.askAsync(Permissions.CAMERA);
-        await Permissions.askAsync(Permissions.CAMERA_ROLL);
+        let granted = false;
+        const {status} = await Permissions.getAsync(Permissions.CAMERA, Permissions.CAMERA_ROLL);
+        if (status !== 'granted') {
 
-        let result = await ImagePicker.launchCameraAsync({
-            allowsEditing: true,
-            aspect: [4, 4],
-            quality: 1,
-            base64: true
-        });
-
-        if (!result.cancelled) {
-
-            this.setState({image: result.base64});
-            this.updateImageAlert(result.base64);
-
-            // Save image to local storage
-            CameraRoll.saveToCameraRoll(result.uri, 'photo');
+            const statusCamera = await Permissions.askAsync(Permissions.CAMERA);
+            const statusCameraRoll = await Permissions.askAsync(Permissions.CAMERA_ROLL);
+            granted = statusCamera.status === 'granted' && statusCameraRoll.status === 'granted';
         }
+        else
+            granted = true;
 
+        if(granted) {
+            const result = await ImagePicker.launchCameraAsync({
+                allowsEditing: true,
+                aspect: [4, 4],
+                quality: 1,
+                base64: true
+            });
+
+            if (!result.cancelled) {
+
+                this.setState({image: result.base64});
+                this.updateImageAlert(result.base64);
+
+                // Save image to local storage
+                CameraRoll.saveToCameraRoll(result.uri, 'photo');
+            }
+        }
     };
 
     /**
@@ -398,7 +414,7 @@ class ProfileScreen extends Component {
                             <View style={{paddingBottom: 20}}>
                                 <View style={styles.buttonContent}>
                                     <Button
-                                        //dark
+                                        disabled={true}
                                         color={'#fff'}
                                         mode="contained"
                                         contentStyle={{height: 55}}
@@ -409,7 +425,7 @@ class ProfileScreen extends Component {
                                 </View>
                                 <View style={styles.buttonContent}>
                                     <Button
-                                        //dark
+                                        disabled={true}
                                         color={'#fff'}
                                         mode="contained"
                                         contentStyle={{height: 55}}

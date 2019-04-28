@@ -6,9 +6,7 @@ import {connect} from 'react-redux';
 import {Ionicons} from "@expo/vector-icons";
 import _ from 'lodash';
 import CustomText from "../CustomText";
-import {LinearGradient} from "expo";
-import {colors} from "../../styles/index.style";
-import {fromRight, fromBottom} from "react-navigation-transitions";
+
 
 class AthletesScreen extends Component {
 
@@ -311,13 +309,11 @@ class AthletesScreen extends Component {
     }
 }
 
-
 const styles = StyleSheet.create({
     athleteValue: {
         color: '#fff',
     },
 });
-
 
 const mapStateToProps = state => ({
 

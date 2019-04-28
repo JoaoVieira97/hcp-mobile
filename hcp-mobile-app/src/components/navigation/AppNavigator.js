@@ -18,7 +18,6 @@ import {
     DrawerItems
 } from 'react-navigation';
 import { Avatar } from 'react-native-paper';
-import { fromRight, fromBottom } from 'react-navigation-transitions';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo';
 
@@ -54,7 +53,6 @@ const styles = StyleSheet.create({
     },
     header:{
         height: 150,
-        //backgroundColor: '#fff',
     },
     headerLogo: {
         flex: 1,
@@ -105,7 +103,6 @@ const styles = StyleSheet.create({
     },
 });
 
-
 const WIDTH = Dimensions.get('window').width;
 
 const userAvatar = (
@@ -119,13 +116,58 @@ const userAvatar = (
     </View>
 );
 
+const CustomDrawerContentComponent = (props) => {
+
+    async function _logout() {
+        await AsyncStorage.clear();
+        props.navigation.navigate('Authentication');
+    }
+
+    return (
+        <View style={styles.container}>
+            <ScrollView style={{flex: 1}}>
+                <View style={styles.header}>
+                    <View style={styles.headerLogo}>
+                        <View style={styles.imgView}>
+                            <Image style={styles.img} source={require('../../../assets/logo.png')} />
+                        </View>
+                        <View style={{marginRight: 15}}>
+                            <TouchableOpacity style={{
+                                width: 60,
+                                height: 50,
+                                alignItems: 'flex-end',
+                            }} onPress = {() => props.navigation.closeDrawer()}>
+                                <Ionicons
+                                    name="md-close"
+                                    size={30}
+                                    color={colors.greyText}/>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+                <View style={styles.content}>
+                    <DrawerItems {...props} />
+                </View>
+            </ScrollView>
+            <TouchableOpacity
+                style={styles.footer}
+                onPress={_logout}>
+                <CustomText type={'semi-bold'} children={'Logout'} style={styles.logoutText} />
+                <Ionicons name="md-exit" size={30} style={styles.logoutIcon}/>
+            </TouchableOpacity>
+        </View>
+    )
+};
+
+
+
 
 // HOME STACK
 const HomeStackNavigator = createStackNavigator({
     HomeScreen: {screen: HomeScreen},
     EventScreen: {screen: EventScreen}
 }, {
-    transitionConfig: () => fromRight(600),
+    initialRouteName: 'HomeScreen',
     defaultNavigationOptions: ({navigation}) => {
         return {
             headerStyle: {
@@ -177,7 +219,7 @@ const CalendarStackNavigator = createStackNavigator({
     CalendarScreen: {screen: CalendarScreen},
     EventScreen: { screen: EventScreen },
 }, {
-    transitionConfig: () => fromRight(600),
+    initialRouteName: 'CalendarScreen',
     defaultNavigationOptions: ({navigation}) => {
         return {
             headerTitle:
@@ -250,7 +292,6 @@ const ManagementStackNavigator = createStackNavigator({
     PendingTrainings: {screen: PendingTrainings}
 }, {
     initialRouteName: 'ManagementNavigator',
-    //transitionConfig: () => fromRight(350),
     defaultNavigationOptions: ({navigation}) => {
         return {
             headerTitle:
@@ -295,7 +336,6 @@ const AthletesStackNavigator = createStackNavigator({
     AthleteScreen: {screen: AthleteScreen}
 }, {
     initialRouteName: 'EchelonsScreen',
-    //transitionConfig: () => fromRight(600),
     defaultNavigationOptions: ({navigation}) => {
         return {
             headerStyle: {
@@ -345,7 +385,6 @@ const ProfileStackNavigator = createStackNavigator({
     ResetPassword: {screen: ResetPassword},
 }, {
     initialRouteName: 'ProfileScreen',
-    //transitionConfig: () => fromRight(600),
     defaultNavigationOptions: ({navigation}) => {
         return {
             headerStyle: {
@@ -398,12 +437,12 @@ const ChatStackNavigator = createStackNavigator({
     ChannelScreen: {screen: ChannelScreen},
     ConcreteChat: {screen: ConcreteChat}
 }, {
-    transitionConfig: () => fromRight(600),
+    initialRouteName: 'ChatScreen',
     defaultNavigationOptions: ({navigation}) => {
         return {
             headerStyle: {
-                elevation: 0, // remove shadow on Android
-                shadowOpacity: 0, // remove shadow on iOS
+                //elevation: 0, // remove shadow on Android
+                //shadowOpacity: 0, // remove shadow on iOS
                 backgroundColor: colors.gradient2
             },
             headerTitle:
@@ -443,51 +482,7 @@ const ChatStackNavigator = createStackNavigator({
     }
 });
 
-const CustomDrawerContentComponent = (props) => {
-
-    async function _logout() {
-        await AsyncStorage.clear();
-        props.navigation.navigate('Authentication');
-    }
-
-    return (
-        <View style={styles.container}>
-            <ScrollView style={{flex: 1}}>
-                <View style={styles.header}>
-                    <View style={styles.headerLogo}>
-                        <View style={styles.imgView}>
-                            <Image style={styles.img} source={require('../../../assets/logo.png')} />
-                        </View>
-                        <View style={{marginRight: 15}}>
-                            <TouchableOpacity style={{
-                                width: 60,
-                                height: 50,
-                                alignItems: 'flex-end',
-                                }} onPress = {() => props.navigation.closeDrawer()}>
-                                <Ionicons
-                                    name="md-close"
-                                    size={30}
-                                    color={colors.greyText}/>
-                            </TouchableOpacity>
-                        </View>
-                    </View>
-                </View>
-                <View style={styles.content}>
-                    <DrawerItems {...props} />
-                </View>
-            </ScrollView>
-            <TouchableOpacity
-                style={styles.footer}
-                onPress={_logout}>
-                <CustomText type={'semi-bold'} children={'Logout'} style={styles.logoutText} />
-                <Ionicons name="md-exit" size={30} style={styles.logoutIcon}/>
-            </TouchableOpacity>
-        </View>
-    )
-};
-
-
-
+// DRAWER NAVIGATOR
 const AppDrawerNavigator = createDrawerNavigator({
     HomeStack: {
         screen: HomeStackNavigator,
@@ -610,7 +605,7 @@ const AppDrawerNavigator = createDrawerNavigator({
         })
     }
 }, {
-    initialRouteName: 'ProfileStack',
+    initialRouteName: 'ChatStack',
     order: ['HomeStack', 'CalendarStack', 'ManagementStack', 'AthletesStack', 'ProfileStack', 'ChatStack'],
     drawerWidth: WIDTH*0.7,
     contentComponent: CustomDrawerContentComponent,
@@ -630,7 +625,7 @@ const AppDrawerNavigator = createDrawerNavigator({
     },
 });
 
-// Application switch navigator
+// APPLICATION
 const AppSwitchNavigator = createSwitchNavigator({
     AuthenticationLoading: {screen: AuthenticationLoading},
     Authentication: {screen: LoginScreen},
