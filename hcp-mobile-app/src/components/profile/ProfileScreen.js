@@ -3,7 +3,7 @@ import {
     ScrollView,
     View,
     StyleSheet,
-    CameraRoll,
+    CameraRoll, Alert,
 } from 'react-native';
 import { ImagePicker, Permissions } from 'expo';
 import {Button} from 'react-native-paper';
@@ -30,7 +30,8 @@ class ProfileScreen extends Component {
             level: undefined,
             birthday: undefined,
             email: undefined,
-            isEditActive: false
+            isEditActive: false,
+            image: false,
         }
     };
 
@@ -72,6 +73,7 @@ class ProfileScreen extends Component {
             }
 
             this.setState({
+                image: this.props.user.image,
                 birthday: birthday,
                 email: response.data[0].email,
             });
@@ -115,15 +117,17 @@ class ProfileScreen extends Component {
         let result = await ImagePicker.launchImageLibraryAsync({
             allowsEditing: true,
             mediaTypes: 'Images',
-            aspect: [4, 3],
+            aspect: [4, 4],
             quality: 1,
             base64: true
         });
 
-        console.log(result);
-
         if (!result.cancelled) {
-            //this.setState({ image: result.uri });
+            this.setState({
+                image: result.base64,
+            });
+
+            setTimeout(()=>{this.timeOut(result.base64)}, 3000);
         }
     };
 
@@ -134,24 +138,119 @@ class ProfileScreen extends Component {
      */
     _pickCamera = async () => {
 
-        await Permissions.getAsync(Permissions.CAMERA);
-        await Permissions.getAsync(Permissions.CAMERA_ROLL);
-        //await Permissions.askAsync(Permissions.CAMERA);
-        //await Permissions.askAsync(Permissions.CAMERA_ROLL);
+        //await Permissions.getAsync(Permissions.CAMERA);
+        //await Permissions.getAsync(Permissions.CAMERA_ROLL);
+        await Permissions.askAsync(Permissions.CAMERA);
+        await Permissions.askAsync(Permissions.CAMERA_ROLL);
 
         let result = await ImagePicker.launchCameraAsync({
             allowsEditing: true,
-            aspect: [4, 3],
+            aspect: [4, 4],
             quality: 1,
             base64: true
         });
 
-        console.log(result);
-
         if (!result.cancelled) {
-            //this.setState({ image: result.uri });
+            this.setState({
+                image: result.base64,
+            });
+
+            CameraRoll.saveToCameraRoll(result.uri, 'photo');
+
+            setTimeout(()=>{this.timeOut(result.base64)}, 3000);
         }
-        //CameraRoll.saveToCameraRoll(this.state.image);
+
+    };
+
+    _deleteImage = async() =>{
+
+        let flag = true;
+
+        Alert.alert(
+            'Apagar foto',
+            'Tem a certeza que quer eliminar a foto atual?',
+            [
+                {text: 'OK',
+                    onPress: async () => {
+                        await this.updateImage(flag,false);
+                        this.props.navigation.goBack();
+                    },
+                },
+                {text: 'Cancelar',
+                    onPress: async () => {
+                        this.props.navigation.goBack();
+                    },
+                    style:'cancel',
+                }
+            ],
+            {cancelable: false},
+        );
+    };
+
+    /**
+     * When timeOut, update (or not) the profile image.
+     * @returns {Promise<void>}
+     */
+    timeOut = async (image) => {
+
+        let flag = true;
+
+        Alert.alert(
+            'Escolha da foto',
+            'Tem a certeza que quer continuar com esta foto?',
+            [
+                {text: 'OK',
+                    onPress: async () => {
+                        await this.updateImage(flag,image);
+                        this.props.navigation.goBack()
+                    },
+                },
+                {text: 'Cancelar',
+                    onPress: async () => {
+                        flag = false;
+                        await this.updateImage(flag,image);
+                        this.props.navigation.goBack()
+                    },
+                    style:'cancel',
+                }
+            ],
+            {cancelable: false},
+        );
+    };
+
+
+    /**
+     * Update image: if flag=true, update odoo and redux; else update State. if image=false, also update State
+     * @returns {Promise<void>}
+     * @private
+     */
+    updateImage = async(flag,image) => {
+
+        this.setState({
+            'isLoading': true,
+        });
+
+        if(flag) {
+            const fields = {
+                'image': image,
+            };
+
+            const response = await this.props.odoo.update('res.users', [this.props.user.id], fields);
+
+            if (response.success) {
+                await this.props.setUserImage(image);
+            }
+        }
+
+        if(!flag || !image){
+            this.setState({
+                image: this.props.user.image,
+            });
+        }
+
+        this.setState({
+            'isLoading': false,
+        });
     };
 
     render() {
@@ -165,12 +264,12 @@ class ProfileScreen extends Component {
         else {
             // User image
             let userImage;
-            if(this.props.user.image !== false) {
+            if(this.state.image !== false) {
                 userImage = (
                     <Avatar
                         size={90}
                         rounded
-                        source={{uri: `data:image/png;base64,${this.props.user.image}`}}
+                        source={{uri: `data:image/png;base64,${this.state.image}`}}
                         onPress={() => this.setState(state => ({isEditActive: !state.isEditActive}))}
                         containerStyle={{elevation: 5}}
                     />
@@ -206,25 +305,38 @@ class ProfileScreen extends Component {
                                     <Avatar
                                         size={40}
                                         rounded
-                                        icon={{name: 'create', type: 'ionicons'}}
-                                        onPress={this._pickImage}
+                                        icon={{name: 'delete', type: 'ionicons'}}
+                                        onPress={this._deleteImage}
                                         activeOpacity={0.7}
                                     />
                                 </Animatable.View>
                                 <View style={styles.headerImage}>
                                     {userImage}
                                 </View>
-                                <Animatable.View
-                                    animation={this.state.isEditActive ? "fadeInLeft" : "fadeOutLeft"}
-                                    style={styles.headerIconRight}>
-                                    <Avatar
-                                        size={40}
-                                        rounded
-                                        icon={{name: 'camera', type: 'ionicons'}}
-                                        onPress={this._pickCamera}
-                                        activeOpacity={0.7}
-                                    />
-                                </Animatable.View>
+                                <View style={{flex:1, flexDirection:'column'}}>
+                                    <Animatable.View
+                                        animation={this.state.isEditActive ? "fadeInLeft" : "fadeOutLeft"}
+                                        style={[styles.headerIconRight,{marginBottom:10}]}>
+                                        <Avatar
+                                            size={40}
+                                            rounded
+                                            icon={{name: 'camera', type: 'ionicons'}}
+                                            onPress={this._pickCamera}
+                                            activeOpacity={0.7}
+                                        />
+                                    </Animatable.View>
+                                    <Animatable.View
+                                        animation={this.state.isEditActive ? "fadeInLeft" : "fadeOutLeft"}
+                                        style={styles.headerIconRight}>
+                                        <Avatar
+                                            size={40}
+                                            rounded
+                                            icon={{name: 'create', type: 'ionicons'}}
+                                            onPress={this._pickImage}
+                                            activeOpacity={0.7}
+                                        />
+                                    </Animatable.View>
+                                </View>
                             </View>
                             <CustomText type={'bold'} style={styles.headerName}>{this.props.user.name}</CustomText>
                             <CustomText type={'normal'} style={styles.headerRoles}>{rolesText}</CustomText>
@@ -357,6 +469,7 @@ const styles = StyleSheet.create({
         alignItems: 'flex-end',
     },
     headerIconRight: {
+        //marginBottom: 3,
         width: '25%',
         justifyContent: 'center',
         zIndex: 100,
