@@ -17,6 +17,7 @@
     "react-native-elements": "^1.0.0",
     "react-native-gifted-chat": "^0.7.3",
     "react-native-google-maps-directions": "^2.0.0",
+    "react-native-keyboard-spacer": "^0.4.1",
     "react-native-modal-datetime-picker": "^6.1.0",
     "react-native-odoo-promise-based": "^0.6.4",
     "react-native-paper": "^2.15.0",
