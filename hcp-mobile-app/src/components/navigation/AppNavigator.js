@@ -344,6 +344,7 @@ const ProfileStackNavigator = createStackNavigator({
     ProfileScreen: {screen: ProfileScreen},
     ResetPassword: {screen: ResetPassword},
 }, {
+    initialRouteName: 'ProfileScreen',
     //transitionConfig: () => fromRight(600),
     defaultNavigationOptions: ({navigation}) => {
         return {
@@ -609,7 +610,7 @@ const AppDrawerNavigator = createDrawerNavigator({
         })
     }
 }, {
-    initialRouteName: 'HomeStack',
+    initialRouteName: 'ProfileStack',
     order: ['HomeStack', 'CalendarStack', 'ManagementStack', 'AthletesStack', 'ProfileStack', 'ChatStack'],
     drawerWidth: WIDTH*0.7,
     contentComponent: CustomDrawerContentComponent,

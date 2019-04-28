@@ -2,10 +2,9 @@ import React, { Component } from 'react';
 import {
     Alert,
     View,
-    StyleSheet, TouchableOpacity, AsyncStorage, KeyboardAvoidingView
+    StyleSheet, TouchableOpacity, AsyncStorage, KeyboardAvoidingView, Text, Picker
 } from 'react-native';
 
-import {Button, TextInput, DefaultTheme, HelperText} from 'react-native-paper';
 import {connect} from "react-redux";
 import {setOdooInstance} from "../../redux/actions/odoo";
 import {setUserData} from "../../redux/actions/user";
@@ -15,8 +14,9 @@ import CustomText from "../CustomText";
 import {Ionicons} from "@expo/vector-icons";
 import Odoo from "react-native-odoo-promise-based";
 import {DATABASE, HOST, PORT} from "react-native-dotenv";
-import { Constants } from 'expo';
 import { Header } from 'react-navigation';
+import {Button, Card, TextInput, DefaultTheme, HelperText} from 'react-native-paper';
+import * as Animatable from "react-native-animatable";
 
 class ResetPassword extends Component {
 
@@ -33,14 +33,15 @@ class ResetPassword extends Component {
             newPassword: "",
             newPasswordError: false,
             repeatNewPassword: "",
-        }
+        };
+
+        console.log('RESET PASSWORD: ' + HOST);
     };
 
     async componentDidMount() {
 
         await this.fetchOldPassword();
-
-        this._oldPasswordInput.focus();
+        //this._oldPasswordInput.focus();
     }
 
     /**
@@ -106,12 +107,10 @@ class ResetPassword extends Component {
         this.setState({
             'isResetDisabled': true,
             'isLoading': true,
+            'isNewPasswordInputDisabled': true
         });
 
-        const fields = {
-            'password': this.state.newPassword
-        };
-
+        const fields = {'password': this.state.newPassword};
         const response = await this.props.odoo.update('res.users', [this.props.user.id], fields);
         if(response.success && response.data) {
 
@@ -130,6 +129,7 @@ class ResetPassword extends Component {
             this.setState({
                 'isResetDisabled': false,
                 'isLoading': false,
+                'isNewPasswordInputDisabled': false
             });
 
             Alert.alert(
@@ -146,6 +146,7 @@ class ResetPassword extends Component {
             this.setState({
                 'isResetDisabled': false,
                 'isLoading': false,
+                'isNewPasswordInputDisabled': false
             });
 
             Alert.alert(
@@ -253,78 +254,92 @@ class ResetPassword extends Component {
             <KeyboardAvoidingView
                 behavior="padding"
                 keyboardVerticalOffset = {Header.HEIGHT}
-                style={[styles.container, {justifyContent: 'center'}]}>
-                <View style={styles.inputTextContent}>
-                    <TextInput
-                        ref={ref => {this._oldPasswordInput = ref}}
-                        value={this.state.oldPasswordInput}
-                        label='Palavra-passe atual'
-                        onChangeText={text => this.onOldPasswordChangeValue(text)}
-                        autoCapitalize={'none'}
-                        secureTextEntry={true}
-                        theme={{ colors: {
-                                ...DefaultTheme.colors,
-                                primary: colors.blueText,
-                            }}}
-                        style={styles.input}
-                    />
-                </View>
-                <View style={styles.inputTextContent}>
-                    <TextInput
-                        ref={ref => {this._newPasswordInput = ref}}
-                        label='Defina a nova palavra-passe'
-                        value={this.state.newPassword}
-                        onChangeText={text => this.onNewPasswordChangeValue(text)}
-                        disabled={this.state.isNewPasswordInputDisabled}
-                        autoCapitalize={'none'}
-                        secureTextEntry={true}
-                        returnKeyType={'next'}
-                        error={this.state.newPasswordError}
-                        theme={{ colors: {
-                                ...DefaultTheme.colors,
-                                primary: colors.blueText,
-                            }}}
-                        style={styles.input}
-                    />
-                    {
-                        this.state.newPasswordError &&
-                        <HelperText
-                            type="error"
-                            visible={this.state.newPasswordError}
-                        >
-                            Introduza uma palavra-passe diferente da original!
-                        </HelperText>
-                    }
-                </View>
-                <View style={styles.inputTextContent}>
-                    <TextInput
-                        ref={ref => {this._repeatNewPasswordInput = ref}}
-                        label='Confirme a nova palavra-passe'
-                        value={this.state.repeatNewPassword}
-                        onChangeText={text => this.onConfirmPasswordChangeValue(text)}
-                        disabled={this.state.isNewPasswordInputDisabled}
-                        autoCapitalize={'none'}
-                        secureTextEntry={true}
-                        theme={{ colors: {
-                                ...DefaultTheme.colors,
-                                primary: colors.blueText,
-                            }}}
-                        style={styles.input}
-                    />
-                </View>
-                <View style={styles.buttonContent}>
-                    <Button
-                        dark
-                        color={'rgba(173, 46, 83, 0.15)'}
-                        mode="contained"
-                        contentStyle={{height: 55}}
-                        onPress={this.resetPassword.bind(this)}
-                        disabled={this.state.isResetDisabled}
-                        loading={this.state.isLoading}
-                    >
-                        Redefinir
-                    </Button>
-                </View>
+                style={styles.container}>
+                <Animatable.View animation={"fadeIn"}>
+                    <Card elevation={6}>
+                        <Card.Title
+                            title="Redefinir"
+                            subtitle="Defina uma palavra-passe diferente da atual."
+                            left={(props) => <Ionicons name="md-lock" size={15} color={'#000'} {...props}/>}
+                        />
+                        <Card.Content>
+                            <View style={styles.inputTextContent}>
+                                <TextInput
+                                    ref={ref => {this._oldPasswordInput = ref}}
+                                    value={this.state.oldPasswordInput}
+                                    label='Palavra-passe atual'
+                                    onChangeText={text => this.onOldPasswordChangeValue(text)}
+                                    autoCapitalize={'none'}
+                                    secureTextEntry={true}
+                                    theme={{ colors: {
+                                            ...DefaultTheme.colors,
+                                            primary: colors.blueText,
+                                        }}}
+                                    style={styles.input}
+                                />
+                            </View>
+                            <View style={styles.inputTextContent}>
+                                <TextInput
+                                    ref={ref => {this._newPasswordInput = ref}}
+                                    label='Defina a nova palavra-passe'
+                                    value={this.state.newPassword}
+                                    onChangeText={text => this.onNewPasswordChangeValue(text)}
+                                    disabled={this.state.isNewPasswordInputDisabled}
+                                    autoCapitalize={'none'}
+                                    secureTextEntry={true}
+                                    returnKeyType={'next'}
+                                    error={this.state.newPasswordError}
+                                    theme={{ colors: {
+                                            ...DefaultTheme.colors,
+                                            primary: colors.blueText,
+                                        }}}
+                                    style={styles.input}
+                                />
+                                {
+                                    this.state.newPasswordError &&
+                                    <HelperText
+                                        type="error"
+                                        visible={this.state.newPasswordError}
+                                    >
+                                        Introduza uma palavra-passe diferente da original!
+                                    </HelperText>
+                                }
+                            </View>
+                            <View style={styles.inputTextContent}>
+                                <TextInput
+                                    ref={ref => {this._repeatNewPasswordInput = ref}}
+                                    label='Confirme a nova palavra-passe'
+                                    value={this.state.repeatNewPassword}
+                                    onChangeText={text => this.onConfirmPasswordChangeValue(text)}
+                                    disabled={this.state.isNewPasswordInputDisabled}
+                                    autoCapitalize={'none'}
+                                    secureTextEntry={true}
+                                    theme={{ colors: {
+                                            ...DefaultTheme.colors,
+                                            primary: colors.blueText,
+                                        }}}
+                                    style={styles.input}
+                                />
+                            </View>
+                        </Card.Content>
+                        <Card.Actions style={{flexDirection: 'row', justifyContent: 'flex-end', paddingTop: 40}}>
+                            <Button
+                                color={colors.redColor}
+                                onPress={this.resetPassword.bind(this)}
+                                disabled={this.state.isResetDisabled}
+                                loading={this.state.isLoading}
+                            >
+                                Redefinir
+                            </Button>
+                            <Button
+                                color={'#000'}
+                                onPress={() => this.props.navigation.goBack()}
+                            >
+                                Cancelar
+                            </Button>
+                        </Card.Actions>
+                    </Card>
+                </Animatable.View>
             </KeyboardAvoidingView>
         );
     }
@@ -333,9 +348,15 @@ class ResetPassword extends Component {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: colors.gradient2,
+        backgroundColor: colors.grayColor,
         paddingHorizontal: 20,
-        //paddingTop: 30
+        justifyContent: 'center'
+    },
+    innerContainer: {
+        elevation: 5,
+        backgroundColor: '#fff',
+        borderRadius: 10,
+        padding: 5
     },
     inputTextContent: {
         marginTop: 10,

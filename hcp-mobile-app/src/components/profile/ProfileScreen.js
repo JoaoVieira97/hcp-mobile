@@ -123,11 +123,9 @@ class ProfileScreen extends Component {
         });
 
         if (!result.cancelled) {
-            this.setState({
-                image: result.base64,
-            });
 
-            setTimeout(()=>{this.timeOut(result.base64)}, 3000);
+            this.setState({image: result.base64});
+            this.updateImageAlert(result.base64);
         }
     };
 
@@ -151,106 +149,98 @@ class ProfileScreen extends Component {
         });
 
         if (!result.cancelled) {
-            this.setState({
-                image: result.base64,
-            });
 
+            this.setState({image: result.base64});
+            this.updateImageAlert(result.base64);
+
+            // Save image to local storage
             CameraRoll.saveToCameraRoll(result.uri, 'photo');
-
-            setTimeout(()=>{this.timeOut(result.base64)}, 3000);
         }
 
     };
 
-    _deleteImage = async() =>{
-
-        let flag = true;
-
-        Alert.alert(
-            'Apagar foto',
-            'Tem a certeza que quer eliminar a foto atual?',
-            [
-                {text: 'OK',
-                    onPress: async () => {
-                        await this.updateImage(flag,false);
-                        this.props.navigation.goBack();
-                    },
-                },
-                {text: 'Cancelar',
-                    onPress: async () => {
-                        this.props.navigation.goBack();
-                    },
-                    style:'cancel',
-                }
-            ],
-            {cancelable: false},
-        );
-    };
-
     /**
-     * When timeOut, update (or not) the profile image.
-     * @returns {Promise<void>}
-     */
-    timeOut = async (image) => {
-
-        let flag = true;
-
-        Alert.alert(
-            'Escolha da foto',
-            'Tem a certeza que quer continuar com esta foto?',
-            [
-                {text: 'OK',
-                    onPress: async () => {
-                        await this.updateImage(flag,image);
-                        this.props.navigation.goBack()
-                    },
-                },
-                {text: 'Cancelar',
-                    onPress: async () => {
-                        flag = false;
-                        await this.updateImage(flag,image);
-                        this.props.navigation.goBack()
-                    },
-                    style:'cancel',
-                }
-            ],
-            {cancelable: false},
-        );
-    };
-
-
-    /**
-     * Update image: if flag=true, update odoo and redux; else update State. if image=false, also update State
+     * Delete an image.
      * @returns {Promise<void>}
      * @private
      */
-    updateImage = async(flag,image) => {
+    _deleteImage = async() =>{
 
-        this.setState({
-            'isLoading': true,
-        });
+        Alert.alert(
+            'Remover imagem',
+            'Pretende remover a imagem de utilizador?',
+            [
+                {text: 'Sim',
+                    onPress: async () => {
+                        await this.updateImage(false);
+                    }
+                },
+                {text: 'Cancelar'}
+            ],
+            {cancelable: false},
+        );
+    };
 
-        if(flag) {
-            const fields = {
-                'image': image,
-            };
+    /**
+     * Ask user if he wants to update the image.
+     */
+    updateImageAlert = (image) => {
 
-            const response = await this.props.odoo.update('res.users', [this.props.user.id], fields);
+        Alert.alert(
+            'Escolher imagem',
+            'Pretende utilizar a imagem selecionada?',
+            [
+                {text: 'Sim',
+                    onPress: async () => {
+                        await this.updateImage(image);
+                    },
+                },
+                {text: 'Cancelar',
+                    onPress: () => {
+                        this.setState({image: this.props.user.image});
+                    },
+                }
+            ],
+            {cancelable: false},
+        );
+    };
 
-            if (response.success) {
-                await this.props.setUserImage(image);
-            }
-        }
+    /**
+     * Update user image.
+     * @returns {Promise<void>}
+     * @private
+     */
+    updateImage = async(image) => {
 
-        if(!flag || !image){
-            this.setState({
-                image: this.props.user.image,
+        this.setState({'isLoading': true,});
+
+        const fields = {'image': image};
+        const response = await this.props.odoo.update('res.users', [this.props.user.id], fields);
+        if (response.success) {
+
+            await this.props.setUserImage(image);
+            await this.setState({
+                image: image,
+                'isLoading': false,
+                'isEditActive': false,
             });
         }
+        else {
 
-        this.setState({
-            'isLoading': false,
-        });
+            this.setState({
+                'isLoading': false,
+                'image': this.props.user.image
+            });
+
+            Alert.alert(
+                'Erro ao atualizar',
+                'Ocorreu um erro ao atualizar a imagem selecionada. Por favor, tente novamente.',
+                [
+                    {text: 'Confirmar'}
+                ],
+                {cancelable: true},
+            );
+        }
     };
 
     render() {
@@ -282,6 +272,7 @@ class ProfileScreen extends Component {
                         rounded
                         source={require('../../../assets/user-account.png')}
                         onPress={() => this.setState(state => ({isEditActive: !state.isEditActive}))}
+                        containerStyle={{elevation: 5}}
                     />
                 )
             }
@@ -313,10 +304,10 @@ class ProfileScreen extends Component {
                                 <View style={styles.headerImage}>
                                     {userImage}
                                 </View>
-                                <View style={{flex:1, flexDirection:'column'}}>
-                                    <Animatable.View
-                                        animation={this.state.isEditActive ? "fadeInLeft" : "fadeOutLeft"}
-                                        style={[styles.headerIconRight,{marginBottom:10}]}>
+                                <Animatable.View
+                                    animation={this.state.isEditActive ? "fadeInLeft" : "fadeOutLeft"}
+                                    style={[styles.headerIconRight]}>
+                                    <View>
                                         <Avatar
                                             size={40}
                                             rounded
@@ -324,10 +315,8 @@ class ProfileScreen extends Component {
                                             onPress={this._pickCamera}
                                             activeOpacity={0.7}
                                         />
-                                    </Animatable.View>
-                                    <Animatable.View
-                                        animation={this.state.isEditActive ? "fadeInLeft" : "fadeOutLeft"}
-                                        style={styles.headerIconRight}>
+                                    </View>
+                                    <View style={{marginTop: 15}}>
                                         <Avatar
                                             size={40}
                                             rounded
@@ -335,8 +324,8 @@ class ProfileScreen extends Component {
                                             onPress={this._pickImage}
                                             activeOpacity={0.7}
                                         />
-                                    </Animatable.View>
-                                </View>
+                                    </View>
+                                </Animatable.View>
                             </View>
                             <CustomText type={'bold'} style={styles.headerName}>{this.props.user.name}</CustomText>
                             <CustomText type={'normal'} style={styles.headerRoles}>{rolesText}</CustomText>
@@ -460,20 +449,19 @@ const styles = StyleSheet.create({
         width: '50%',
         justifyContent: 'center',
         alignItems: 'center',
-        zIndex: 200,
+        zIndex: 200
     },
     headerIconLeft: {
         width: '25%',
         justifyContent: 'center',
         zIndex: 100,
-        alignItems: 'flex-end',
+        alignItems: 'flex-end'
     },
     headerIconRight: {
-        //marginBottom: 3,
         width: '25%',
         justifyContent: 'center',
         zIndex: 100,
-        alignItems: 'flex-start',
+        alignItems: 'flex-start'
     },
     headerName: {
         color: '#000',
@@ -494,7 +482,7 @@ const styles = StyleSheet.create({
         borderRadius: 7,
         borderColor: '#fff',
         backgroundColor: '#fff',
-        elevation: 2
+        elevation: 3
     },
     athleteTitle: {
         color: '#000',
@@ -512,7 +500,7 @@ const styles = StyleSheet.create({
         padding: 15,
         borderRadius: 7,
         backgroundColor: '#fff',
-        elevation: 2
+        elevation: 3
     },
     contentTitle: {
         color: '#000',
