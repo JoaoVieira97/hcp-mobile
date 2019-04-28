@@ -14,8 +14,13 @@ import {colors} from "../../styles/index.style";
 
 import {
     View,
-    Platform
+    Platform,
+    Text,
+    ActivityIndicator,
+    BackHandler
 } from 'react-native';
+
+var listener = null;
 
 class ConcreteChat extends Component {
 
@@ -24,7 +29,9 @@ class ConcreteChat extends Component {
         this.state = {
             channel: {},
             messages: [],
-            response: {}
+            messages_ids: [],
+            last_message: null,
+            loading: false
         }
     }
 
@@ -42,26 +49,33 @@ class ConcreteChat extends Component {
             size={28}
             color={'#ffffff'}
             style={{paddingLeft: 20}}
-            onPress = {() => navigation.goBack()}
+            onPress = {() => {
+                clearInterval(listener);
+                navigation.goBack();
+            }}
         />
     });
 
     async componentDidMount(){
 
-        console.log(this.props.user.partner_id)
-
         await this.setState({
             channel: this.props.navigation.state.params.item
         });
 
+        BackHandler.addEventListener('hardwareBackPress', () => {
+            clearInterval(listener);
+        });
+
         this.getLastMessages();
+
+        listener = setInterval(async () => { await this.getNewMessages() }, 3500);
     }
-    
-    /*async componentWillMount() {
 
-        this.getLastMessages();
+    async componentWillMount(){
 
-    }*/
+        BackHandler.removeEventListener('hardwareBackPress');
+
+    }
 
     async getPartnerImage(partner_id){
 
@@ -87,6 +101,12 @@ class ConcreteChat extends Component {
 
     async getLastMessages(){
 
+        console.log('last message id = ' + this.state.last_message)
+
+        this.setState({
+            loading: true
+        })
+
         const params = {
             kwargs: {
                 context: this.props.odoo.context,
@@ -95,7 +115,7 @@ class ConcreteChat extends Component {
             method: 'channel_fetch_message',
             args: [
                 this.state.channel.id,
-                last_id = false,
+                last_id = (this.state.last_message) ? this.state.last_message : false,
                 limit = 10
             ]
         };
@@ -105,13 +125,11 @@ class ConcreteChat extends Component {
             params
         );
 
-        await this.setState({
-            response: response
-        })
-
         if (response.success){
 
             let messages = [];
+            let ids_msgs = [];
+            let last_msg = {};
 
             const regex = /(<([^>]+)>)/ig;
 
@@ -120,39 +138,113 @@ class ConcreteChat extends Component {
 
                 let msg = response.data[i];
 
-                //Date(year, month, day, hours, minutes, seconds, milliseconds)
-                //let date = msg.date.split(' ');
-                //let days = date[0].split('-');
-                //let hours = date[1].split(':');
-
                 let partner_image = await this.getPartnerImage(msg.author_id[0]);
 
                 let message = {
                     _id: parseInt(msg.id),
                     text: msg.body.replace(regex, ''),
-                    //createdAt: new Date(parseInt(days[0]), parseInt(days[1]), parseInt(days[2]), parseInt(hours[0]), parseInt(hours[1]), parseInt(hours[2])),
                     createdAt: msg.date,
                     user: {
                         _id: parseInt(msg.author_id[0]),
                         name: msg.author_id[1],
-                        ...(partner_image && {avatar: `data:image/png;base64,${partner_image}`}),
+                        ...((parseInt(msg.author_id[0]) !== this.props.user.partner_id && partner_image) && {avatar: `data:image/png;base64,${partner_image}`}),
                     }
                 }
                 
+                last_msg = msg.id
+
                 messages.push(message);
+                ids_msgs.push(parseInt(msg.id))
             
             }
 
             await this.setState({
-                messages: messages
+                messages: [...this.state.messages, ...messages],
+                messages_ids: [...this.state.messages_ids, ...ids_msgs],
+                last_message: last_msg
             })
 
         }
+
+        this.setState({
+            loading: false
+        })
+
+    }
+
+    async getNewMessages(){
+
+        console.log('retrieving new messages...')
+
+        const params = {
+            kwargs: {
+                context: this.props.odoo.context,
+            },
+            model: 'mail.channel',
+            method: 'channel_fetch_message',
+            args: [
+                this.state.channel.id,
+                last_id = false,
+                limit = 4
+            ]
+        };
+
+        const response = await this.props.odoo.rpc_call(
+            '/web/dataset/call_kw',
+            params
+        );
+        
+        if (response.success){
+
+            let messages = [];
+            let ids_msgs = [];
+            let last_msg = {};
+
+            const regex = /(<([^>]+)>)/ig;
+
+            const size = response.data.length;
+            for (let i = 0; i < size; i++) {
+
+                let msg = response.data[i];
+
+                if (!this.state.messages_ids.includes(parseInt(msg.id))){
+
+                    let partner_image = await this.getPartnerImage(msg.author_id[0]);
+
+                    let message = {
+                        _id: parseInt(msg.id),
+                        text: msg.body.replace(regex, ''),
+                        createdAt: msg.date,
+                        user: {
+                            _id: parseInt(msg.author_id[0]),
+                            name: msg.author_id[1],
+                            ...((parseInt(msg.author_id[0]) !== this.props.user.partner_id && partner_image) && {avatar: `data:image/png;base64,${partner_image}`}),
+                        }
+                    }
+                    
+                    last_msg = msg.id
+
+                    messages.push(message);
+                    ids_msgs.push(parseInt(msg.id))
+                
+                }
+            
+            }
+
+            await this.setState({
+                messages: [...messages, ...this.state.messages],
+                messages_ids: [...ids_msgs, ...this.state.messages_ids],
+                last_message: last_msg
+            })
+
+        }
+
     }
 
     async sendMessage(messages){
         //def message_post(self, body='', subject=None, message_type='notification', subtype=None, parent_id=False, attachments=None, content_subtype='html', **kwargs):
-        console.log(messages);
+        
+        //console.log(messages);
 
         let text = messages[0].text;
         
@@ -179,15 +271,17 @@ class ConcreteChat extends Component {
         if (response.success){
             console.log(response)
         } else{
-            console.log(response)
+            console.log('error')
         }
+
+        //setTimeout(async () => { await this.getNewMessages() }, 2000);
     }
 
-    onSend(messages = []) {
+    /*onSend(messages = []) {
         this.setState(previousState => ({
             messages: GiftedChat.append(previousState.messages, messages)
         }));
-    }
+    }*/
 
     renderBubble (props) {
         return (
@@ -206,10 +300,43 @@ class ConcreteChat extends Component {
             />
         )
     }
+
+    renderLoad(){
+
+        return(
+            <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+                <Ionicons
+                    name="md-add-circle-outline"
+                    size={37}
+                    color={colors.gradient1}
+                    onPress = {async () => this.getLastMessages()}
+                />
+                <Text style={{color: colors.gradient1}}>
+                    Mostrar mensagens antigas
+                </Text>
+            </View>
+        );
+    }
     
     render() {
         return (
             <View style={{flex: 1}}>
+
+                {this.state.loading &&
+                    <View opacity={0.1} style={{
+                        position: 'absolute',
+                        left: 0,
+                        right: 0,
+                        top: 0,
+                        bottom: 0,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        backgroundColor: colors.gradient1
+                    }}>
+                        <ActivityIndicator size='large' color='black' />
+                    </View>
+                }
+
                 <GiftedChat
                     messages={this.state.messages}
                     onSend={messages => this.sendMessage(messages)}
@@ -218,8 +345,12 @@ class ConcreteChat extends Component {
                     }}
                     placeholder='Escreva uma mensagem...'
                     renderBubble={this.renderBubble}
+                    loadEarlier
+                    renderLoadEarlier={this.renderLoad.bind(this)}
                 />
+
                 {Platform.OS === 'android' ? <KeyboardSpacer /> : null }
+
             </View>
         );
     }
