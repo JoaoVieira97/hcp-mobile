@@ -198,7 +198,6 @@ class ConcreteChat extends Component {
 
             let messages = [];
             let ids_msgs = [];
-            let last_msg = {};
 
             const regex = /(<([^>]+)>)/ig;
 
@@ -221,8 +220,6 @@ class ConcreteChat extends Component {
                             ...((parseInt(msg.author_id[0]) !== this.props.user.partner_id && partner_image) && {avatar: `data:image/png;base64,${partner_image}`}),
                         }
                     }
-                    
-                    last_msg = msg.id
 
                     messages.push(message);
                     ids_msgs.push(parseInt(msg.id))
@@ -234,7 +231,6 @@ class ConcreteChat extends Component {
             await this.setState({
                 messages: [...messages, ...this.state.messages],
                 messages_ids: [...ids_msgs, ...this.state.messages_ids],
-                last_message: last_msg
             })
 
         }
