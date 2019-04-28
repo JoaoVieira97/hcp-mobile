@@ -21,3 +21,10 @@ export function setUserGroups(groups) {
         groups: groups
     }
 }
+
+export function setPartnerId(partner_id) {
+    return {
+        type: 'SET_USER_PARTNER_ID',
+        partner_id: partner_id,
+    }
+}

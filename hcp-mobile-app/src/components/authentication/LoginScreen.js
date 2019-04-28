@@ -277,7 +277,7 @@ class LoginScreen extends React.Component {
 
             // Odoo connection parameters
             const odoo = new Odoo({
-                host: HOST,
+                host: '192.168.1.79',
                 port: PORT,
                 database: DATABASE,
                 username: this.state.username,

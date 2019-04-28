@@ -6,6 +6,7 @@ const INITIAL_STATE = {
     name: {},
     image: {},
     groups: [],
+    partner_id: {}
 };
 
 // take the previous state and an action, and return the next state
@@ -29,6 +30,12 @@ export default function userReducer (state = INITIAL_STATE, action) {
             return {
                 ...state,
                 groups: action.groups
+            };
+
+        case 'SET_USER_PARTNER_ID':
+            return {
+                ...state,
+                partner_id: action.partner_id
             };
 
         default:

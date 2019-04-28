@@ -14,6 +14,7 @@ import {
 
 import {connect} from 'react-redux';
 
+import _ from 'lodash';
 
 class ChannelsScreen extends Component {
 
@@ -21,14 +22,16 @@ class ChannelsScreen extends Component {
         super(props);
         this.state = {
             channels: [],
+            filteredChannels: [],
             isLoading: true,
             isRefreshing: false,
+            filter: '',
         }
     }
 
     async componentDidMount() {
         
-        this.getChannels();
+        await this.getChannels();
 
     }
 
@@ -54,10 +57,14 @@ class ChannelsScreen extends Component {
 
             const regex = /(<([^>]+)>)/ig;
 
+            let full_date = aux.last_message.date;
+            let date = full_date.split(' ');
+            let days = date[0].split('-');
+
             const msg = {
                 body: aux.last_message.body.replace(regex, ''),
                 author: aux.last_message.author_id[1],
-                date: aux.last_message.date
+                date: days[2] + '-' + days[1] + '-' + days[0] + ' ' + date[1]
             };
 
             return msg
@@ -69,9 +76,9 @@ class ChannelsScreen extends Component {
         }
     }
 
-    getChannels(){
+    async getChannels(){
         
-        var params = {
+        let params = {
             domain: [
                 ['id', '>=', '0'],
             ],
@@ -83,58 +90,53 @@ class ChannelsScreen extends Component {
             ],
         };
 
-        this.props.odoo.search_read('mail.channel', params)
-            .then(response => {
+        let channelsList = [];
+
+        let response = await this.props.odoo.search_read('mail.channel', params);
                 
-                if (response.success){
+        if (response.success){
                     
-                    const size = response.data.length;
-                    for (let i = 0; i < size; i++) {
+            const size = response.data.length;
+            for (let i = 0; i < size; i++) {
 
-                        const aux = response.data[i];
+                let aux = response.data[i];
 
-                        this.getLastMessage(parseInt(aux.id))
-                            .then(last_message => {
+                let last_message = await this.getLastMessage(parseInt(aux.id));
+                
+                let channel = {
+                    id: aux.id,
+                    name: '#' + aux.display_name,
+                    description: aux.description,
+                    image: aux.image,
+                    last_message: last_message
+                };
 
-                                const channel = {
-                                    'id': aux.id,
-                                    'name': aux.display_name,
-                                    'description': aux.description,
-                                    'image': aux.image,
-                                    'last_message': last_message
-                                };
-        
-                                this.setState({
-                                    channels: [...this.state.channels, channel]
-                                })
+                channelsList.push(channel);
 
-                        })
-                    
-                    }
+            }
 
-                }
+            await this.setState({
+                channels: channelsList,
+                filteredChannels: channelsList,
+                isLoading: false,
+                isRefreshing: false
+            });
 
-            }).then(() => {
-                console.log(this.state.channels)
-            }).then(() => {
-                this.setState({
-                    isLoading: false,
-                    isRefreshing: false
-                });
-            })
+        }
+
     }
 
     renderItem = ({ item }) => {
 
         return (
             <ListItem
-                title={'#' + item.name}
+                title={item.name}
                 titleStyle={{fontWeight: 'bold'}}
                 subtitle={item.last_message.author + ':' + item.last_message.body + '\n(' + item.last_message.date + ')'}
                 leftAvatar={this.channelImage(item.image)}
                 chevron
                 onPress={() => (
-                    this.props.navigation.navigate('ChannelScreen',{item})
+                    this.props.navigation.navigate('ConcreteChat',{item})
                 )}
             />
         );
@@ -179,6 +181,31 @@ class ChannelsScreen extends Component {
         }}/>
     );
 
+    handleSearchClear = () => {
+
+        this.setState({
+            filter: '',
+            filteredChannels: this.state.channels
+        });
+        
+    };
+
+    contains = ({name}, text) => {
+
+        // case insensitive
+        return name.toUpperCase().includes(text.toUpperCase());
+    };
+
+    handleSearch = (text) => {
+        const data = _.filter(this.state.channels, channel => {
+            return this.contains(channel, text);
+        });
+        this.setState({
+            filter: text,
+            filteredChannels: data
+        });
+    };
+
     renderHeader = () => (
         <SearchBar
             placeholder={"Pesquisar por nome"}
@@ -186,7 +213,7 @@ class ChannelsScreen extends Component {
             round
             onClear={this.handleSearchClear}
             onChangeText={this.handleSearch}
-            value={this.state.searchText}
+            value={this.state.filter}
         />
     );
 
@@ -213,11 +240,12 @@ class ChannelsScreen extends Component {
     handleRefresh = () => {
         this.setState({
             channels: [],
+            filteredChannels: [],
             isRefreshing: true,
             isLoading: false
         },
-        () => {
-            this.getChannels()
+        async () => {
+            await this.getChannels()
         });
     };
 
@@ -227,7 +255,7 @@ class ChannelsScreen extends Component {
             <View>
                 <FlatList
                     keyExtractor={item => item.id}
-                    data={this.state.channels}
+                    data={this.state.filteredChannels}
                     renderItem={this.renderItem}
                     ItemSeparatorComponent={this.renderSeparator}
                     ListHeaderComponent={this.renderHeader}
