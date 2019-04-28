@@ -112,7 +112,11 @@ const userAvatar = (
         backgroundColor: '#fff',
         justifyContent: 'center', alignItems: 'center',
     }}>
-        <Avatar.Image size={30} source={require('../../../assets/user-account.png')} />
+        <Avatar.Image
+            size={30}
+            color={'#fff'}
+            style={{backgroundColor: '#fff'}}
+            source={require('../../../assets/user-account.png')} />
     </View>
 );
 

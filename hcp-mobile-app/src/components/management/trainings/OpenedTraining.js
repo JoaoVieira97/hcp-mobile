@@ -366,7 +366,7 @@ class OpenedTraining extends React.Component {
                 <Text style={{color: '#fff', fontWeight: '700', fontSize: 15}}>
                     FECHAR CONVOCATÓRIA
                 </Text>
-                <Text style={{color: '#dedede', fontWeight: '400'}}>
+                <Text style={{color: '#dedede', fontWeight: '400', textAlign: 'center'}}>
                     Serão registadas as presenças dos atletas disponíveis.
                 </Text>
             </TouchableOpacity>

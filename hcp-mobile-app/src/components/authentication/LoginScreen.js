@@ -14,7 +14,7 @@ import {
     TouchableWithoutFeedback
 } from 'react-native';
 
-import {Button, TextInput, DefaultTheme} from 'react-native-paper';
+import {Button, TextInput, DefaultTheme, Card, Title, Paragraph, Avatar} from 'react-native-paper';
 import {MaterialIcons} from "@expo/vector-icons";
 import Odoo from 'react-native-odoo-promise-based';
 import { HOST, PORT, DATABASE } from 'react-native-dotenv';
@@ -33,6 +33,8 @@ class LoginScreen extends React.Component {
         this.state = {
             username: "",
             password: "",
+            isUsernameDisabled: false,
+            isPasswordDisabled: false,
             usernameError: false,
             passwordError: false,
             isLoading: false,
@@ -84,7 +86,6 @@ class LoginScreen extends React.Component {
 
     /**
      * User authentication and validation.
-     *
      * @returns {Promise<boolean>}
      */
     authentication = async () => {
@@ -287,9 +288,19 @@ class LoginScreen extends React.Component {
             await this.props.setOdooInstance(odoo);
 
             // Authentication
-            this.setState({isLoading: true, isLoginDisabled: true});
+            this.setState({
+                isLoading: true,
+                isLoginDisabled: true,
+                isUsernameDisabled: true,
+                isPasswordDisabled: true
+            });
             const loginResponse = await this.authentication();
-            this.setState({isLoading: false, isLoginDisabled: false});
+            this.setState({
+                isLoading: false,
+                isLoginDisabled: false,
+                isUsernameDisabled: false,
+                isPasswordDisabled: false
+            });
 
             if(loginResponse) {
 
@@ -321,7 +332,7 @@ class LoginScreen extends React.Component {
             <KeyboardAvoidingView style={styles.container} behavior="padding" enabled>
                 <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
                     <View style={styles.innerContainer}>
-                        <StatusBar barStyle="light-content" backgroundColor={'#808e95'}/>
+                        <StatusBar barStyle="light-content" backgroundColor={colors.grayColor}/>
                         <Animated.Image
                             source={Logo}
                             style={[styles.logo, { height: this.imageHeight }]}
@@ -334,10 +345,11 @@ class LoginScreen extends React.Component {
                             label={'E-mail'}
                             value={this.state.username}
                             error={this.state.usernameError}
+                            disabled={this.state.isUsernameDisabled}
                             theme={{ colors: {
-                                ...DefaultTheme.colors,
-                                primary: colors.blueText,
-                            }}}
+                                    ...DefaultTheme.colors,
+                                    primary: colors.blueText,
+                                }}}
                             autoCapitalize={'none'}
                             autoComplete={'email'}
                             keyboardType={'email-address'}
@@ -351,16 +363,19 @@ class LoginScreen extends React.Component {
                                 label={'Palavra-passe'}
                                 value={this.state.password}
                                 error={this.state.passwordError}
+                                disabled={this.state.isPasswordDisabled}
                                 secureTextEntry={this.state.hidePassword}
                                 theme={{ colors: {
-                                    ...DefaultTheme.colors,
-                                    primary: colors.blueText,
-                                }}}
+                                        ...DefaultTheme.colors,
+                                        primary: colors.blueText,
+                                    }}}
                                 autoCapitalize={'none'}
                             />
                             <TouchableOpacity
                                 style={styles.icon}
-                                onPress={this.handleShowPassword.bind(this)}>
+                                onPress={this.handleShowPassword.bind(this)}
+                                disabled={this.state.isPasswordDisabled}
+                            >
                                 <MaterialIcons
                                     name={this.state.hidePassword ? "visibility-off" : "visibility"}
                                     size={20}
@@ -368,7 +383,7 @@ class LoginScreen extends React.Component {
                             </TouchableOpacity>
                         </View>
                         <Button
-                            color={'#808d94'}
+                            color={colors.redColor}
                             mode="contained"
                             contentStyle={styles.loginButtonInside}
                             style={styles.loginButtonOutside}
@@ -394,11 +409,13 @@ const IMAGE_HEIGHT_SMALL = window.width / 4;
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#b0bec5',
+        backgroundColor: colors.grayColor,
         justifyContent: 'center'
     },
     innerContainer: {
+        //flex: 1,
         alignItems: 'center',
+        paddingHorizontal: 20
     },
     logo: {
         height: IMAGE_HEIGHT,
@@ -408,12 +425,18 @@ const styles = StyleSheet.create({
     input: {
         marginBottom: 10,
         width: window.width - padding,
-        backgroundColor: 'transparent'
+        backgroundColor: 'transparent',
+        zIndex: 100
     },
     icon: {
         position: 'absolute',
-        top: 30,
-        right: 5
+        top: 20,
+        right: 5,
+        zIndex: 200,
+        width: 40,
+        height: 35,
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     loginButtonInside: {
         height: 50,
