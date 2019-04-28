@@ -400,11 +400,13 @@ class ProfileScreen extends Component {
                         <View style={styles.buttonContent}>
                             <Button
                                 icon="lock"
-                                //dark
                                 color={'#fff'}
                                 mode="contained"
                                 contentStyle={{height: 55}}
-                                onPress={() => this.props.navigation.navigate('ResetPassword')}
+                                onPress={() => {
+                                    this.props.navigation.navigate('ResetPassword');
+                                    this.setState({'isEditActive': false});
+                                }}
                             >
                                 Redifinir palavra-passe
                             </Button>

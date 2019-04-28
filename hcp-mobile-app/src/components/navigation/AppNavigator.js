@@ -281,7 +281,6 @@ const ManagementNavigator = createMaterialTopTabNavigator({
     }
 });
 
-
 // MANAGEMENT STACK
 const ManagementStackNavigator = createStackNavigator({
     ManagementNavigator: {screen: ManagementNavigator},
@@ -329,7 +328,7 @@ const ManagementStackNavigator = createStackNavigator({
     }
 });
 
-// PROFILE STACK
+// ATHLETES STACK
 const AthletesStackNavigator = createStackNavigator({
     EchelonsScreen: {screen: EchelonsScreen},
     AthletesScreen: {screen: AthletesScreen},
@@ -346,7 +345,7 @@ const AthletesStackNavigator = createStackNavigator({
             headerTitle:
                 <CustomText
                     type={'bold'}
-                    children={'ESCALÕES'}
+                    children={'ATLETAS'}
                     style={{
                         color: '#ffffff',
                         fontSize: 16
@@ -377,7 +376,6 @@ const AthletesStackNavigator = createStackNavigator({
         }
     }
 });
-
 
 // PROFILE STACK
 const ProfileStackNavigator = createStackNavigator({
@@ -605,7 +603,7 @@ const AppDrawerNavigator = createDrawerNavigator({
         })
     }
 }, {
-    initialRouteName: 'ChatStack',
+    initialRouteName: 'HomeStack',
     order: ['HomeStack', 'CalendarStack', 'ManagementStack', 'AthletesStack', 'ProfileStack', 'ChatStack'],
     drawerWidth: WIDTH*0.7,
     contentComponent: CustomDrawerContentComponent,

@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
 
-import {View, FlatList, ActivityIndicator, Alert, TouchableOpacity, StyleSheet} from 'react-native';
-import {ListItem, Avatar, Badge, SearchBar, Icon} from 'react-native-elements';
+import {View, FlatList, ActivityIndicator, TouchableOpacity, StyleSheet} from 'react-native';
+import {ListItem, Avatar, Badge, SearchBar} from 'react-native-elements';
 import {connect} from 'react-redux';
 import {Ionicons} from "@expo/vector-icons";
 import _ from 'lodash';
@@ -14,8 +14,8 @@ class AthletesScreen extends Component {
         super(props);
 
         this.state = {
-            echelon:{},
-            position:'',
+            echelon: {},
+            position: '',
             data: [],
             fullData: [],
             isLoading: true,
@@ -30,21 +30,18 @@ class AthletesScreen extends Component {
             echelon: this.props.navigation.getParam('echelon'),
         });
 
-        console.log(this.state.echelon);
-
-        await this.getAthletesByEchelon(this.state.echelon.id);
+        await this.getAthletes();
     }
 
     /**
-     * Define header navigation options.
+     * Define navigation properties.
+     * @param navigation
      */
-
     static navigationOptions = ({navigation}) => ({
-        //transitionConfig: () => fromBottom(600),
         headerTitle: //'Atletas',
             <CustomText
                 type={'bold'}
-                children={'ATLETAS'}
+                children={_.upperCase(navigation.state.params.echelon.denomination)}
                 style={{
                     color: '#ffffff',
                     fontSize: 16
@@ -64,65 +61,50 @@ class AthletesScreen extends Component {
             </TouchableOpacity>
     });
 
-    async getAthletesByEchelon(echelonId) {
+    /**
+     * Get athletes of current echelon.
+     * @returns {Promise<void>}
+     */
+    async getAthletes() {
 
         const params = {
-            domain: [
-                ['id', '>=', '0'],
-
-            ],
             fields: ['id', 'user_id', 'display_name', 'image', 'escalao', 'numerocamisola', 'posicao'],
-
+            domain: [['escalao', '=', this.state.echelon.id]],
             order:  'posicao DESC, numerocamisola ASC',
         };
 
-        await this.props.odoo.search_read('ges.atleta', params)
-            .then(async response => {
+        const response = await this.props.odoo.search_read('ges.atleta', params);
+        if (response.success) {
 
-                if (response.success) {
-                    const size = response.data.length;
-                    for (let i = 0; i < size; i++) {
+            let athletes = [];
+            const size = response.data.length;
+            for (let i = 0; i < size; i++) {
 
-                        const aux = response.data[i];
-                        if (aux.escalao[0] === echelonId) {
+                const athleteInfo = response.data[i];
 
-                            const athlete = {
-                                'name': aux.display_name,
-                                'image': aux.image,
-                                'squad_number': aux.numerocamisola,
-                                'echelon': this.state.echelon.denomination,
-                                'user_id': aux.user_id[0],
-                                'position': aux.posicao,
-                            };
+                const athlete = {
+                    'id': athleteInfo.id,
+                    'name': athleteInfo.display_name,
+                    'image': athleteInfo.image,
+                    'squad_number': athleteInfo.numerocamisola,
+                    'echelon': this.state.echelon.denomination,
+                    'user_id': athleteInfo.user_id[0],
+                    'position': athleteInfo.posicao,
+                };
 
-                            this.setState(state => {
+                athletes.push(athlete);
+            }
 
-                                const data = [...state.data, athlete];
-
-                                return {
-                                    data
-                                }
-                            }, () => {
-                                this.setState({
-                                    fullData: this.state.data
-                                });
-                            });
-                        }
-                    }
-                }
-            })
-            .then(() => {
-                this.setState({
-                    isLoading: false,
-                    isRefreshing: false
-                });
-            })
-            .catch(error => {
-                this.setState({
-                    isLoading: false,
-                    isRefreshing: false
-                });
+            this.setState({
+                data: athletes,
+                fullData: athletes
             });
+        }
+
+        this.setState({
+            isLoading: false,
+            isRefreshing: false
+        });
     }
 
     leftAvatar = (img, squad_number) => {
@@ -154,7 +136,6 @@ class AthletesScreen extends Component {
                 {avatar}
                 <Badge
                     value={squad_number}
-                    status="primary"
                     badgeStyle={{backgroundColor: '#000' }}
                     containerStyle={{ position: 'absolute', bottom: -4, right: -4 }}
                 />
@@ -206,9 +187,7 @@ class AthletesScreen extends Component {
                 subtitle={item.echelon}
                 leftElement={this.renderPosition(item)}
                 leftAvatar={this.leftAvatar(item.image, item.squad_number.toString())}
-                chevron={() => (
-                    <Ionicons name="ios-arrow-up" color={'#c7c7c7'} size={13}/>
-                )}
+                chevron={true}
                 onPress={() => (
                     this.props.navigation.navigate('AthleteScreen', {athlete: item})
                 )}
@@ -253,20 +232,19 @@ class AthletesScreen extends Component {
 
     renderFooter = () => {
 
-        if(!this.state.isLoading) {
-            return null;
-        }
-
         return (
             <View style={{
                 paddingVertical: 20,
                 borderTopWidth: 1,
                 borderTopColor: '#ced0ce'
             }}>
-                <ActivityIndicator
-                    size={'large'}
-                    color={'#ced0ce'}
-                />
+                {
+                    this.state.isLoading &&
+                    <ActivityIndicator
+                        size={'large'}
+                        color={'#ced0ce'}
+                    />
+                }
             </View>
         );
     };
@@ -285,8 +263,8 @@ class AthletesScreen extends Component {
             isRefreshing: true,
             isLoading: false
         },
-        () => {
-            this.getAthletesByEchelon(this.state.echelon.id)
+        async () => {
+            await this.getAthletes();
         });
     };
 
@@ -294,7 +272,7 @@ class AthletesScreen extends Component {
 
         return (
             <FlatList
-                keyExtractor={item => item.name}
+                keyExtractor={item => item.id + item.name}
                 data={this.state.data}
                 renderItem={this.renderItem}
                 ItemSeparatorComponent={this.renderSeparator}
@@ -302,8 +280,6 @@ class AthletesScreen extends Component {
                 ListFooterComponent={this.renderFooter}
                 refreshing={this.state.isRefreshing}
                 onRefresh={this.handleRefresh}
-                //onEndReached={this.handleLoadMore}
-                //onEndReachedThreshold={0.15}
             />
         );
     }

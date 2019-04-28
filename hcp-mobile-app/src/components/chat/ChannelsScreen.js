@@ -1,138 +1,172 @@
 import React, {Component} from 'react';
-
 import {
     View,
     FlatList,
-    ActivityIndicator
+    ActivityIndicator, StyleSheet, Text, Alert
 } from 'react-native';
-
 import {
     ListItem,
     Avatar,
     SearchBar
 } from 'react-native-elements';
-
+import { FAB } from 'react-native-paper';
 import {connect} from 'react-redux';
-
 import _ from 'lodash';
+import {colors} from "../../styles/index.style";
+
 
 class ChannelsScreen extends Component {
 
     constructor(props) {
+
         super(props);
+
         this.state = {
             channels: [],
             filteredChannels: [],
             isLoading: true,
             isRefreshing: false,
             filter: '',
-        }
+        };
     }
 
     async componentDidMount() {
         
         await this.getChannels();
-
     }
 
-    async getLastMessage(channel_id){
-        
-        const params = {
-            kwargs: {
-                context: this.props.odoo.context,
-            },
-            model: 'mail.channel',
-            method: 'channel_fetch_preview',
-            args: [channel_id]
-        };
-
-        const response = await this.props.odoo.rpc_call(
-            '/web/dataset/call_kw',
-            params
-        );
-
-        if (response.success){
-            
-            const aux = response.data[0];
-
-            const regex = /(<([^>]+)>)/ig;
-
-            let full_date = aux.last_message.date;
-            let date = full_date.split(' ');
-            let days = date[0].split('-');
-
-            const msg = {
-                body: aux.last_message.body.replace(regex, ''),
-                author: aux.last_message.author_id[1],
-                date: days[2] + '-' + days[1] + '-' + days[0] + ' ' + date[1]
-            };
-
-            return msg
-        
-        } else{
-            
-            return {}
-        
-        }
-    }
-
+    /**
+     * Get available channels.
+     * @returns {Promise<void>}
+     */
     async getChannels(){
-        
-        let params = {
-            domain: [
-                ['id', '>=', '0'],
-            ],
+
+        const params = {
             fields: [
                 'id',
                 'display_name',
                 'description',
                 'image'
             ],
+            order:  'display_name ASC',
         };
 
-        let channelsList = [];
+        const response = await this.props.odoo.search_read('mail.channel', params);
+        if (response.success && response.data.length > 0) {
 
-        let response = await this.props.odoo.search_read('mail.channel', params);
-                
-        if (response.success){
-                    
+            let channelsList = [];
             const size = response.data.length;
+
+            // Parsing channels and get last message for each one
             for (let i = 0; i < size; i++) {
 
-                let aux = response.data[i];
+                const channelInfo = response.data[i];
 
-                let last_message = await this.getLastMessage(parseInt(aux.id));
-                
-                let channel = {
-                    id: aux.id,
-                    name: '#' + aux.display_name,
-                    description: aux.description,
-                    image: aux.image,
-                    last_message: last_message
+                const lastMessage = await this.getLastMessage(channelInfo.id);
+                const channel = {
+                    id: channelInfo.id,
+                    name: '#' + channelInfo.display_name,
+                    description: channelInfo.description,
+                    image: channelInfo.image,
+                    lastMessage: lastMessage
                 };
-
                 channelsList.push(channel);
-
             }
 
-            await this.setState({
+            this.setState({
                 channels: channelsList,
                 filteredChannels: channelsList,
-                isLoading: false,
-                isRefreshing: false
             });
-
         }
 
+        this.setState({
+            isLoading: false,
+            isRefreshing: false
+        });
     }
 
+    /**
+     * Get last message for a specific channel.
+     * @param id
+     */
+    async getLastMessage(id) {
+
+        const params = {
+            kwargs: {
+                context: this.props.odoo.context,
+                //fields: ['id', 'last_message'],
+            },
+            model: 'mail.channel',
+            method: 'channel_fetch_preview',
+            args: [id],
+        };
+
+        const response = await this.props.odoo.rpc_call('/web/dataset/call_kw', params);
+        if (response.success && response.data.length > 0) {
+
+            const messageInfo = response.data[0];
+
+            const dateHour = messageInfo.last_message.date.split(' ');
+            const date =
+                dateHour[0].slice(8,10) + '/' +
+                dateHour[0].slice(5,7) + '/' +
+                dateHour[0].slice(0,4);
+            const hour = dateHour[1].slice(0,5) + 'h';
+
+            return {
+                author: messageInfo.last_message.author_id[1],
+                timestamp: '(' + date + ' às ' + hour + ')',
+                body: messageInfo.last_message.body.slice(3, messageInfo.last_message.body.length - 4)
+            };
+
+        } else
+            return null;
+    }
+
+    /**
+     * Render item in list.
+     * @param item
+     * @returns {*}
+     */
     renderItem = ({ item }) => {
+
+        let subtitle;
+        if (item.lastMessage)
+            subtitle = (
+                <View  style={{flex: 1, flexDirection: 'column'}}>
+                    <View style={{flex: 1, flexDirection: 'row'}}>
+                        <Text style={{color: colors.darkGrayColor}}>
+                            {item.lastMessage.author + ': '}
+                        </Text>
+                        <Text
+                            ellipsizeMode='tail' numberOfLines={1}
+                            style={{flex: 1, color: colors.darkGrayColor, fontStyle: 'italic'}}>
+                            {item.lastMessage.body}
+                        </Text>
+                    </View>
+                    <Text
+                        ellipsizeMode='tail' numberOfLines={1}
+                        style={{flex: 1, color: colors.darkGrayColor}}>
+                        {item.lastMessage.timestamp}
+                    </Text>
+                </View>
+            );
+        else
+            subtitle = (
+                <View  style={{flex: 1, flexDirection: 'column'}}>
+                    <View style={{flex: 1, flexDirection: 'row'}}>
+                        <Text style={{color: colors.darkGrayColor}}>
+                            {"Sem mensagens..."}
+                        </Text>
+                    </View>
+                </View>
+            );
 
         return (
             <ListItem
                 title={item.name}
                 titleStyle={{fontWeight: 'bold'}}
-                subtitle={item.last_message.author + ':' + item.last_message.body + '\n(' + item.last_message.date + ')'}
+                subtitle={subtitle}
                 leftAvatar={this.channelImage(item.image)}
                 chevron
                 onPress={() => (
@@ -176,7 +210,7 @@ class ChannelsScreen extends Component {
     renderSeparator = () => (
         <View style={{
             height: 1,
-            width: '95%',
+            width: '100%',
             backgroundColor: '#ced0ce',
         }}/>
     );
@@ -219,20 +253,19 @@ class ChannelsScreen extends Component {
 
     renderFooter = () => {
 
-        if(!this.state.isLoading) {
-            return null;
-        }
-
         return (
             <View style={{
                 paddingVertical: 20,
                 borderTopWidth: 1,
                 borderTopColor: '#ced0ce'
             }}>
-                <ActivityIndicator
-                    size={'large'}
-                    color={'#ced0ce'}
-                />
+                {
+                    this.state.isLoading &&
+                    <ActivityIndicator
+                        size={'large'}
+                        color={'#ced0ce'}
+                    />
+                }
             </View>
         );
     };
@@ -250,11 +283,10 @@ class ChannelsScreen extends Component {
     };
 
     render() {
-
         return (
-            <View>
+            <View style={styles.container}>
                 <FlatList
-                    keyExtractor={item => item.id}
+                    keyExtractor={item => item.id + item.name}
                     data={this.state.filteredChannels}
                     renderItem={this.renderItem}
                     ItemSeparatorComponent={this.renderSeparator}
@@ -263,10 +295,30 @@ class ChannelsScreen extends Component {
                     refreshing={this.state.isRefreshing}
                     onRefresh={this.handleRefresh}
                 />
+                <FAB
+                    //small
+                    color={'#fff'}
+                    style={styles.fab}
+                    icon="add"
+                    onPress={() => Alert.alert("TODO", "TODO")}
+                />
             </View>
         );
     }
 }
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1
+    },
+    fab: {
+        position: 'absolute',
+        margin: 25,
+        right: 0,
+        bottom: 0,
+        backgroundColor: colors.redColor
+    },
+});
 
 const mapStateToProps = state => ({
     odoo: state.odoo.odoo,

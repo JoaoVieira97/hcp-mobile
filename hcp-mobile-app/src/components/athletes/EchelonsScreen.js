@@ -23,6 +23,10 @@ class EchelonsScreen extends Component {
         await this.getEchelons();
     }
 
+    /**
+     * Get all echelons.
+     * @returns {Promise<void>}
+     */
     async getEchelons() {
 
         const params = {
