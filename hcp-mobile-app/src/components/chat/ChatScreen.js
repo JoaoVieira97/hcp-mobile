@@ -122,13 +122,171 @@ class ChatScreen extends Component {
             });
     }
 
+    async createChannel(){
+        console.log('ok')
+
+        let channel = {
+            channel_partner_ids: [(4, 101), (4, 29)],
+            public: 'public',
+            channel_type: 'chat',
+            email_send: false,
+            name: 'channelTesting'
+        }
+
+        const params = {
+            kwargs: {
+                context: this.props.odoo.context,
+            },
+            model: 'mail.channel',
+            method: 'create',
+            args: [ 
+                vals=channel
+            ]
+        };
+
+        const response = await this.props.odoo.rpc_call(
+            '/web/dataset/call_kw',
+            params
+        );
+
+        console.log(response)
+    }
+
+    // Create public channel and invite partners 128 and 30
+    async createPublicChannel(){
+
+        const params = {
+            kwargs: {
+                context: this.props.odoo.context,
+            },
+            model: 'mail.channel',
+            method: 'channel_create',
+            args: [ 
+                name='PUBLIC CHANNEL'
+            ]
+        };
+
+        const response = await this.props.odoo.rpc_call(
+            '/web/dataset/call_kw',
+            params
+        );
+
+        console.log(response)
+
+        if (response.success){
+
+            const channel_id = response.data.id;
+            console.log('channel id = ' + channel_id)
+
+            const params2 = {
+                kwargs: {
+                    context: this.props.odoo.context,
+                },
+                model: 'mail.channel',
+                method: 'channel_invite',
+                args: [ 
+                    channel_id,
+                    partner_ids=[129, 101]
+                ]
+            };
+    
+            const response2 = await this.props.odoo.rpc_call(
+                '/web/dataset/call_kw',
+                params2
+            );
+    
+            console.log(response2)
+        }
+    }
+
+    // create direct message chat with partner 101
+    async getDirectMessage(){
+        
+        const params = {
+            kwargs: {
+                context: this.props.odoo.context,
+            },
+            model: 'mail.channel',
+            method: 'channel_get',
+            args: [ 
+                partners_to=[101]
+            ]
+        };
+
+        const response = await this.props.odoo.rpc_call(
+            '/web/dataset/call_kw',
+            params
+        );
+
+        console.log(response)
+    }
+
+    // Create private channel and invite partners 128 and 30
+    async createPrivateChannel(){
+
+        const params = {
+            kwargs: {
+                context: this.props.odoo.context,
+            },
+            model: 'mail.channel',
+            method: 'channel_create',
+            args: [ 
+                name='PRIVATE CHANNEL',
+                privacy='private'
+            ]
+        };
+
+        const response = await this.props.odoo.rpc_call(
+            '/web/dataset/call_kw',
+            params
+        );
+
+        console.log(response)
+
+        if (response.success){
+
+            const channel_id = response.data.id;
+            console.log('channel id = ' + channel_id)
+
+            const params2 = {
+                kwargs: {
+                    context: this.props.odoo.context,
+                },
+                model: 'mail.channel',
+                method: 'channel_invite',
+                args: [ 
+                    channel_id,
+                    partner_ids=[129, 101]
+                ]
+            };
+    
+            const response2 = await this.props.odoo.rpc_call(
+                '/web/dataset/call_kw',
+                params2
+            );
+    
+            console.log(response2)
+        }
+    }
+
     render() {
 
         return (
             <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
-                <Text style={{fontWeight: '700', fontSize: 20}}>
+                <Text style={{
+                    fontWeight: '700',
+                    color: colors.gradient1,
+                    fontSize: 20
+                }}>
                     CHAT TESTING
                 </Text>
+                <Button
+                    title={'Página de conversas'}
+                    color={colors.gradient1}
+                    onPress={() => this.props.navigation.navigate('ChannelsScreen')}
+                    style={{marginBottom: 20}}
+                />
+                <Text>Channels Info</Text>
                 <Button
                     title={'Obter canais do chat'}
                     color={colors.gradient1}
@@ -153,16 +311,37 @@ class ChatScreen extends Component {
                     onPress={() => this.sendMessage()}
                     style={{marginBottom: 20}}
                 />
-                <Button
-                    title={'Página de conversas'}
-                    color={colors.gradient1}
-                    onPress={() => this.props.navigation.navigate('ChannelsScreen')}
-                    style={{marginBottom: 20}}
-                />
+                {/*
                 <Button
                     title={'Message'}
                     color={colors.gradient1}
                     onPress={() => this.getMessages()}
+                    style={{marginBottom: 20}}
+                />
+                <Button
+                    title={'Create channel'}
+                    color={colors.gradient1}
+                    onPress={() => this.createChannel()}
+                    style={{marginBottom: 20}}
+                />
+                */}
+                <Text>Channels Creation</Text>
+                <Button
+                    title={'Create public channel'}
+                    color={colors.gradient1}
+                    onPress={() => this.createPublicChannel()}
+                    style={{marginBottom: 20}}
+                />
+                <Button
+                    title={'Create direct private chat'}
+                    color={colors.gradient1}
+                    onPress={() => this.getDirectMessage()}
+                    style={{marginBottom: 20}}
+                />
+                <Button
+                    title={'Create private channel'}
+                    color={colors.gradient1}
+                    onPress={() => this.createPrivateChannel()}
                     style={{marginBottom: 20}}
                 />
             </View>

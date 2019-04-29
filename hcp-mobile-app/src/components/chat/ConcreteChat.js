@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 
-import { GiftedChat, Bubble } from "react-native-gifted-chat";
+import { GiftedChat, Bubble, Send } from "react-native-gifted-chat";
 
 import KeyboardSpacer from 'react-native-keyboard-spacer';
 
@@ -313,6 +313,16 @@ class ConcreteChat extends Component {
             </View>
         );
     }
+
+    renderSend(props) {
+        return (
+            <Send
+                {...props} 
+                label={'Enviar'}
+                textStyle={{ color: colors.gradient1 }}
+            />    
+        );
+    }
     
     render() {
         return (
@@ -341,6 +351,7 @@ class ConcreteChat extends Component {
                     }}
                     placeholder='Escreva uma mensagem...'
                     renderBubble={this.renderBubble}
+                    renderSend={this.renderSend}
                     loadEarlier
                     renderLoadEarlier={this.renderLoad.bind(this)}
                 />

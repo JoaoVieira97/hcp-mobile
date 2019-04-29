@@ -113,10 +113,13 @@ class ChannelsScreen extends Component {
                 dateHour[0].slice(0,4);
             const hour = dateHour[1].slice(0,5) + 'h';
 
+            const regex = /(<([^>]+)>)/ig;
+
             return {
                 author: messageInfo.last_message.author_id[1],
                 timestamp: '(' + date + ' às ' + hour + ')',
-                body: messageInfo.last_message.body.slice(3, messageInfo.last_message.body.length - 4)
+                //body: messageInfo.last_message.body.slice(3, messageInfo.last_message.body.length - 4)
+                body: messageInfo.last_message.body.replace(regex, '')
             };
 
         } else
