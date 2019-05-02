@@ -9,7 +9,7 @@ import Odoo from 'react-native-odoo-promise-based';
 import {connect} from 'react-redux';
 import {setOdooInstance} from "../../redux/actions/odoo";
 import {setUserData, setUserImage, setUserGroups, setPartnerId} from "../../redux/actions/user";
-import {HOST, PORT, DATABASE} from 'react-native-dotenv';
+import { HOST, PORT, DATABASE } from 'react-native-dotenv';
 
 import Loader from '../screens/Loader';
 

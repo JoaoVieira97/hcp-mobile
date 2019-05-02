@@ -45,6 +45,8 @@ import ChannelsScreen from "../chat/ChannelsScreen";
 import ChannelScreen from "../chat/ChannelScreen";
 import ConcreteChat from "../chat/ConcreteChat";
 import EchelonsScreen from "../athletes/EchelonsScreen";
+import TrainingInvitations from "../invitations/trainings/TrainingInvitations";
+import GameInvitations from "../invitations/games/GameInvitations";
 
 const styles = StyleSheet.create({
     container: {
@@ -233,6 +235,72 @@ const CalendarStackNavigator = createStackNavigator({
                     style={{
                         color: '#ffffff',
                         
+                        fontSize: 16
+                    }}
+                />,
+            headerBackground: (
+                <LinearGradient
+                    colors={[colors.gradient1, colors.gradient2]}
+                    style={{ flex: 1 }}
+                    start={[0, 0]}
+                    end={[0.8, 0]}
+                />
+            ),
+
+            headerLeft: (
+                <TouchableOpacity style={{
+                    width:42,
+                    height:42,
+                    alignItems:'center',
+                    justifyContent:'center',
+                    marginLeft: 10}} onPress = {() => navigation.openDrawer()}>
+                    <Ionicons
+                        name="md-menu"
+                        size={30}
+                        color={'#ffffff'}/>
+                </TouchableOpacity>
+            )
+        }
+    }
+});
+
+
+// INVITATIONS NAVIGATOR
+const InvitationsNavigator = createMaterialTopTabNavigator({
+    TrainingInvitations: { screen: TrainingInvitations },
+    GameInvitations: { screen: GameInvitations },
+}, {
+    initialRouteName: 'TrainingInvitations',
+    order: ['TrainingInvitations', 'GameInvitations'],
+    tabBarOptions: {
+        activeTintColor: '#ad2e53',
+        inactiveTintColor: '#5f5f5f',
+        pressColor: '#551726',
+        showIcon: false,
+        style: {
+            backgroundColor: '#debec8',
+            //shadowRadius: 0,
+            //elevation: 0
+        },
+        indicatorStyle: {
+            backgroundColor: '#ad2e53',
+        },
+    }
+});
+
+// INVITATIONS STACK
+const InvitationsStackNavigator = createStackNavigator({
+    InvitationsNavigator: {screen: InvitationsNavigator},
+}, {
+    initialRouteName: 'InvitationsNavigator',
+    defaultNavigationOptions: ({navigation}) => {
+        return {
+            headerTitle:
+                <CustomText
+                    type={'bold'}
+                    children={'CONVOCATÓRIAS'}
+                    style={{
+                        color: '#ffffff',
                         fontSize: 16
                     }}
                 />,
@@ -526,6 +594,26 @@ const AppDrawerNavigator = createDrawerNavigator({
             />
         })
     },
+    InvitationsStack: {
+        screen: InvitationsStackNavigator,
+        navigationOptions: ({
+            drawerLabel:
+                <View style={{marginVertical: 15}}>
+                    <CustomText
+                        type={'bold'}
+                        children={'Convocatórias'}
+                        style={{
+                            fontSize: 16
+                        }}
+                    />
+                </View>,
+            drawerIcon: <Ionicons
+                name="md-clipboard"
+                size={28}
+                color={'#000000'}
+            />
+        })
+    },
     ManagementStack: {
         screen: ManagementStackNavigator,
         navigationOptions: ({
@@ -607,8 +695,8 @@ const AppDrawerNavigator = createDrawerNavigator({
         })
     }
 }, {
-    initialRouteName: 'HomeStack',
-    order: ['HomeStack', 'CalendarStack', 'ManagementStack', 'AthletesStack', 'ProfileStack', 'ChatStack'],
+    initialRouteName: 'InvitationsStack',
+    order: ['HomeStack', 'CalendarStack', 'InvitationsStack' ,'ManagementStack', 'AthletesStack', 'ProfileStack', 'ChatStack'],
     drawerWidth: WIDTH*0.7,
     contentComponent: CustomDrawerContentComponent,
     contentOptions: {
