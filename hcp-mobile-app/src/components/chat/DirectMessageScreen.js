@@ -4,7 +4,8 @@ import {
     FlatList,
     ActivityIndicator,
     StyleSheet,
-    Alert
+    Alert,
+    BackHandler
 } from 'react-native';
 import {
     ListItem,
@@ -45,13 +46,26 @@ class DirectMessageScreen extends Component {
             size={28}
             color={'#ffffff'}
             style={{paddingLeft: 20}}
-            onPress = {() => navigation.goBack()}
+            onPress = {() => {
+                navigation.state.params.onNavigateBack();
+                navigation.goBack()
+            }}
         />
     });
 
     async componentDidMount() {
         
+        BackHandler.addEventListener('hardwareBackPress', () => {
+            this.props.navigation.state.params.onNavigateBack();
+        });
+
         await this.getPartners();
+
+    }
+
+    async componentWillMount(){
+
+        BackHandler.removeEventListener('hardwareBackPress');
 
     }
 
@@ -125,7 +139,10 @@ class DirectMessageScreen extends Component {
                     image: channelInfo.image
                 };
 
-                this.props.navigation.navigate('ConcreteChat',{item})
+                this.props.navigation.navigate('ConcreteChat',{
+                    item,
+                    originChannel: 2
+                })
 
             } else {
 

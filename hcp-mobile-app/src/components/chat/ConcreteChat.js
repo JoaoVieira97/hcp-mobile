@@ -36,9 +36,10 @@ class ConcreteChat extends Component {
     }
 
     static navigationOptions = ({navigation}) => ({
+        
         headerTitle:<CustomText
                 type={'bold'}
-                children={'DETALHES DA CONVERSA'}
+                children={navigation.state.params.title}
                 style={{
                     color: '#ffffff',
                     fontSize: 16
@@ -51,6 +52,7 @@ class ConcreteChat extends Component {
             style={{paddingLeft: 20}}
             onPress = {() => {
                 clearInterval(listener);
+                if (navigation.state.params.originChannel == 1) navigation.state.params.onNavigateBack();
                 navigation.goBack();
             }}
         />
@@ -62,8 +64,13 @@ class ConcreteChat extends Component {
             channel: this.props.navigation.state.params.item
         });
 
+        this.props.navigation.setParams({
+            title: this.state.channel.name
+        });
+
         BackHandler.addEventListener('hardwareBackPress', () => {
             clearInterval(listener);
+            if (this.props.navigation.state.params.originChannel == 1) this.props.navigation.state.params.onNavigateBack();
         });
 
         this.getLastMessages();

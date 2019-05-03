@@ -173,7 +173,11 @@ class ChannelsScreen extends Component {
                 leftAvatar={this.channelImage(item.image)}
                 chevron
                 onPress={() => (
-                    this.props.navigation.navigate('ConcreteChat',{item})
+                    this.props.navigation.navigate('ConcreteChat',{
+                        item,
+                        onNavigateBack: this.handleRefresh,
+                        originChannel: 1
+                    })
                 )}
             />
         );
@@ -304,7 +308,9 @@ class ChannelsScreen extends Component {
                     style={styles.fab}
                     icon="add"
                     onPress={() => (
-                        this.props.navigation.navigate('DirectMessageScreen')
+                        this.props.navigation.navigate('DirectMessageScreen',{
+                            onNavigateBack: this.handleRefresh
+                        })
                     )}
                 />
             </View>
