@@ -13,14 +13,10 @@ import {
     TouchableOpacity,
     TouchableWithoutFeedback
 } from 'react-native';
-
-import {Button, TextInput, DefaultTheme, Card, Title, Paragraph, Avatar} from 'react-native-paper';
+import Authentication from './Authentication';
+import {Button, TextInput, DefaultTheme} from 'react-native-paper';
 import {MaterialIcons} from "@expo/vector-icons";
-import Odoo from 'react-native-odoo-promise-based';
-import {HOST, PORT, DATABASE} from 'react-native-dotenv';
 import {connect} from 'react-redux';
-import {setOdooInstance} from "../../redux/actions/odoo";
-import {setUserData, setUserImage, setUserGroups} from "../../redux/actions/user";
 import {colors} from "../../styles/index.style";
 import Logo from "../../../assets/logo.png";
 
@@ -43,8 +39,6 @@ class LoginScreen extends React.Component {
         };
 
         this.imageHeight = new Animated.Value(IMAGE_HEIGHT);
-
-        console.log('LOGIN: ' + HOST);
     }
 
     componentDidMount() {
@@ -85,188 +79,7 @@ class LoginScreen extends React.Component {
     };
 
     /**
-     * User authentication and validation.
-     * @returns {Promise<boolean>}
-     */
-    authentication = async () => {
-
-        const response = await this.props.odoo.connect();
-
-        if (response.success) {
-            if (response.data.uid) {
-
-                // Save data on Redux
-                await this.props.setUserData(
-                    response.data.uid.toString(),
-                    response.data.name.toString()
-                );
-                await this.getUserData();
-
-                if(this.props.user.groups.length > 0)
-                {
-                    // Odoo rpc calls require both user's name and password
-                    await AsyncStorage.multiSet([
-                        ["username", this.state.username],
-                        ["password", this.state.password]
-                    ]);
-                    
-                    return true;
-                }
-                else {
-
-                    Alert.alert("Erro","Por favor, verifique com o administrador os acessos à aplicação.");
-                    return true;
-                }
-
-            } else {
-                Alert.alert("Erro","As credenciais estão erradas!");
-            }
-
-        } else {
-            Alert.alert("Erro", "A conexão ao servidor foi interrompida.");
-        }
-        return false;
-    };
-
-    /**
-     * Get user image and groups.
-     *
-     * @returns {Promise<void>}
-     */
-    getUserData = async() => {
-
-        // Define parameters
-        const params = {
-            ids: [this.props.user.id],
-            fields: ['image', 'groups_id'],
-        };
-
-        // Get data
-        const response = await this.props.odoo.get('res.users', params);
-
-        // Check and parse data
-        if(response.success) {
-
-            await this.props.setUserImage(response.data[0].image);
-            await this.fetchUserGroups(response.data[0].groups_id);
-        }
-    };
-
-    /**
-     * Fetch and parse user groups.
-     * @param groups
-     * @returns {Promise<void>}
-     */
-    async fetchUserGroups(groups) {
-
-        const params = {
-            ids: groups,
-            fields: ['full_name'],
-        };
-
-        const response = await this.props.odoo.get('res.groups', params);
-        if (response.success) {
-
-            // User groups filtered
-            let result = [];
-            for (let i = 0; i < response.data.length; i++) {
-
-                const splitName = response.data[i].full_name.split(" / ");
-                if (splitName[0] === 'Gestão de Equipas Desportivas')
-                {
-                    if (splitName[1] === 'Atleta')
-                    {
-                        const athleteParams = {
-                            ids: [],
-                            fields: ['id'],
-                            domain: [
-                                ['user_id', '=', this.props.user.id]
-                            ],
-                            limit: 1
-                        };
-
-                        const athleteResponse = await this.props.odoo.search_read('ges.atleta', athleteParams);
-                        if (athleteResponse && athleteResponse.data.length > 0) {
-
-                            const athleteInfo = {
-                                name: 'Atleta',
-                                id:  athleteResponse.data[0].id
-                            };
-                            result.push(athleteInfo);
-                        }
-                    }
-                    else if (splitName[1] === 'Treinador')
-                    {
-                        const coachParams = {
-                            ids: [],
-                            fields: ['id'],
-                            domain: [
-                                ['user_id', '=', this.props.user.id]
-                            ],
-                            limit: 1
-                        };
-
-                        const coachResponse = await this.props.odoo.search_read('ges.treinador', coachParams);
-                        if (coachResponse && coachResponse.data.length > 0) {
-
-                            const coachInfo = {
-                                name: 'Treinador',
-                                id: coachResponse.data[0].id
-                            };
-                            result.push(coachInfo);
-                        }
-                    }
-                    else if (splitName[1] === 'Seccionista')
-                    {
-                        const secretaryParams = {
-                            ids: [],
-                            fields: ['id'],
-                            domain: [
-                                ['user_id', '=', this.props.user.id]
-                            ],
-                            limit: 1
-                        };
-
-                        const secretaryResponse = await this.props.odoo.search_read('ges.seccionista', secretaryParams);
-                        if (secretaryResponse && secretaryResponse.data.length > 0) {
-
-                            const secretaryInfo = {
-                                name: 'Seccionista',
-                                id: secretaryResponse.data[0].id
-                            };
-                            result.push(secretaryInfo);
-                        }
-                    }
-                    else if (splitName[1] === 'Pai')
-                    {
-                        const fatherParams = {
-                            ids: [],
-                            fields: ['id'],
-                            domain: [
-                                ['user_id', '=', this.props.user.id]
-                            ],
-                            limit: 1
-                        };
-
-                        const fatherResponse = await this.props.odoo.search_read('ges.pai', fatherParams);
-                        if (fatherResponse && fatherResponse.data.length > 0) {
-
-                            const fatherInfo = {
-                                name: 'Pai',
-                                id: fatherResponse.data[0].id
-                            };
-                            result.push(fatherInfo);
-                        }
-                    }
-                }
-            }
-            await this.props.setUserGroups(result);
-        }
-    }
-
-    /**
-     * Função chamada após utilizador premir o botão de login.
-     *
+     * Handler for user login.
      * @returns {Promise<void>}
      */
     handleLoginPressed = async() => {
@@ -275,26 +88,21 @@ class LoginScreen extends React.Component {
 
         if(this.state.username && this.state.password) {
 
-            // Odoo connection parameters
-            const odoo = new Odoo({
-                host: HOST,
-                port: PORT,
-                database: DATABASE,
-                username: this.state.username,
-                password: this.state.password
-            });
-
-            // Save odoo data on store
-            await this.props.setOdooInstance(odoo);
-
-            // Authentication
             this.setState({
                 isLoading: true,
                 isLoginDisabled: true,
                 isUsernameDisabled: true,
                 isPasswordDisabled: true
             });
-            const loginResponse = await this.authentication();
+
+            // authentication
+            const auth = new Authentication();
+            const isSuccess = await auth.userLogin(
+                false,
+                this.state.username,
+                this.state.password
+            );
+
             this.setState({
                 isLoading: false,
                 isLoginDisabled: false,
@@ -302,10 +110,25 @@ class LoginScreen extends React.Component {
                 isPasswordDisabled: false
             });
 
-            if(loginResponse) {
+            if(isSuccess === "success") {
 
-                // Go to Home Screen
-                this.props.navigation.navigate('AppStack');
+                // if user has a valid groups
+                if(this.props.user.groups.length > 0) {
+
+                    // go to app stack
+                    this.props.navigation.navigate('AppStack');
+                }
+                else {
+                    Alert.alert("Erro","Por favor, verifique com o administrador os acessos à aplicação.");
+                }
+            }
+            else if(isSuccess === "fail") {
+                Alert.alert("Erro","As credenciais estão erradas!");
+                await AsyncStorage.clear();
+            }
+            else {
+                Alert.alert("Erro", "A conexão ao servidor foi interrompida.");
+                await AsyncStorage.clear();
             }
         }
         else {
@@ -317,7 +140,7 @@ class LoginScreen extends React.Component {
     };
 
     /**
-     * Função que permite mostrar a palavra-passe.
+     * Handler for show password.
      */
     handleShowPassword =() => {
 
@@ -405,7 +228,6 @@ const padding = 30;
 const IMAGE_HEIGHT = window.width / 3;
 const IMAGE_HEIGHT_SMALL = window.width / 4;
 
-
 const styles = StyleSheet.create({
     container: {
         flex: 1,
@@ -447,27 +269,8 @@ const styles = StyleSheet.create({
     }
 });
 
+const mapStateToProps = state => ({user: state.user});
 
-const mapStateToProps = state => ({
-
-    odoo: state.odoo.odoo,
-    user: state.user
-});
-
-const mapDispatchToProps = dispatch => ({
-
-    setOdooInstance: (odoo) => {
-        dispatch(setOdooInstance(odoo))
-    },
-    setUserData: (id, user) => {
-        dispatch(setUserData(id, user))
-    },
-    setUserImage: (image) => {
-        dispatch(setUserImage(image))
-    },
-    setUserGroups: (groups) => {
-        dispatch(setUserGroups(groups))
-    },
-});
+const mapDispatchToProps = dispatch => ({});
 
 export default connect(mapStateToProps, mapDispatchToProps)(LoginScreen);
