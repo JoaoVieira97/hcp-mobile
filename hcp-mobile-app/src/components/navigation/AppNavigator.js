@@ -47,6 +47,7 @@ import ConcreteChat from "../chat/ConcreteChat";
 import EchelonsScreen from "../athletes/EchelonsScreen";
 import TrainingInvitations from "../invitations/trainings/TrainingInvitations";
 import GameInvitations from "../invitations/games/GameInvitations";
+import OpenedTrainingInvitations from "../invitations/trainings/OpenedTrainingInvitations";
 
 const styles = StyleSheet.create({
     container: {
@@ -291,6 +292,7 @@ const InvitationsNavigator = createMaterialTopTabNavigator({
 // INVITATIONS STACK
 const InvitationsStackNavigator = createStackNavigator({
     InvitationsNavigator: {screen: InvitationsNavigator},
+    OpenedTrainingInvitations: {screen: OpenedTrainingInvitations},
 }, {
     initialRouteName: 'InvitationsNavigator',
     defaultNavigationOptions: ({navigation}) => {

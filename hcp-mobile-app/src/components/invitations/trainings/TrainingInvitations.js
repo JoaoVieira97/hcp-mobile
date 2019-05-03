@@ -26,14 +26,12 @@ class TrainingInvitations extends Component {
         let date = new Date().getDate(); //Current Date
         let month = new Date().getMonth() + 1; //Current Month
         let year = new Date().getFullYear(); //Current Year
-        /*
         let hours = new Date().getHours(); //Current Hours
         let min = new Date().getMinutes(); //Current Minutes
         let sec = new Date().getSeconds(); //Current Seconds
-        */
 
         await this.setState({
-            date: date + '/' + month + '/' + year, //+ ' ' + hours + ':' + min + ':' + sec,
+            date: date + '/' + month + '/' + year + ' ' + hours + ':' + min + ':' + sec,
         });
 
         await this.fetchTrainings(20);
@@ -50,7 +48,7 @@ class TrainingInvitations extends Component {
                 ['id','>=','0'],
                 //[idAtleta,'in','atletas'], //NAO DÁ
             ],
-            fields: ['id', 'atletas', 'display_start', 'local', 'escalao', 'duracao', 'convocatorias'],
+            fields: ['id', 'atletas', 'display_start', 'local', 'escalao', 'duracao', 'convocatorias','treinador'],
             limit: limit,
             order: 'display_start DESC',
         };
@@ -61,6 +59,32 @@ class TrainingInvitations extends Component {
 
             //Get athlete trainings (with previous athleteId)
             let athleteTrainings = response.data.filter(training => training.atletas.indexOf(athleteId) >= 0);
+/*
+            const params2 = {
+                ids: [1],
+                fields: ['name'],
+            };
+
+            const response2 = await this.props.odoo.get('ges.treinador', params2);
+
+            console.log(response2);
+
+            console.log(athleteTrainings[0].escalao);
+
+            let primeirosAtletas = athleteTrainings[1].atletas;
+
+            const params2 = {
+                domain: [
+                    ['id','in',primeirosAtletas],
+                    //[idAtleta,'in','atletas'], //NAO DÁ
+                ],
+                fields: ['id', 'escalao', 'posicao'],
+            };
+
+            const response2 = await this.props.odoo.search_read('ges.atleta', params2);
+
+            console.log("ATLETA:");
+            console.log(response2);*/
 
             //FALTA REDUX E FETCH MORE DATA!
 
@@ -96,35 +120,59 @@ class TrainingInvitations extends Component {
         title: 'Treinos',
     };
 
-
-
     renderItem =  ({item, index}) => {
 
-        const date_hour = item.display_start.split(' ');
-        const date =
-            date_hour[0].slice(8,10) + '/' +
-            date_hour[0].slice(5,7) + '/' +
-            date_hour[0].slice(0,4);
+        const splitItemDate =  item.display_start.split(/[ :-]/);
 
-        //VER ISTO!
-        let itemYear = date_hour[0].slice(0,4);
-        let itemMonth =  date_hour[0].slice(5,7);
-        let itemDay = date_hour[0].slice(8,10);
+        const date = splitItemDate[2] + '/' + splitItemDate[1] + '/' + splitItemDate[0];
+        const hours = splitItemDate[3] + ':' + splitItemDate[4];
 
-        let auxDate = this.state.date;
-        let splitAux = auxDate.split('/');
-        let actualYear =  splitAux[2];
-        let actualMonth =  splitAux[1];
-        let actualDay =  splitAux[0];
+        let itemYear = parseInt(splitItemDate[0],10) ;
+        let itemMonth =  parseInt(splitItemDate[1],10) ;
+        let itemDay = parseInt(splitItemDate[2],10) ;
+        let itemHour =  parseInt(splitItemDate[3],10) ;
+        let itemMinutes = parseInt(splitItemDate[4],10) ;
+        let itemSeconds = parseInt(splitItemDate[5],10) ;
 
-        let itemDateBigger = true;
+        let splitActualDate = this.state.date.split(/[ :/]/);
 
-        if(actualYear > itemYear) itemDateBigger = false;
-        else if (actualMonth > itemMonth) itemDateBigger=false;
-        else if (actualDay > itemDay) itemDateBigger=false;
+        let actualYear =  parseInt(splitActualDate[2],10) ;
+        let actualMonth =  parseInt(splitActualDate[1],10) ;
+        let actualDay =  parseInt(splitActualDate[0],10) ;
+        let actualHour =  parseInt(splitActualDate[3],10) ;
+        let actualMinutes =  parseInt(splitActualDate[4],10) ;
+        let actualSeconds =  parseInt(splitActualDate[5],10) ;
+
+        let itemDateBigger = true; // item's date is bigger
+
+        if(actualYear > itemYear ) itemDateBigger = false;
+        else if(actualYear == itemYear){
+
+            if (actualMonth > itemMonth) itemDateBigger=false;
+            else if(actualMonth == itemMonth){
+
+                if (actualDay > itemDay) itemDateBigger=false;
+                else if(actualDay == itemDay){
+
+                    if(actualHour > itemHour) itemDateBigger=false;
+                    else if(actualHour == itemHour){
+                         if(actualMinutes> itemMinutes) itemDateBigger=false;
+                         else if(actualMinutes== itemMinutes){
+                            if(actualSeconds > itemSeconds) itemDateBigger=false;
+                         }
+
+                    }
+
+                }
+
+            }
+
+        }
 
         let colorText = !itemDateBigger ? '#919391' : '#0d0d0d' ;
         let colorBackground = !itemDateBigger? '#efefef' : '#fff';
+        let iconName = !itemDateBigger?  'md-done-all' : 'md-hourglass';
+        let iconSize = !itemDateBigger?  22 : 28;
 
         return (
             <ListItem
@@ -145,7 +193,7 @@ class TrainingInvitations extends Component {
                                 {item.local[1] + ' - '}
                             </Text>
                             <Text style={{color: '#919391'}}>
-                                {date_hour[1].slice(0, -3) + 'h'}
+                                {hours + 'h'}
                             </Text>
                         </View>
                         <Text style={{color: '#919391'}}>
@@ -153,12 +201,12 @@ class TrainingInvitations extends Component {
                         </Text>
                     </View>
                 )}
-                leftAvatar={(<Ionicons name={'md-hourglass'} size={28} color={colorText} />)}
+                leftAvatar={(<Ionicons name={iconName} size={iconSize} color={colorText} />)}
                 chevron
                 containerStyle={{
                     backgroundColor: colorBackground
                 }}
-                onPress={() => { console.log("Train pressed!!")}}
+                onPress={() => { this.props.navigation.navigate('OpenedTrainingInvitations', {training: item})}}
                 //disabled = {disabled}
             />
         )
