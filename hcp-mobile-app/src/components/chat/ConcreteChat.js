@@ -265,7 +265,13 @@ class ConcreteChat extends Component {
         );
 
         if (response.success){
+            
             console.log(response)
+
+            clearInterval(listener)
+            await this.getNewMessages()
+            listener = setInterval(async () => { await this.getNewMessages() }, 3500);
+            
         } else{
             console.log('error')
         }
