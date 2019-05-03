@@ -40,9 +40,7 @@ import OpenedTraining from "../management/trainings/OpenedTraining";
 import EditOpenedTraining from "../management/trainings/EditOpenedTraining";
 import CustomText from "../CustomText";
 import ResetPassword from "../profile/ResetPassword";
-import ChatScreen from "../chat/ChatScreen";
 import ChannelsScreen from "../chat/ChannelsScreen";
-import ChannelScreen from "../chat/ChannelScreen";
 import ConcreteChat from "../chat/ConcreteChat";
 import DirectMessageScreen from "../chat/DirectMessageScreen";
 import EchelonsScreen from "../athletes/EchelonsScreen";
@@ -505,13 +503,11 @@ const ProfileStackNavigator = createStackNavigator({
 
 // CHAT STACK
 const ChatStackNavigator = createStackNavigator({
-    ChatScreen: {screen: ChatScreen},
     ChannelsScreen: {screen: ChannelsScreen},
-    ChannelScreen: {screen: ChannelScreen},
     ConcreteChat: {screen: ConcreteChat},
     DirectMessageScreen: {screen: DirectMessageScreen}
 }, {
-    initialRouteName: 'ChatScreen',
+    initialRouteName: 'ChannelsScreen',
     defaultNavigationOptions: ({navigation}) => {
         return {
             headerStyle: {
