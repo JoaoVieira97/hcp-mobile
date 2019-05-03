@@ -44,6 +44,7 @@ import ChatScreen from "../chat/ChatScreen";
 import ChannelsScreen from "../chat/ChannelsScreen";
 import ChannelScreen from "../chat/ChannelScreen";
 import ConcreteChat from "../chat/ConcreteChat";
+import DirectMessageScreen from "../chat/DirectMessageScreen";
 import EchelonsScreen from "../athletes/EchelonsScreen";
 import TrainingInvitations from "../invitations/trainings/TrainingInvitations";
 import GameInvitations from "../invitations/games/GameInvitations";
@@ -507,7 +508,8 @@ const ChatStackNavigator = createStackNavigator({
     ChatScreen: {screen: ChatScreen},
     ChannelsScreen: {screen: ChannelsScreen},
     ChannelScreen: {screen: ChannelScreen},
-    ConcreteChat: {screen: ConcreteChat}
+    ConcreteChat: {screen: ConcreteChat},
+    DirectMessageScreen: {screen: DirectMessageScreen}
 }, {
     initialRouteName: 'ChatScreen',
     defaultNavigationOptions: ({navigation}) => {

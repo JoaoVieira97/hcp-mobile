@@ -303,7 +303,9 @@ class ChannelsScreen extends Component {
                     color={'#fff'}
                     style={styles.fab}
                     icon="add"
-                    onPress={() => Alert.alert("TODO", "TODO")}
+                    onPress={() => (
+                        this.props.navigation.navigate('DirectMessageScreen')
+                    )}
                 />
             </View>
         );
