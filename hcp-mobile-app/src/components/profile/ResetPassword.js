@@ -4,19 +4,15 @@ import {
     View,
     StyleSheet, TouchableOpacity, AsyncStorage, KeyboardAvoidingView, Text, Picker
 } from 'react-native';
-
+import {Button, Card, TextInput, DefaultTheme, HelperText} from 'react-native-paper';
+import {Ionicons} from "@expo/vector-icons";
+import { Header } from 'react-navigation';
+import * as Animatable from "react-native-animatable";
 import {connect} from "react-redux";
-import {setOdooInstance} from "../../redux/actions/odoo";
-import {setUserData} from "../../redux/actions/user";
-
+import Authentication from '../authentication/Authentication';
 import {colors} from "../../styles/index.style";
 import CustomText from "../CustomText";
-import {Ionicons} from "@expo/vector-icons";
-import Odoo from "react-native-odoo-promise-based";
-import {DATABASE, HOST, PORT} from "react-native-dotenv";
-import { Header } from 'react-navigation';
-import {Button, Card, TextInput, DefaultTheme, HelperText} from 'react-native-paper';
-import * as Animatable from "react-native-animatable";
+
 
 class ResetPassword extends Component {
 
@@ -34,8 +30,6 @@ class ResetPassword extends Component {
             newPasswordError: false,
             repeatNewPassword: "",
         };
-
-        console.log('RESET PASSWORD: ' + HOST);
     };
 
     async componentDidMount() {
@@ -93,7 +87,6 @@ class ResetPassword extends Component {
 
             this.setState({
                 'username': response.data[0].login,
-                //'oldPassword': response.data[0].password
             });
         }
     };
@@ -114,17 +107,12 @@ class ResetPassword extends Component {
         const response = await this.props.odoo.update('res.users', [this.props.user.id], fields);
         if(response.success && response.data) {
 
-            const odoo = new Odoo({
-                host: HOST,
-                port: PORT,
-                database: DATABASE,
-                username: this.state.username,
-                password: this.state.newPassword
-            });
-
-            // Save odoo data on store
-            await this.props.setOdooInstance(odoo);
-            await this.authentication();
+            const auth = new Authentication();
+            const isSuccess = await auth.userLogin(
+                false,
+                this.state.username,
+                this.state.newPassword
+            );
 
             this.setState({
                 'isResetDisabled': false,
@@ -132,14 +120,25 @@ class ResetPassword extends Component {
                 'isNewPasswordInputDisabled': false
             });
 
-            Alert.alert(
-                'Sucesso',
-                'A palavra-passe foi redefinida com sucesso.',
-                [
-                    {text: 'OK', onPress: () => this.props.navigation.goBack()}
-                ],
-                {cancelable: false},
-            );
+            if(isSuccess === "success") {
+                Alert.alert(
+                    'Sucesso',
+                    'A palavra-passe foi redefinida com sucesso.',
+                    [
+                        {text: 'OK', onPress: () => this.props.navigation.goBack()}
+                    ],
+                    {cancelable: false},
+                );
+            } else {
+                Alert.alert(
+                    'Erro',
+                    'Ocorreu um erro ao tentar redifinir a palavra-passe.',
+                    [
+                        {text: 'OK', onPress: () => this.props.navigation.goBack()}
+                    ],
+                    {cancelable: false},
+                );
+            }
         }
         else {
 
@@ -157,31 +156,6 @@ class ResetPassword extends Component {
                     ],
                 {cancelable: false},
             );
-        }
-    };
-
-    /**
-     * User authentication again to reload odoo instance.
-     * @returns {Promise<void>}
-     */
-    authentication = async () => {
-
-        const response = await this.props.odoo.connect();
-        if (response.success) {
-            if (response.data.uid) {
-
-                // Save data on Redux
-                await this.props.setUserData(
-                    response.data.uid.toString(),
-                    response.data.name.toString()
-                );
-
-                // Odoo rpc calls require both user's name and password
-                await AsyncStorage.multiSet([
-                    ["username", this.state.username],
-                    ["password", this.state.newPassword]
-                ]);
-            }
         }
     };
 
@@ -380,14 +354,6 @@ const mapStateToProps = state => ({
     user: state.user
 });
 
-const mapDispatchToProps = dispatch => ({
-
-    setOdooInstance: (odoo) => {
-        dispatch(setOdooInstance(odoo))
-    },
-    setUserData: (id, user) => {
-        dispatch(setUserData(id, user))
-    }
-});
+const mapDispatchToProps = dispatch => ({});
 
 export default connect(mapStateToProps, mapDispatchToProps)(ResetPassword);

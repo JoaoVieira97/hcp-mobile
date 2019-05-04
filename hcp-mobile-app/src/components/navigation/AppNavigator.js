@@ -110,9 +110,17 @@ const WIDTH = Dimensions.get('window').width;
 const userAvatar = (
     <View style={{
         width: 36, height: 36, borderRadius: 18,
-        elevation: 5, shadowOpacity: 5,
         backgroundColor: '#fff',
         justifyContent: 'center', alignItems: 'center',
+        // Shadow
+        shadowColor: "#000",
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+        elevation: 5,
     }}>
         <Avatar.Image
             size={30}
@@ -552,7 +560,7 @@ const ChatStackNavigator = createStackNavigator({
     }
 });
 
-// DRAWER NAVIGATOR
+// FULL - DRAWER NAVIGATOR
 const AppDrawerNavigator = createDrawerNavigator({
     HomeStack: {
         screen: HomeStackNavigator,
@@ -695,7 +703,7 @@ const AppDrawerNavigator = createDrawerNavigator({
         })
     }
 }, {
-    initialRouteName: 'InvitationsStack',
+    initialRouteName: 'HomeStack',
     order: ['HomeStack', 'CalendarStack', 'InvitationsStack' ,'ManagementStack', 'AthletesStack', 'ProfileStack', 'ChatStack'],
     drawerWidth: WIDTH*0.7,
     contentComponent: CustomDrawerContentComponent,
@@ -715,11 +723,528 @@ const AppDrawerNavigator = createDrawerNavigator({
     },
 });
 
+// ATHLETE - DRAWER NAVIGATOR
+const AthleteDrawerNavigator = createDrawerNavigator({
+    HomeStack: {
+        screen: HomeStackNavigator,
+        navigationOptions: ({
+            drawerLabel:
+                <View style={{marginVertical: 15}}>
+                    <CustomText
+                        type={'bold'}
+                        children={'Início'}
+                        style={{
+                            fontSize: 16
+                        }}
+                    />
+                </View>,
+            drawerIcon: <Ionicons
+                name="md-home"
+                size={28}
+                color={'#000000'}
+            />
+        })
+    },
+    CalendarStack: {
+        screen: CalendarStackNavigator,
+        navigationOptions: ({
+            drawerLabel:
+                <View style={{marginVertical: 15}}>
+                    <CustomText
+                        type={'bold'}
+                        children={'Calendário'}
+                        style={{
+                            fontSize: 16
+                        }}
+                    />
+                </View>,
+            drawerIcon: <Ionicons
+                name="md-calendar"
+                size={28}
+                color={'#000000'}
+            />
+        })
+    },
+    InvitationsStack: {
+        screen: InvitationsStackNavigator,
+        navigationOptions: ({
+            drawerLabel:
+                <View style={{marginVertical: 15}}>
+                    <CustomText
+                        type={'bold'}
+                        children={'Convocatórias'}
+                        style={{
+                            fontSize: 16
+                        }}
+                    />
+                </View>,
+            drawerIcon: <Ionicons
+                name="md-clipboard"
+                size={28}
+                color={'#000000'}
+            />
+        })
+    },
+    ProfileStack: {
+        screen: ProfileStackNavigator,
+        navigationOptions: ({
+            drawerLabel:
+                <View style={{marginVertical: 15}}>
+                    <CustomText
+                        type={'bold'}
+                        children={'Perfil'}
+                        style={{
+                            fontSize: 16
+                        }}
+                    />
+                </View>,
+            drawerIcon: <Ionicons
+                name="md-person"
+                size={27}
+                color={'#000000'}
+            />
+        })
+    },
+    ChatStack: {
+        screen: ChatStackNavigator,
+        navigationOptions: ({
+            drawerLabel:
+                <View style={{marginVertical: 15}}>
+                    <CustomText
+                        type={'bold'}
+                        children={'Chat'}
+                        style={{
+                            fontSize: 16
+                        }}
+                    />
+                </View>,
+            drawerIcon: <Ionicons
+                name="md-chatboxes"
+                size={27}
+                color={'#000000'}
+            />
+        })
+    }
+}, {
+    initialRouteName: 'HomeStack',
+    order: ['HomeStack', 'CalendarStack', 'InvitationsStack', 'ProfileStack', 'ChatStack'],
+    drawerWidth: WIDTH*0.7,
+    contentComponent: CustomDrawerContentComponent,
+    contentOptions: {
+        activeTintColor: '#000000',
+        activeBackgroundColor: '#b3b3b3',
+        itemsContainerStyle: {
+            marginVertical: 0,
+        },
+        iconContainerStyle: {
+            opacity: 1,
+        },
+        labelStyle:{
+            fontSize: 16,
+            marginLeft: 5
+        }
+    },
+});
+
+// COACH - DRAWER NAVIGATOR
+const CoachDrawerNavigator = createDrawerNavigator({
+    HomeStack: {
+        screen: HomeStackNavigator,
+        navigationOptions: ({
+            drawerLabel:
+                <View style={{marginVertical: 15}}>
+                    <CustomText
+                        type={'bold'}
+                        children={'Início'}
+                        style={{
+                            fontSize: 16
+                        }}
+                    />
+                </View>,
+            drawerIcon: <Ionicons
+                name="md-home"
+                size={28}
+                color={'#000000'}
+            />
+        })
+    },
+    CalendarStack: {
+        screen: CalendarStackNavigator,
+        navigationOptions: ({
+            drawerLabel:
+                <View style={{marginVertical: 15}}>
+                    <CustomText
+                        type={'bold'}
+                        children={'Calendário'}
+                        style={{
+                            fontSize: 16
+                        }}
+                    />
+                </View>,
+            drawerIcon: <Ionicons
+                name="md-calendar"
+                size={28}
+                color={'#000000'}
+            />
+        })
+    },
+    ManagementStack: {
+        screen: ManagementStackNavigator,
+        navigationOptions: ({
+            drawerLabel:
+                <View style={{marginVertical: 15}}>
+                    <CustomText
+                        type={'bold'}
+                        children={'Gestão'}
+                        style={{
+                            fontSize: 16
+                        }}
+                    />
+                </View>,
+            drawerIcon: <Ionicons
+                name="md-clipboard"
+                size={28}
+                color={'#000000'}
+            />
+        })
+    },
+    AthletesStack: {
+        screen: AthletesStackNavigator,
+        navigationOptions: ({
+            drawerLabel:
+                <View style={{marginVertical: 15}}>
+                    <CustomText
+                        type={'bold'}
+                        children={'Atletas'}
+                        style={{
+                            fontSize: 16
+                        }}
+                    />
+                </View>,
+            drawerIcon: <Ionicons
+                name="md-people"
+                size={29}
+                color={'#000000'}
+            />
+        })
+    },
+    ProfileStack: {
+        screen: ProfileStackNavigator,
+        navigationOptions: ({
+            drawerLabel:
+                <View style={{marginVertical: 15}}>
+                    <CustomText
+                        type={'bold'}
+                        children={'Perfil'}
+                        style={{
+                            fontSize: 16
+                        }}
+                    />
+                </View>,
+            drawerIcon: <Ionicons
+                name="md-person"
+                size={27}
+                color={'#000000'}
+            />
+        })
+    },
+    ChatStack: {
+        screen: ChatStackNavigator,
+        navigationOptions: ({
+            drawerLabel:
+                <View style={{marginVertical: 15}}>
+                    <CustomText
+                        type={'bold'}
+                        children={'Chat'}
+                        style={{
+                            fontSize: 16
+                        }}
+                    />
+                </View>,
+            drawerIcon: <Ionicons
+                name="md-chatboxes"
+                size={27}
+                color={'#000000'}
+            />
+        })
+    }
+}, {
+    initialRouteName: 'HomeStack',
+    order: ['HomeStack', 'CalendarStack', 'ManagementStack', 'AthletesStack', 'ProfileStack', 'ChatStack'],
+    drawerWidth: WIDTH*0.7,
+    contentComponent: CustomDrawerContentComponent,
+    contentOptions: {
+        activeTintColor: '#000000',
+        activeBackgroundColor: '#b3b3b3',
+        itemsContainerStyle: {
+            marginVertical: 0,
+        },
+        iconContainerStyle: {
+            opacity: 1,
+        },
+        labelStyle:{
+            fontSize: 16,
+            marginLeft: 5
+        }
+    },
+});
+
+// SECRETARY - DRAWER NAVIGATOR
+const SecretaryDrawerNavigator = createDrawerNavigator({
+    HomeStack: {
+        screen: HomeStackNavigator,
+        navigationOptions: ({
+            drawerLabel:
+                <View style={{marginVertical: 15}}>
+                    <CustomText
+                        type={'bold'}
+                        children={'Início'}
+                        style={{
+                            fontSize: 16
+                        }}
+                    />
+                </View>,
+            drawerIcon: <Ionicons
+                name="md-home"
+                size={28}
+                color={'#000000'}
+            />
+        })
+    },
+    CalendarStack: {
+        screen: CalendarStackNavigator,
+        navigationOptions: ({
+            drawerLabel:
+                <View style={{marginVertical: 15}}>
+                    <CustomText
+                        type={'bold'}
+                        children={'Calendário'}
+                        style={{
+                            fontSize: 16
+                        }}
+                    />
+                </View>,
+            drawerIcon: <Ionicons
+                name="md-calendar"
+                size={28}
+                color={'#000000'}
+            />
+        })
+    },
+    ManagementStack: {
+        screen: ManagementStackNavigator,
+        navigationOptions: ({
+            drawerLabel:
+                <View style={{marginVertical: 15}}>
+                    <CustomText
+                        type={'bold'}
+                        children={'Gestão'}
+                        style={{
+                            fontSize: 16
+                        }}
+                    />
+                </View>,
+            drawerIcon: <Ionicons
+                name="md-clipboard"
+                size={28}
+                color={'#000000'}
+            />
+        })
+    },
+    AthletesStack: {
+        screen: AthletesStackNavigator,
+        navigationOptions: ({
+            drawerLabel:
+                <View style={{marginVertical: 15}}>
+                    <CustomText
+                        type={'bold'}
+                        children={'Atletas'}
+                        style={{
+                            fontSize: 16
+                        }}
+                    />
+                </View>,
+            drawerIcon: <Ionicons
+                name="md-people"
+                size={29}
+                color={'#000000'}
+            />
+        })
+    },
+    ProfileStack: {
+        screen: ProfileStackNavigator,
+        navigationOptions: ({
+            drawerLabel:
+                <View style={{marginVertical: 15}}>
+                    <CustomText
+                        type={'bold'}
+                        children={'Perfil'}
+                        style={{
+                            fontSize: 16
+                        }}
+                    />
+                </View>,
+            drawerIcon: <Ionicons
+                name="md-person"
+                size={27}
+                color={'#000000'}
+            />
+        })
+    },
+    ChatStack: {
+        screen: ChatStackNavigator,
+        navigationOptions: ({
+            drawerLabel:
+                <View style={{marginVertical: 15}}>
+                    <CustomText
+                        type={'bold'}
+                        children={'Chat'}
+                        style={{
+                            fontSize: 16
+                        }}
+                    />
+                </View>,
+            drawerIcon: <Ionicons
+                name="md-chatboxes"
+                size={27}
+                color={'#000000'}
+            />
+        })
+    }
+}, {
+    initialRouteName: 'HomeStack',
+    order: ['HomeStack', 'CalendarStack', 'ManagementStack', 'AthletesStack', 'ProfileStack', 'ChatStack'],
+    drawerWidth: WIDTH*0.7,
+    contentComponent: CustomDrawerContentComponent,
+    contentOptions: {
+        activeTintColor: '#000000',
+        activeBackgroundColor: '#b3b3b3',
+        itemsContainerStyle: {
+            marginVertical: 0,
+        },
+        iconContainerStyle: {
+            opacity: 1,
+        },
+        labelStyle:{
+            fontSize: 16,
+            marginLeft: 5
+        }
+    },
+});
+
+// FATHER - DRAWER NAVIGATOR
+const FatherDrawerNavigator = createDrawerNavigator({
+    HomeStack: {
+        screen: HomeStackNavigator,
+        navigationOptions: ({
+            drawerLabel:
+                <View style={{marginVertical: 15}}>
+                    <CustomText
+                        type={'bold'}
+                        children={'Início'}
+                        style={{
+                            fontSize: 16
+                        }}
+                    />
+                </View>,
+            drawerIcon: <Ionicons
+                name="md-home"
+                size={28}
+                color={'#000000'}
+            />
+        })
+    },
+    CalendarStack: {
+        screen: CalendarStackNavigator,
+        navigationOptions: ({
+            drawerLabel:
+                <View style={{marginVertical: 15}}>
+                    <CustomText
+                        type={'bold'}
+                        children={'Calendário'}
+                        style={{
+                            fontSize: 16
+                        }}
+                    />
+                </View>,
+            drawerIcon: <Ionicons
+                name="md-calendar"
+                size={28}
+                color={'#000000'}
+            />
+        })
+    },
+    ProfileStack: {
+        screen: ProfileStackNavigator,
+        navigationOptions: ({
+            drawerLabel:
+                <View style={{marginVertical: 15}}>
+                    <CustomText
+                        type={'bold'}
+                        children={'Perfil'}
+                        style={{
+                            fontSize: 16
+                        }}
+                    />
+                </View>,
+            drawerIcon: <Ionicons
+                name="md-person"
+                size={27}
+                color={'#000000'}
+            />
+        })
+    },
+    ChatStack: {
+        screen: ChatStackNavigator,
+        navigationOptions: ({
+            drawerLabel:
+                <View style={{marginVertical: 15}}>
+                    <CustomText
+                        type={'bold'}
+                        children={'Chat'}
+                        style={{
+                            fontSize: 16
+                        }}
+                    />
+                </View>,
+            drawerIcon: <Ionicons
+                name="md-chatboxes"
+                size={27}
+                color={'#000000'}
+            />
+        })
+    }
+}, {
+    initialRouteName: 'HomeStack',
+    order: ['HomeStack', 'CalendarStack', 'ProfileStack', 'ChatStack'],
+    drawerWidth: WIDTH*0.7,
+    contentComponent: CustomDrawerContentComponent,
+    contentOptions: {
+        activeTintColor: '#000000',
+        activeBackgroundColor: '#b3b3b3',
+        itemsContainerStyle: {
+            marginVertical: 0,
+        },
+        iconContainerStyle: {
+            opacity: 1,
+        },
+        labelStyle:{
+            fontSize: 16,
+            marginLeft: 5
+        }
+    },
+});
+
+
 // APPLICATION
 const AppSwitchNavigator = createSwitchNavigator({
     AuthenticationLoading: {screen: AuthenticationLoading},
     Authentication: {screen: LoginScreen},
     AppStack: {screen: AppDrawerNavigator},
+    AthleteStack: {screen: AthleteDrawerNavigator},
+    CoachStack: {screen: CoachDrawerNavigator},
+    SecretaryStack: {screen: SecretaryDrawerNavigator},
+    FatherStack: {screen: FatherDrawerNavigator},
 }, {
     initialRouteName: 'AuthenticationLoading',
 });

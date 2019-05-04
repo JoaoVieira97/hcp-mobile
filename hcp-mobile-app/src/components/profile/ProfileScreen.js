@@ -277,7 +277,7 @@ class ProfileScreen extends Component {
                         rounded
                         source={{uri: `data:image/png;base64,${this.state.image}`}}
                         onPress={() => this.setState(state => ({isEditActive: !state.isEditActive}))}
-                        containerStyle={{elevation: 5}}
+                        containerStyle={styles.userImageContainer}
                     />
                 );
             }
@@ -288,7 +288,7 @@ class ProfileScreen extends Component {
                         rounded
                         source={require('../../../assets/user-account.png')}
                         onPress={() => this.setState(state => ({isEditActive: !state.isEditActive}))}
-                        containerStyle={{elevation: 5}}
+                        containerStyle={styles.userImageContainer}
                     />
                 )
             }
@@ -486,6 +486,16 @@ const styles = StyleSheet.create({
         fontSize: 20,
         marginTop: 10,
     },
+    userImageContainer: {
+        shadowColor: "#000",
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+        elevation: 5,
+    },
     headerRoles: {
         color: colors.redColor,
         fontSize: 15,
@@ -500,7 +510,15 @@ const styles = StyleSheet.create({
         borderRadius: 7,
         borderColor: '#fff',
         backgroundColor: '#fff',
-        elevation: 3
+        // shadow
+        shadowColor: "#000",
+        shadowOffset: {
+            width: 0,
+            height: 1,
+        },
+        shadowOpacity: 0.22,
+        shadowRadius: 2.22,
+        elevation: 3,
     },
     athleteTitle: {
         color: '#000',
@@ -518,7 +536,15 @@ const styles = StyleSheet.create({
         padding: 15,
         borderRadius: 7,
         backgroundColor: '#fff',
-        elevation: 3
+        // shadow
+        shadowColor: "#000",
+        shadowOffset: {
+            width: 0,
+            height: 1,
+        },
+        shadowOpacity: 0.22,
+        shadowRadius: 2.22,
+        elevation: 3,
     },
     contentTitle: {
         color: '#000',

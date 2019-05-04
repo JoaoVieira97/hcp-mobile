@@ -5,13 +5,13 @@ import {
     StyleSheet,
     Dimensions,
     TouchableOpacity,
+    ScrollView, Text
 } from 'react-native';
 import {connect} from 'react-redux';
 import {colors} from "../../styles/index.style";
 import Carousel, { Pagination } from 'react-native-snap-carousel';
 import CustomText from "../CustomText";
 import {Ionicons} from "@expo/vector-icons";
-
 import { Permissions, Notifications } from 'expo';
 
 class HomeScreen extends React.Component {
@@ -352,7 +352,8 @@ class HomeScreen extends React.Component {
                 containerStyle={{
                     height: 15,
                     paddingVertical: 0,
-                    paddingHorizontal: 0
+                    paddingHorizontal: 0,
+                    marginTop: 5
                 }}
                 dotStyle={{
                     width: 6,
@@ -456,8 +457,10 @@ class HomeScreen extends React.Component {
 
     render() {
         return (
-            <View style={{flex: 1, backgroundColor: colors.grayColor}}>
-                <View style={{justifyContent: 'center', paddingTop: 30}}>
+            <ScrollView
+                nestedScrollEnabled={true}
+                style={{flex: 1, backgroundColor: colors.grayColor}}>
+                <View style={{justifyContent: 'center', paddingTop: 10}}>
                     <CustomText
                         children={'EVENTOS FUTUROS'}
                         type={'bold'}
@@ -468,7 +471,7 @@ class HomeScreen extends React.Component {
                             textAlign: 'center'
                         }}
                     />
-
+                    { this.pagination }
                     <Carousel
                         enableMomentum={false}
                         decelerationRate={'fast'}
@@ -478,7 +481,6 @@ class HomeScreen extends React.Component {
                         data={this.state.entries}
                         onSnapToItem={(index) => this.setState({ activeSlide: index }) }
                     />
-                    { this.pagination }
                     {
                         /*
                         <View style={{marginBottom: 20}}>
@@ -499,7 +501,7 @@ class HomeScreen extends React.Component {
                          */
                     }
                 </View>
-            </View>
+            </ScrollView>
         );
     }
 }
@@ -543,7 +545,14 @@ const styles = StyleSheet.create({
         borderRadius: entryBorderRadius,
         overflow: 'hidden',
         // shadow
-        elevation: 7
+        shadowColor: "#000",
+        shadowOffset: {
+            width: 0,
+            height: 3,
+        },
+        shadowOpacity: 0.29,
+        shadowRadius: 4.65,
+        elevation: 7,
     }
 });
 
@@ -554,8 +563,6 @@ const mapStateToProps = state => ({
     user: state.user
 });
 
-const mapDispatchToProps = dispatch => ({
-
-});
+const mapDispatchToProps = dispatch => ({});
 
 export default connect(mapStateToProps, mapDispatchToProps)(HomeScreen);
