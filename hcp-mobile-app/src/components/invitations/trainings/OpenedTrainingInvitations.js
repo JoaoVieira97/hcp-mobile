@@ -130,8 +130,6 @@ class OpenedTrainingInvitations extends Component {
 
         if(response.success && response.data.length > 0) {
 
-            console.log(response);
-
             const data = response.data;
             const ids = data.map(athlete => {return athlete.atleta[0]});
 
@@ -168,8 +166,6 @@ class OpenedTrainingInvitations extends Component {
                 checked: checked,
                 idInvitation: idInvitation,
             }));
-
-            console.log("CHECKEDSTATE "+this.state.checked);
         }
     }
 
@@ -280,10 +276,26 @@ class OpenedTrainingInvitations extends Component {
 
         this.setState({isLoading: true,});
 
+        /*
+
         const fields = {
             'disponivel': !this.state.checked,
         };
-        const response = await this.props.odoo.update('ges.linha_convocatoria', [this.state.idInvitation], fields);
+        const response = await this.props.odoo.update('ges.linha_convocatoria', [this.state.idInvitation], fields);*/
+
+        const params = {
+            kwargs: {
+                context: this.props.odoo.context,
+            },
+            model: 'ges.treino',
+            method: 'alterar_disponibilidade',
+            args: [this.state.training.id],
+        };
+
+        const response = await this.props.odoo.rpc_call(
+            '/web/dataset/call_kw',
+            params
+        );
 
         if (response.success) {
 
@@ -318,15 +330,34 @@ class OpenedTrainingInvitations extends Component {
         }
     };
 
+    async getCoords(local){
+
+        if(local){
+
+            const item = {
+                id: this.state.training.id,
+                type: 1,
+                title: 'Treino ' + this.state.training.echelon[1],
+                time: 'Início: ' + this.state.training.hours + 'h',
+                description: 'Duração: ' + this.state.training.duration + ' min',
+                local: this.state.training.place[0],
+                date: this.state.training.date,
+                localName: this.state.training.place[1],
+            };
+
+            this.props.navigation.navigate('EventScreen',{item : item});
+        }
+    }
+
     /**
      * Renderizar o item da lista presente no header.
      * @param {Object} item
      */
     renderItemOfList = ({ item }) => {
-
-        let chevron = false;
         let checkbox;
         let arrow;
+        let getLocal = false;
+        let disabled = true;
 
         if (item.name === 'Disponibilidade'){
             checkbox = (
@@ -345,67 +376,16 @@ class OpenedTrainingInvitations extends Component {
             )
         }
 
-        if (item.name === 'Local') {
-            //chevron = true;
+        if (this.state.training.canChangeAvailability && item.name === 'Local') {
             arrow = (
                 <View style={{width: 25}}>
                     <Ionicons name={'ios-arrow-forward'} size={24} color={'#919391'}/>
                 </View>
-            )
-        }
+            );
 
-        /*if (item.name === 'Disponibilidade') {
-            return (
-                <ListItem
-                    title={item.name}
-                    subtitle={item.subtitle}
-                    leftAvatar={
-                        <View style={{width: 25}}>
-                            <Ionicons name={item.icon} size={27} />
-                        </View>
-                    }
-                    chevron={chevron}
-                    containerStyle={{
-                        backgroundColor: '#ffe3e4',
-                        height: 60,
-                    }}
-                    rightElement={
-                        //<View style={{width: 25}}>
-                            <CheckBox
-                                iconRight
-                                checked={this.state.checked}
-                                onPress={() => this.changeAvailability()}
-                                size = {30}
-                                containerStyle={{ marginRight: 20, padding: 0, backgroundColor: 'transparent', borderColor: 'transparent'}}
-                                //iconType='material'
-                                //checkedIcon='clear'
-                                //uncheckedIcon='add'
-                                checkedColor = {'#81c784'}
-                                uncheckedColor = {'#e57373'}
-                            />
-                        //</View>
-                    }
-                />
-                )
+            getLocal = true;
+            disabled = false;
         }
-        else if (item.name !== 'Disponibilidade'){
-            return (
-                <ListItem
-                    title={item.name}
-                    subtitle={item.subtitle}
-                    leftAvatar={
-                        <View style={{width: 25}}>
-                            <Ionicons name={item.icon} size={27} />
-                        </View>
-                    }
-                    chevron={chevron}
-                    containerStyle={{
-                        backgroundColor: '#ffe3e4',
-                        height: 60,
-                    }}
-                />
-            )
-        }*/
 
         return (
             <ListItem
@@ -423,6 +403,8 @@ class OpenedTrainingInvitations extends Component {
                     height: 60,
                 }}
                 rightElement={checkbox}
+                onPress = { () => {this.getCoords(getLocal)} }
+                disabled = {disabled}
             />
         )
 
@@ -646,10 +628,6 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-
-    removeTraining: (trainingsList) => {
-        dispatch(removeTraining(trainingsList))
-    },
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(OpenedTrainingInvitations);

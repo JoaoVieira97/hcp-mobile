@@ -141,10 +141,7 @@ class TrainingInvitations extends Component {
                     <View  style={{flex: 1, flexDirection: 'column'}}>
                         <View style={{flex: 1, flexDirection: 'row'}}>
                             <Text style={{color: '#919391'}}>
-                                {item.place[1] + ' - '}
-                            </Text>
-                            <Text style={{color: '#919391'}}>
-                                {item.hours + 'h'}
+                                {item.place[1] + ' - ' + item.hours + 'h'}
                             </Text>
                         </View>
                         <Text style={{color: '#919391'}}>

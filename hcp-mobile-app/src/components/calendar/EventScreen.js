@@ -6,7 +6,8 @@ import {
     Alert,
     StyleSheet,
     Text,
-    Image
+    Image,
+    ScrollView,
 } from 'react-native';
 
 import getDirections from 'react-native-google-maps-directions';
@@ -100,10 +101,9 @@ class EventScreen extends Component {
 
     static navigationOptions = ({navigation}) => ({
         //headerTitle: 'Detalhes do Evento',
-
         headerTitle:<CustomText
                 type={'bold'}
-                children={'DETALHES DO EVENTO'}
+                children={(navigation.state.params.item.type === 1) ? 'DETALHES DO TREINO': 'DETALHES DO JOGO'}
                 style={{
                     color: '#ffffff',
                     fontSize: 16
@@ -124,38 +124,39 @@ class EventScreen extends Component {
         
         return (
             <View style={styles.container}>
-                <Text style={[styles.title,{color: colorText}]}>
-                    {(this.state.item.type === 0)? 'Jogo' : 'Treino'}
-                </Text>
+                <ScrollView nestedScrollEnabled={true} contentContainerStyle={{paddingHorizontal: 20, paddingTop: 20}}>
+                    <View style={styles.iconSticks}>
+                        <MaterialCommunityIcons
+                            name={'hockey-sticks'}
+                            size={150}
+                            color={'#000000'}
+                        />
+                    </View>
+                    <View style={styles.iconPuck}>
+                        <MaterialCommunityIcons
+                            name={'hockey-puck'}
+                            size={50}
+                            color={'#000000'}
+                        />
+                    </View>
+                    <View style={{marginBottom: 40}}>
+                        <Text style={[styles.lines, {fontSize: 20, textAlign: 'center', textShadowColor: colorText}]}>{this.state.item.title}</Text>
+                        <Text style={[styles.lines, {fontSize: 15, textAlign: 'center', textShadowColor: colorText}]}>{this.state.item.time}</Text>
+                        <Text style={[styles.lines, {fontSize: 15, textAlign: 'center', textShadowColor: colorText}]}>{this.state.item.description}</Text>
+                    </View>
+                    <TouchableOpacity onPress={this.handleGetDirections} style={[styles.buttonContainer, {borderColor: colorText}]}>
+                        <Text style={[styles.buttonText,{textShadowColor: colorText}]}>Obter direções</Text>
+                    </TouchableOpacity>
+                    <View style={{alignItems:'center'}}>
+                        <MaterialCommunityIcons
+                            name={'map-marker-radius'}
+                            size={50}
+                            color={'#000000'}
+                        />
+                        <Text style={{textAlign: 'center'}}>{this.state.item.localName}</Text>
+                    </View>
 
-                <MaterialCommunityIcons
-                    name={'hockey-sticks'}
-                    size={150}
-                    color={'#000000'}
-                    style={{ marginTop: 35, marginBottom: -20 }}
-                />
-                <MaterialCommunityIcons
-                    name={'hockey-puck'}
-                    size={50}
-                    color={'#000000'}
-                    style={{ marginBottom: 30 }}
-                />
-
-                <View style={{marginBottom: 40}}>
-                    <Text style={[styles.lines, {fontSize: 20, textAlign: 'center', textShadowColor: colorText}]}>{this.state.item.title}</Text>
-                    <Text style={[styles.lines, {fontSize: 15, textAlign: 'center', textShadowColor: colorText}]}>{this.state.item.time}</Text>
-                    <Text style={[styles.lines, {fontSize: 15, textAlign: 'center', textShadowColor: colorText}]}>{this.state.item.description}</Text>
-                </View>
-                <TouchableOpacity onPress={this.handleGetDirections} style={[styles.buttonContainer, {borderColor: colorText}]}>
-                    <Text style={[styles.buttonText,{textShadowColor: colorText}]}>Obter direções</Text>
-                </TouchableOpacity>
-
-                <MaterialCommunityIcons
-                    name={'map-marker-radius'}
-                    size={50}
-                    color={'#000000'}
-                />
-                <Text>{this.state.item.localName}</Text>
+                </ScrollView>
             </View>
         );
     }
@@ -174,13 +175,14 @@ class EventScreen extends Component {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        paddingLeft: 25,
-        paddingRight: 25,
+        //justifyContent: 'center',
+        //alignItems: 'center',
+        //paddingLeft: 25,
+        //paddingRight: 25,
         backgroundColor: '#e4e4e4'
     },
     title:{
+        textAlign: 'center',
         fontWeight: '700',
         textShadowColor: 'rgba(0, 0, 0, 0.75)',
         textShadowOffset: {width: -2, height: 2},
@@ -192,13 +194,23 @@ const styles = StyleSheet.create({
         textShadowOffset: {width: -2, height: 2},
         textShadowRadius: 15,
     },
+    iconSticks:{
+        marginTop: 15,
+        marginBottom: -20,
+        alignItems: 'center',
+    },
+    iconPuck:{
+        marginBottom: 30,
+        alignItems: 'center',
+    },
     buttonContainer: {
         backgroundColor: '#576574',
         borderWidth: 3,
         borderRadius: 10,
         paddingVertical: 10,
         paddingLeft:12,
-        paddingRight:12
+        paddingRight:12,
+        alignItems: 'center',
     },
     buttonText: {
         textAlign: 'center',

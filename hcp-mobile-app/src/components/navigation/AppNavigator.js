@@ -300,6 +300,7 @@ const InvitationsNavigator = createMaterialTopTabNavigator({
 const InvitationsStackNavigator = createStackNavigator({
     InvitationsNavigator: {screen: InvitationsNavigator},
     OpenedTrainingInvitations: {screen: OpenedTrainingInvitations},
+    EventScreen: {screen: EventScreen},
 }, {
     initialRouteName: 'InvitationsNavigator',
     defaultNavigationOptions: ({navigation}) => {
