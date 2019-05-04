@@ -17,8 +17,7 @@ import {
     createMaterialTopTabNavigator,
     DrawerItems
 } from 'react-navigation';
-import { Avatar } from 'react-native-paper';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, Entypo } from '@expo/vector-icons';
 import { LinearGradient } from 'expo';
 
 import {colors} from "../../styles/index.style";
@@ -107,28 +106,6 @@ const styles = StyleSheet.create({
 
 const WIDTH = Dimensions.get('window').width;
 
-const userAvatar = (
-    <View style={{
-        width: 36, height: 36, borderRadius: 18,
-        backgroundColor: '#fff',
-        justifyContent: 'center', alignItems: 'center',
-        // Shadow
-        shadowColor: "#000",
-        shadowOffset: {
-            width: 0,
-            height: 2,
-        },
-        shadowOpacity: 0.25,
-        shadowRadius: 3.84,
-        elevation: 5,
-    }}>
-        <Avatar.Image
-            size={30}
-            color={'#fff'}
-            style={{backgroundColor: '#fff'}}
-            source={require('../../../assets/user-account.png')} />
-    </View>
-);
 
 const CustomDrawerContentComponent = (props) => {
 
@@ -210,18 +187,6 @@ const HomeStackNavigator = createStackNavigator({
                         name="md-menu"
                         size={30}
                         color={colors.redColor}/>
-                </TouchableOpacity>
-            ),
-            headerRight: (
-                <TouchableOpacity
-                    onPress = {() => navigation.navigate('ProfileStack')}
-                    style={{
-                        width:42,
-                        height:42,
-                        alignItems:'center',
-                        justifyContent:'center',
-                        marginRight: 10}}>
-                    {userAvatar}
                 </TouchableOpacity>
             )
         }

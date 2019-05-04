@@ -2,7 +2,7 @@ import React, {Component} from 'react';
 import {
     StyleSheet,
     View,
-    TouchableOpacity, Alert
+    TouchableOpacity, Alert, BackHandler
 } from 'react-native';
 
 import {connect} from 'react-redux';
@@ -11,18 +11,20 @@ import CustomText from "../../CustomText";
 import Wizard from './newTrainingSteps/wizard/Wizard';
 
 import NewTrainingStep1 from './newTrainingSteps/NewTrainingStep1';
+import NewTrainingStep2 from "./newTrainingSteps/NewTrainingStep2";
 import NewTrainingStep3 from "./newTrainingSteps/NewTrainingStep3";
+import NewTrainingStep4 from "./newTrainingSteps/NewTrainingStep4";
 import {
     addCoach,
     resetTraining,
     setAllCoaches,
     setAllLocals,
     setAllSecretaries,
+    setAllEchelons,
     setLocalId
 } from "../../../redux/actions/newTraining";
-import NewTrainingStep2 from "./newTrainingSteps/NewTrainingStep2";
 import Loader from "../../screens/Loader";
-import NewTrainingStep4 from "./newTrainingSteps/NewTrainingStep4";
+
 
 
 class NewTraining extends Component {
@@ -44,6 +46,10 @@ class NewTraining extends Component {
             this.props.resetTraining();
         };
 
+        this.backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
+            this.props.resetTraining();
+        });
+
         // Fetch locals, coaches and secretaries
         let success = false;
         if(this.props.newTraining.allLocals.length === 0)
@@ -57,6 +63,11 @@ class NewTraining extends Component {
                 if (success && this.props.newTraining.allSecretaries.length === 0) {
 
                     success = await this.fetchAllSecretaries();
+
+                    if (success && this.props.newTraining.allEchelons.length === 0) {
+
+                        success = await this.fetchAllEchelons();
+                    }
                 }
             }
 
@@ -68,7 +79,7 @@ class NewTraining extends Component {
             }, () => {
                 Alert.alert(
                     'Erro',
-                    'Algo correu mal. Por favor, contacte o administrador.',
+                    'Algo correu mal. Por favor, tente novamente.',
                     [
                         {text: 'OK', onPress: () => this.props.navigation.cancelTraining()},
                     ],
@@ -76,6 +87,10 @@ class NewTraining extends Component {
                 );
             });
         }
+    }
+
+    componentWillUnmount() {
+        this.backHandler.remove();
     }
 
     /**
@@ -203,6 +218,52 @@ class NewTraining extends Component {
         return false;
     };
 
+    /**
+     * Fetch all echelons that have available athletes.
+     * @returns {Promise<boolean>}
+     */
+    fetchAllEchelons = async () => {
+
+        const params = {
+            fields: [ 'id', 'designacao'],
+            order: 'id ASC',
+        };
+
+        const response = await this.props.odoo.search_read('ges.escalao', params);
+        if(response.success && response.data.length > 0){
+
+            let data = [];
+            for (let i = 0; i < response.data.length; i++) {
+
+                let echelon = response.data[i];
+                const params = {
+                    kwargs: {
+                        context: this.props.odoo.context,
+                    },
+                    model: 'ges.atleta',
+                    method: 'search_count',
+                    args: [
+                        [['escalao', '=', echelon.id]],
+                    ]
+                };
+
+                const responseCount = await this.props.odoo.rpc_call('/web/dataset/call_kw', params);
+                if (responseCount.success && responseCount.data > 0) {
+
+                    data.push({
+                        'id': echelon.id,
+                        'denomination': echelon.designacao,
+                        fetched: false
+                    });
+                }
+            }
+
+            this.props.setAllEchelons(data);
+            return true;
+        }
+        return false;
+    };
+
 
     render() {
 
@@ -279,6 +340,9 @@ const mapDispatchToProps = dispatch => ({
     },
     setAllSecretaries: (secretaries) => {
         dispatch(setAllSecretaries(secretaries))
+    },
+    setAllEchelons: (allEchelons) => {
+        dispatch(setAllEchelons(allEchelons))
     },
 });
 

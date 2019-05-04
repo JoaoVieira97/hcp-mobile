@@ -263,7 +263,6 @@ export default class Authentication {
             await store.dispatch(
                 setUserGroups(result)
             );
-            //await this.props.setUserGroups(result);
         }
     }
 }

@@ -8,9 +8,10 @@ import {Card} from "react-native-paper";
 import {Ionicons} from "@expo/vector-icons";
 import DateTimePicker from "react-native-modal-datetime-picker";
 import {
+    addStepReady,
     setEndDateTime,
     setLocalId,
-    setStartDateTime
+    setStartDateTime, setStepReady
 } from "../../../../redux/actions/newTraining";
 import Loader from "../../../screens/Loader";
 
@@ -25,6 +26,7 @@ class NewTrainingStep1 extends Component {
         this.state = {
             isLoading: true,
             today: today,
+            isStepReady: [false, false, true],
             isDateTimeStartPickerVisible: false,
             isDateTimeEndPickerVisible: false,
             startDateTimeRaw : today,
@@ -34,24 +36,45 @@ class NewTrainingStep1 extends Component {
 
     async componentDidMount() {
 
+        let isStepReady = this.state.isStepReady;
+
+        // Add new step to redux store
+        if(this.props.newTraining.isStepReady.length === 0)
+            await this.props.addStepReady();
+
         // Define start date time on clock
         let startDateTimeRaw = undefined;
         if(this.props.newTraining.startDateTime !== "Selecione o horário de ínicio") {
             startDateTimeRaw = new Date(this.props.newTraining.startDateTime);
+            isStepReady[0] = true;
         }
 
         // Define end date time on clock
         let endDateTimeRaw = undefined;
         if(this.props.newTraining.endDateTime !== "Selecione o horário de fim") {
             endDateTimeRaw = new Date(this.props.newTraining.endDateTime);
+            isStepReady[1] = true;
         }
 
         this.setState(state => ({
             startDateTimeRaw: startDateTimeRaw ? startDateTimeRaw : state.startDateTimeRaw,
             endDateTimeRaw: endDateTimeRaw ? endDateTimeRaw : state.startDateTimeRaw,
+            isStepReady: isStepReady,
             isLoading: false,
         }));
     }
+
+    /**
+     * Check if current step is ready.
+     */
+    isStepReady = () => {
+
+        if (this.state.isStepReady.every( (val, i, arr) => val === arr[0] && val === true )) {
+            this.props.setStepReady(true);
+        }
+        else if(this.props.newTraining.isStepReady[this.props.newTraining.stepId])
+            this.props.setStepReady(false);
+    };
 
     /**
      * Formats date as "YYYY-MM-DD | HH:MMh".
@@ -72,6 +95,11 @@ class NewTrainingStep1 extends Component {
 
     _hideDateTimeStartPicker = () => this.setState({isDateTimeStartPickerVisible: false});
 
+    /**
+     * Handler for start date.
+     * @param date
+     * @private
+     */
     _handleDateStartPicked = (date) => {
 
         if (date.getTime() > (new Date())) {
@@ -81,6 +109,15 @@ class NewTrainingStep1 extends Component {
             });
 
             this.props.setStartDateTime(date.toISOString());
+            this.setState(state => {
+                let isStepReadyAux = state.isStepReady;
+                isStepReadyAux[0] = true;
+
+                return ({
+                    isStepReady: isStepReadyAux
+                });
+            });
+            this.isStepReady();
         }
         else {
             Alert.alert('Erro', 'Por favor, defina um horário válido.');
@@ -93,6 +130,11 @@ class NewTrainingStep1 extends Component {
 
     _hideDateTimeEndPicker = () => this.setState({isDateTimeEndPickerVisible: false});
 
+    /**
+     * Handler for end date.
+     * @param date
+     * @private
+     */
     _handleDateEndPicked = (date) => {
 
         if (date.getTime() > this.state.startDateTimeRaw) {
@@ -102,6 +144,15 @@ class NewTrainingStep1 extends Component {
             });
 
             this.props.setEndDateTime(date.toISOString());
+            this.setState(state => {
+                let isStepReadyAux = state.isStepReady;
+                isStepReadyAux[1] = true;
+
+                return ({
+                    isStepReady: isStepReadyAux
+                });
+            });
+            this.isStepReady();
         }
         else {
             Alert.alert('Erro', 'Por favor, defina um horário válido.');
@@ -110,6 +161,16 @@ class NewTrainingStep1 extends Component {
         this._hideDateTimeEndPicker();
     };
 
+    /**
+     * Handler for local.
+     * @param local
+     * @private
+     */
+    _handleLocalPicked = (local) => {
+
+        this.props.setLocalId(local);
+        this.isStepReady();
+    };
 
     render() {
 
@@ -190,9 +251,7 @@ class NewTrainingStep1 extends Component {
                                             //mode="dropdown"
                                             //prompt={'Locais disponíveis'}
                                             selectedValue={this.props.newTraining.localId}
-                                            onValueChange={(itemValue) => (
-                                                this.props.setLocalId(itemValue)
-                                            )}>
+                                            onValueChange={this._handleLocalPicked}>
                                             {locals}
                                         </Picker>
                                     </View>
@@ -232,6 +291,12 @@ const mapDispatchToProps = dispatch => ({
     },
     setLocalId: (localId) => {
         dispatch(setLocalId(localId))
+    },
+    addStepReady: () => {
+        dispatch(addStepReady())
+    },
+    setStepReady: (ready) => {
+        dispatch(setStepReady(ready))
     }
 });
 

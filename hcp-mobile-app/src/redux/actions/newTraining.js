@@ -13,6 +13,19 @@ export function setStep(id) {
     }
 }
 
+export function addStepReady() {
+    return {
+        type: 'ADD_STEP_READY'
+    }
+}
+
+export function setStepReady(ready) {
+    return {
+        type: 'SET_STEP_READY',
+        ready: ready
+    }
+}
+
 export function increaseStep() {
     return {
         type: 'INCREASE_STEP'
@@ -99,5 +112,54 @@ export function removeSecretary(secretaryId) {
     return {
         type: 'REMOVE_SECRETARY',
         id: secretaryId
+    }
+}
+
+export function setAllEchelons(allEchelons) {
+    return {
+        type: 'SET_ALL_ECHELONS',
+        allEchelons: allEchelons
+    }
+}
+
+export function setEchelonIsFetched(echelonId) {
+    return {
+        type: 'SET_ECHELON_IS_FETCHED',
+        echelonId: echelonId
+    }
+}
+
+export function setEchelonId(echelonId) {
+    return {
+        type: 'SET_ECHELON_ID',
+        echelonId: echelonId
+    }
+}
+
+export function setAthletes(allAthletes) {
+    return {
+        type: 'SET_ALL_ATHLETES',
+        allAthletes: allAthletes
+    }
+}
+
+export function addAthletes(athletes) {
+    return {
+        type: 'ADD_ATHLETES',
+        athletes: athletes
+    }
+}
+
+export function addAthlete(athleteId) {
+    return {
+        type: 'ADD_ATHLETE',
+        athleteId: athleteId
+    }
+}
+
+export function removeAthlete(athleteId) {
+    return {
+        type: 'REMOVE_ATHLETE',
+        athleteId: athleteId
     }
 }

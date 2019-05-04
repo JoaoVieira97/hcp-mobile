@@ -1,10 +1,11 @@
-import React, { PureComponent } from 'react';
+import React from 'react';
+import { connect } from 'react-redux';
 import {View, StyleSheet, Dimensions} from 'react-native';
 
 import {Button,  ProgressBar} from 'react-native-paper';
 import {colors} from "../../../../../styles/index.style";
 
-export default class Step extends PureComponent {
+class Step extends React.Component {
 
     constructor(props) {
         super(props);
@@ -42,6 +43,7 @@ export default class Step extends PureComponent {
                                     contentStyle={styles.buttonInside}
                                     style={styles.buttonOutside}
                                     onPress={this.props.onSubmit}
+                                    disabled={this.props.isStepDisabled}
                                 >
                                     Concluir
                                 </Button>
@@ -52,6 +54,7 @@ export default class Step extends PureComponent {
                                     contentStyle={styles.buttonInside}
                                     style={styles.buttonOutside}
                                     onPress={this.props.nextStep}
+                                    disabled={this.props.isStepDisabled}
                                 >
                                     Avançar
                                 </Button>
@@ -63,6 +66,14 @@ export default class Step extends PureComponent {
         );
     }
 }
+
+const mapStateToProps = state => ({
+    newTraining: state.newTraining
+});
+
+const mapDispatchToProps = dispatch => ({});
+
+export default connect(mapStateToProps, mapDispatchToProps)(Step);
 
 const window = Dimensions.get('window');
 const styles = StyleSheet.create({

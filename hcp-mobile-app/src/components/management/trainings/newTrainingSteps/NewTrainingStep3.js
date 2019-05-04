@@ -8,9 +8,9 @@ import {Ionicons} from "@expo/vector-icons";
 import {colors} from "../../../../styles/index.style";
 import {
     addSecretary,
-    addSecretaryFlag,
+    addSecretaryFlag, addStepReady,
     increaseStep,
-    removeSecretary
+    removeSecretary, setStepReady
 } from "../../../../redux/actions/newTraining";
 import {Avatar, ListItem} from "react-native-elements";
 
@@ -22,6 +22,14 @@ class NewTrainingStep3 extends Component {
         this.state = {
             invalidSecretaryId: -1, //used in Picker list
         };
+    }
+
+    async componentDidMount() {
+
+        // Add new step to redux store
+        if(this.props.newTraining.isStepReady.length === 2) {
+            await this.props.addStepReady();
+        }
     }
 
     /**
@@ -61,8 +69,8 @@ class NewTrainingStep3 extends Component {
                         }}
                         rightAvatar={() => (
                             <TouchableOpacity
-                                onPress={() => {
-                                    this.props.removeSecretary(item);
+                                onPress={async () => {
+                                    await this.onSecretaryRemove(item);
                                 }}
                                 style={{
                                     alignItems: 'center',
@@ -88,7 +96,25 @@ class NewTrainingStep3 extends Component {
      */
     onSecretarySelect = async (id) => {
 
-        this.props.addSecretary(id);
+        await this.props.addSecretary(id);
+
+        if (this.props.newTraining.secretaries.length > 0)
+            this.props.setStepReady(true);
+        else if(this.props.newTraining.isStepReady[this.props.newTraining.stepId])
+            this.props.setStepReady(false);
+    };
+
+    /**
+     * Remove secretary that was selected.
+     * @param id
+     * @returns {Promise<void>}
+     */
+    onSecretaryRemove = async (id) => {
+
+        await this.props.removeSecretary(id);
+
+        if (this.props.newTraining.secretaries.length === 0)
+            this.props.setStepReady(false);
     };
 
 
@@ -202,6 +228,12 @@ const mapDispatchToProps = dispatch => ({
     },
     addSecretaryFlag: (flag) => {
         dispatch(addSecretaryFlag(flag))
+    },
+    addStepReady: () => {
+        dispatch(addStepReady())
+    },
+    setStepReady: (ready) => {
+        dispatch(setStepReady(ready))
     }
 });
 

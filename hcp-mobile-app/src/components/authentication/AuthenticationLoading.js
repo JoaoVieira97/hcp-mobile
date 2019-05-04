@@ -26,6 +26,7 @@ export default class AuthenticationLoading extends React.Component {
                 const isSuccess = await auth.userLogin(isAuthenticated);
 
                 if(isSuccess === "success") {
+                    // TODO: check available groups
                     this.props.navigation.navigate('AppStack');
                 }
                 else if(isSuccess === "fail") {

@@ -116,6 +116,7 @@ class LoginScreen extends React.Component {
                 if(this.props.user.groups.length > 0) {
 
                     // go to app stack
+                    // TODO: check available groups
                     this.props.navigation.navigate('AppStack');
                 }
                 else {

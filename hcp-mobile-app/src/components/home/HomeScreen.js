@@ -13,6 +13,7 @@ import Carousel, { Pagination } from 'react-native-snap-carousel';
 import CustomText from "../CustomText";
 import {Ionicons} from "@expo/vector-icons";
 import { Permissions, Notifications } from 'expo';
+import {Avatar} from "react-native-paper";
 
 class HomeScreen extends React.Component {
 
@@ -30,6 +31,12 @@ class HomeScreen extends React.Component {
         };
     }
 
+    componentWillMount() {
+        this.props.navigation.setParams({
+            userAvatar: this.props.user.image
+        });
+    }
+
     async componentDidMount() {
 
         await this.fetchEvents();
@@ -37,6 +44,52 @@ class HomeScreen extends React.Component {
         await this.registerForPushNotificationsAsync();
         await this.addUserToken();
     }
+
+    /**
+     * Define home navigator.
+     */
+    static navigationOptions = ({navigation}) => {
+
+        const {params = {}} = navigation.state;
+
+        return ({
+            title: 'Treinos',
+            headerRight: (
+                <TouchableOpacity
+                    onPress = {() => navigation.navigate('ProfileStack')}
+                    style={{
+                        width:42,
+                        height:42,
+                        alignItems:'center',
+                        justifyContent:'center',
+                        marginRight: 10}}>
+                    <View style={{
+                        width: 36, height: 36, borderRadius: 18,
+                        backgroundColor: '#fff',
+                        justifyContent: 'center', alignItems: 'center',
+                        // Shadow
+                        shadowColor: "#000",
+                        shadowOffset: {
+                            width: 0,
+                            height: 2,
+                        },
+                        shadowOpacity: 0.25,
+                        shadowRadius: 3.84,
+                        elevation: 5,
+                    }}>
+                        <Avatar.Image
+                            size={32}
+                            color={'#fff'}
+                            style={{backgroundColor: '#fff'}}
+                            source={params.userAvatar ?
+                                {uri: `data:image/png;base64,${params.userAvatar}`} :
+                                require('../../../assets/user-account.png')
+                            } />
+                    </View>
+                </TouchableOpacity>
+            )
+        });
+    };
 
     /**
      * Fetch future events. All events are associated to the current user.

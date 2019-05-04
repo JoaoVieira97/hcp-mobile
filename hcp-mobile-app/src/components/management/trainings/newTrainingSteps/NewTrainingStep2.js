@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import {Picker, StyleSheet, Text, View, Alert, FlatList, ScrollView, TouchableOpacity} from 'react-native';
+import {Picker, StyleSheet, Text, View, FlatList, ScrollView, TouchableOpacity} from 'react-native';
 import { connect } from 'react-redux';
 import * as Animatable from 'react-native-animatable';
 import {Card} from "react-native-paper";
@@ -8,9 +8,9 @@ import {Ionicons} from "@expo/vector-icons";
 import Loader from "../../../screens/Loader";
 import {colors} from "../../../../styles/index.style";
 import {
-    addCoach,
+    addCoach, addStepReady,
     removeCoach,
-    setAllCoaches
+    setAllCoaches, setStepReady
 } from "../../../../redux/actions/newTraining";
 import {Avatar, ListItem} from "react-native-elements";
 
@@ -27,6 +27,12 @@ class NewTrainingStep2 extends Component {
     }
 
     async componentDidMount() {
+
+        // Add new step to redux store
+        if(this.props.newTraining.isStepReady.length === 1) {
+            await this.props.addStepReady();
+            this.props.setStepReady(true);
+        }
 
         const coachInfo = this.props.user.groups.filter(item => item.name === 'Treinador');
         if(coachInfo.length > 0) {
@@ -245,6 +251,12 @@ const mapDispatchToProps = dispatch => ({
     },
     removeCoach: (coachId) => {
         dispatch(removeCoach(coachId))
+    },
+    addStepReady: () => {
+        dispatch(addStepReady())
+    },
+    setStepReady: (ready) => {
+        dispatch(setStepReady(ready))
     }
 });
 
