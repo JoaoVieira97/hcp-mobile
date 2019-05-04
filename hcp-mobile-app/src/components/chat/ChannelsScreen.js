@@ -42,6 +42,9 @@ class ChannelsScreen extends Component {
     async getChannels(){
 
         const params = {
+            domain: [
+                ['channel_partner_ids', '=', this.props.user.partner_id]
+            ],
             fields: [
                 'id',
                 'display_name',

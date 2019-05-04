@@ -8,7 +8,7 @@ import {connect} from 'react-redux';
 
 import CustomText from "../CustomText";
 
-import {Ionicons} from "@expo/vector-icons";
+import {Ionicons, SimpleLineIcons, Entypo, MaterialCommunityIcons} from "@expo/vector-icons";
 
 import {colors} from "../../styles/index.style";
 
@@ -17,8 +17,11 @@ import {
     Platform,
     Text,
     ActivityIndicator,
-    BackHandler
+    BackHandler,
+    Alert
 } from 'react-native';
+
+import Menu, { MenuItem, MenuDivider } from 'react-native-material-menu';
 
 var listener = null;
 
@@ -33,6 +36,78 @@ class ConcreteChat extends Component {
             last_message: null,
             loading: false
         }
+    }
+
+    _menu = null;
+
+    setMenuRef = ref => {
+        this._menu = ref;
+    };
+
+    hideMenu = () => {
+        this._menu.hide();
+    };
+
+    showMenu = () => {
+        this._menu.show();
+    };
+
+    leaveChannel = async () => {
+
+        this.hideMenu()
+        
+        console.log('unfollowing')
+
+        const params = {
+            kwargs: {
+                context: this.props.odoo.context,
+            },
+            model: 'mail.channel',
+            method: 'action_unfollow',
+            args: [
+                this.state.channel.id
+            ]
+        };
+
+        const response = await this.props.odoo.rpc_call(
+            '/web/dataset/call_kw',
+            params
+        );
+
+        if (response.success){
+
+            Alert.alert('Deixou de seguir o canal ' + this.state.channel.name + '.')
+            
+            clearInterval(listener);
+            if (this.props.navigation.state.params.originChannel == 1) this.props.navigation.state.params.onNavigateBack();
+            this.props.navigation.goBack();
+        
+        } else {
+            
+            Alert.alert('Ocorreu um problema. Tente de novo.')
+        
+        }
+
+    }
+
+    channelInfo = async () => {
+
+        this.hideMenu()
+        
+        console.log('channel info')
+
+        var params = {
+            domain: [
+                ['id', '=', this.state.channel.id],
+            ],
+            fields: [],
+            limit: 5
+        }; //params
+        this.props.odoo.search_read('mail.channel', params)
+            .then(response => {
+                console.log(response)
+            });
+
     }
 
     static navigationOptions = ({navigation}) => ({
@@ -55,7 +130,35 @@ class ConcreteChat extends Component {
                 if (navigation.state.params.originChannel == 1) navigation.state.params.onNavigateBack();
                 navigation.goBack();
             }}
-        />
+        />,
+        headerRight: 
+            <Menu
+                ref={navigation.state.params.setMenuRef}
+                button={<SimpleLineIcons
+                    name="options-vertical"
+                    size={22}
+                    color={'#ffffff'}
+                    style={{paddingRight: 10}}
+                    onPress={navigation.state.params.showMenu} />}
+            >
+                <MenuItem onPress={navigation.state.params.leaveChannel} style={{width: 250, alignItems: 'center'}}>
+                    <MaterialCommunityIcons
+                        name="arrow-collapse-left"
+                        size={20}
+                        color={colors.gradient1}
+                    />
+                    <Text>   Deixar de seguir canal</Text>
+                </MenuItem>
+                <MenuDivider/>
+                <MenuItem onPress={navigation.state.params.channelInfo} style={{width: 250, alignItems: 'center'}}>
+                    <Entypo
+                        name="info"
+                        size={20}
+                        color={colors.gradient1}
+                    />
+                    <Text>   Ver detalhes do canal</Text>
+                </MenuItem>
+            </Menu>
     });
 
     async componentDidMount(){
@@ -65,7 +168,11 @@ class ConcreteChat extends Component {
         });
 
         this.props.navigation.setParams({
-            title: this.state.channel.name
+            title: this.state.channel.name,
+            showMenu: this.showMenu,
+            setMenuRef: this.setMenuRef,
+            leaveChannel: this.leaveChannel,
+            channelInfo: this.channelInfo
         });
 
         BackHandler.addEventListener('hardwareBackPress', () => {
