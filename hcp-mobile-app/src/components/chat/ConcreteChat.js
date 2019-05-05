@@ -55,37 +55,71 @@ class ConcreteChat extends Component {
     leaveChannel = async () => {
 
         this.hideMenu()
-        
-        console.log('unfollowing')
 
-        const params = {
-            kwargs: {
-                context: this.props.odoo.context,
-            },
-            model: 'mail.channel',
-            method: 'action_unfollow',
-            args: [
-                this.state.channel.id
-            ]
-        };
-
-        const response = await this.props.odoo.rpc_call(
-            '/web/dataset/call_kw',
-            params
-        );
-
-        if (response.success){
-
-            Alert.alert('Deixou de seguir o canal ' + this.state.channel.name + '.')
+        if (this.state.channel.type == 'channel') {
             
-            clearInterval(listener);
-            if (this.props.navigation.state.params.originChannel == 1) this.props.navigation.state.params.onNavigateBack();
-            this.props.navigation.goBack();
-        
+            const params = {
+                kwargs: {
+                    context: this.props.odoo.context,
+                },
+                model: 'mail.channel',
+                method: 'action_unfollow',
+                args: [
+                    this.state.channel.id
+                ]
+            };
+
+            const response = await this.props.odoo.rpc_call(
+                '/web/dataset/call_kw',
+                params
+            );
+
+            if (response.success){
+
+                Alert.alert('Sucesso', 'Deixou o canal ' + this.state.channel.name + '.')
+                
+                clearInterval(listener);
+                if (this.props.navigation.state.params.originChannel == 1) this.props.navigation.state.params.onNavigateBack();
+                this.props.navigation.goBack();
+            
+            } else {
+                
+                Alert.alert('Erro', 'Ocorreu um problema. Tente de novo.')
+            
+            }
+
         } else {
             
-            Alert.alert('Ocorreu um problema. Tente de novo.')
-        
+            const params = {
+                kwargs: {
+                    context: this.props.odoo.context,
+                },
+                model: 'mail.channel',
+                method: 'channel_pin',
+                args: [
+                    uuid=this.state.channel.uuid,
+                    pinned=false
+                ]
+            };
+    
+            const response = await this.props.odoo.rpc_call(
+                '/web/dataset/call_kw',
+                params
+            );
+    
+            if (response.success){
+
+                Alert.alert('Sucesso', 'Desmarcou a conversa ' + this.state.channel.name + '.')
+                
+                clearInterval(listener);
+                if (this.props.navigation.state.params.originChannel == 1) this.props.navigation.state.params.onNavigateBack();
+                this.props.navigation.goBack();
+            
+            } else {
+                
+                Alert.alert('Erro', 'Ocorreu um problema. Tente de novo.')
+            
+            }
         }
 
     }
@@ -147,7 +181,10 @@ class ConcreteChat extends Component {
                         size={20}
                         color={colors.gradient1}
                     />
-                    <Text>   Deixar de seguir canal</Text>
+                    <Text>   {(navigation.state.params.channel_type == 'channel') ? 
+                        "Deixar o canal" : 
+                        "Desmarcar conversa"}
+                    </Text>
                 </MenuItem>
                 <MenuDivider/>
                 <MenuItem onPress={navigation.state.params.channelInfo} style={{width: 250, alignItems: 'center'}}>
@@ -156,7 +193,10 @@ class ConcreteChat extends Component {
                         size={20}
                         color={colors.gradient1}
                     />
-                    <Text>   Ver detalhes do canal</Text>
+                    <Text>   {(navigation.state.params.channel_type == 'channel') ?
+                        "Ver detalhes do canal" : 
+                        "Ver detalhes da conversa"}
+                    </Text>
                 </MenuItem>
             </Menu>
     });
@@ -172,7 +212,8 @@ class ConcreteChat extends Component {
             showMenu: this.showMenu,
             setMenuRef: this.setMenuRef,
             leaveChannel: this.leaveChannel,
-            channelInfo: this.channelInfo
+            channelInfo: this.channelInfo,
+            channel_type: this.state.channel.type
         });
 
         BackHandler.addEventListener('hardwareBackPress', () => {
@@ -183,6 +224,7 @@ class ConcreteChat extends Component {
         this.getLastMessages();
 
         listener = setInterval(async () => { await this.getNewMessages() }, 3500);
+
     }
 
     async componentWillMount(){
