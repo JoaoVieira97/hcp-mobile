@@ -36,15 +36,15 @@ class TrainingInvitations extends Component {
     async fetchTrainings(limit=20) {
 
         const athleteInfo = this.props.user.groups.filter(group => group.name === 'Atleta');
-
         const athleteId = athleteInfo[0].id;
+
+        const idsFetched = this.state.trainings.map(training => {return training.id});
 
         const params = {
             domain: [
-                ['id','>=','0'],
-                //[idAtleta,'in','atletas'], //NAO DÁ
+                ['id', 'not in', idsFetched],
             ],
-            fields: ['id', 'atletas', 'display_start', 'local', 'escalao', 'duracao', 'convocatorias','treinador'],
+            fields: ['id', 'atletas', 'display_start', 'local', 'escalao', 'duracao', 'convocatorias','treinador', 'seccionistas'],
             limit: limit,
             order: 'display_start DESC',
         };
@@ -53,10 +53,8 @@ class TrainingInvitations extends Component {
 
         if (response.success && response.data.length > 0) {
 
-            //Get athlete trainings (with previous athleteId)
+            //PARECE QUE NAO É PRECISO!
             let athleteTrainings = response.data.filter(training => training.atletas.indexOf(athleteId) >= 0);
-            //FALTA REDUX E FETCH MORE DATA!
-
             let trainings = [];
 
             athleteTrainings.forEach(item => {
@@ -66,7 +64,6 @@ class TrainingInvitations extends Component {
                 const hours = splitItemDate[3] + ':' + splitItemDate[4];
 
                 const isoItemDate = item.display_start.replace(" ","T");
-
                 let canChangeAvailability = moment(isoItemDate).isAfter(this.state.date);
 
                 const training = {
@@ -79,33 +76,18 @@ class TrainingInvitations extends Component {
                     athleteIds : item.atletas,
                     invitationIds: item.convocatorias,
                     coachIds: item.treinador,
+                    secretaryIds: item.seccionistas,
                     canChangeAvailability: canChangeAvailability,
                 };
+
+                console.log(training.secretaryIds);
 
                 trainings.push(training);
             });
 
-
             this.setState(state => ({
                 trainings: [...state.trainings, ...trainings]
             }));
-
-            //LATER TO INDISPONIBILITY
-           /*
-            const idsInvitations = response.data[0].convocatorias;
-
-            const params2 = {
-                domain: [
-                    ['id','in',idsInvitations],
-                ],
-                fields: [],
-                //limit: 1,
-            };
-
-            const response2 = await this.props.odoo.search_read('ges.linha_convocatoria', params2);
-
-            if (response2.success) console.log(response2);
-            */
         }
 
         await this.setState({
@@ -218,8 +200,8 @@ class TrainingInvitations extends Component {
                 renderItem={this.renderItem}
                 ItemSeparatorComponent={this.renderSeparator}
                 //ListHeaderComponent={this.renderHeader}
-                //onEndReached={this.handleMoreData}
-                //onEndReachedThreshold={0.1}
+                onEndReached={this.handleMoreData}
+                onEndReachedThreshold={0.1}
                 ListFooterComponent={this.renderFooter}
                 refreshing={this.state.isRefreshing}
                 onRefresh={this.handleRefresh}

@@ -42,12 +42,13 @@ class OpenedTrainingInvitations extends Component {
                 athleteIds : [],
                 invitationIds: [],
                 coachIds: [],
+                secretaryIds: [],
                 canChangeAvailability: undefined,
             },
-            coaches: [], //dando ids de treinadores do treino, para buscar o nome
+            coaches: ["A carregar..."], //dando ids de treinadores do treino, para buscar o nome
+            secretaries: ["A carregar..."], //dando ids de seccionistas do treino, para buscar o nome
             athletes: [], //dando ids de atletas do treino, para buscar o nomes, numero e disponibilidade
             checked: undefined, //verificar checkbox
-            idInvitation: undefined, //para mudar a disponibilidade na convocatoria deste atleta
         }
     }
 
@@ -102,6 +103,8 @@ class OpenedTrainingInvitations extends Component {
     async fetchData() {
         await this.fetchAthletes(this.state.training.invitationIds);
         await this.fetchCoaches(this.state.training.coachIds);
+        await this.fetchSecretarys(this.state.training.secretaryIds);
+
 
         await this.setState({
             isLoading: false,
@@ -118,7 +121,6 @@ class OpenedTrainingInvitations extends Component {
         const params = {
             domain: [['id','=',ids],],
             fields: [
-                'id',
                 'atleta',
                 'disponivel',
                 'numero'
@@ -131,7 +133,7 @@ class OpenedTrainingInvitations extends Component {
         if(response.success && response.data.length > 0) {
 
             const data = response.data;
-            const ids = data.map(athlete => {return athlete.atleta[0]});
+            const ids = this.state.training.athleteIds;//data.map(athlete => {return athlete.atleta[0]});
 
             let athletes = [];
             const athletesImages = await this.fetchAthletesImages(ids);
@@ -148,7 +150,6 @@ class OpenedTrainingInvitations extends Component {
                     squad_number: item.numero,
                     available: item.disponivel,
                     image: image.image,
-                    idInvitation: item.id,
                 };
 
                 athletes.push(athlete);
@@ -159,12 +160,10 @@ class OpenedTrainingInvitations extends Component {
             const athleteId = athleteInfo[0].id;
 
             const checked = (athletes.filter(athlete => athlete.id === athleteId))[0].available;
-            const idInvitation = (athletes.filter(athlete => athlete.id === athleteId))[0].idInvitation;
 
             this.setState(state => ({
                 athletes: [...state.athletes, ...athletes],
                 checked: checked,
-                idInvitation: idInvitation,
             }));
         }
     }
@@ -202,6 +201,7 @@ class OpenedTrainingInvitations extends Component {
         };
 
         const response = await this.props.odoo.get('ges.treinador', params);
+
         if(response.success && response.data.length > 0) {
 
             const data = response.data;
@@ -221,67 +221,46 @@ class OpenedTrainingInvitations extends Component {
         }
     }
 
+    async fetchSecretarys(ids) {
+
+        const params = {
+            ids: ids,
+            fields: ['name'],
+        };
+
+        const response = await this.props.odoo.get('ges.seccionista', params);
+
+        if(response.success && response.data.length > 0) {
+
+            const data = response.data;
+
+            let secretaryNames = [];
+            data.forEach(item => {
+                secretaryNames.push(item.name);
+            });
+
+            this.setState({
+                secretaries: secretaryNames
+            });
+        } else {
+            this.setState({
+                secretaries: ['Nenhum seccionista atribuído']
+            });
+        }
+
+    }
+
     /**
      * Registar presenças.
      */
-    /*
-    async markPresences() {
-
-        Alert.alert(
-            'Confirmação',
-            'Pretende fechar o período de convocatórias para este treino?',
-            [
-                {text: 'Cancelar', style: 'cancel'},
-                {
-                    text: 'Confirmar',
-                    onPress: async () => {
-
-                        const params = {
-                            kwargs: {
-                                context: this.props.odoo.context,
-                            },
-                            model: 'ges.treino',
-                            method: 'marcar_presencas',
-                            args: [this.state.training.id]
-                        };
-
-                        const response = await this.props.odoo.rpc_call(
-                            '/web/dataset/call_kw',
-                            params
-                        );
-
-                        if (response.success) {
-
-                            await this.props.removeTraining(this.state.training.id);
-                            await this.setState({animation: true});
-                            this.animation.play();
-
-                            setTimeout(() => {
-                                this.props.navigation.goBack();
-                            }, 1100);
-                        }
-
-                       }
-                },
-            ],
-            {cancelable: true},
-        );
-    }*/
-
 
     /**
-     * Mudar disponibilidade atual. 
+     * Mudar disponibilidade atual.
+     * TODO Send notifications to coaches and secretarys
      */
     async changeAvailability(){
 
         this.setState({isLoading: true,});
-
-        /*
-
-        const fields = {
-            'disponivel': !this.state.checked,
-        };
-        const response = await this.props.odoo.update('ges.linha_convocatoria', [this.state.idInvitation], fields);*/
 
         const params = {
             kwargs: {
@@ -508,6 +487,10 @@ class OpenedTrainingInvitations extends Component {
             name: 'Treinadores',
             icon: 'md-people',
             subtitle: this.state.coaches.join(', ')
+        }, {
+            name: 'Seccionistas',
+            icon: 'md-people',
+            subtitle: this.state.secretaries.join(', ')
         }];
 
         if (this.state.training.canChangeAvailability)
