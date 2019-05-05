@@ -9,23 +9,23 @@ import {
 } from 'react-native';
 import {
     ListItem,
-    Avatar,
-    SearchBar
+    SearchBar,
 } from 'react-native-elements';
 import {connect} from 'react-redux';
 import _ from 'lodash';
 import CustomText from "../CustomText";
-import {Ionicons} from "@expo/vector-icons";
+import {Ionicons, FontAwesome, AntDesign} from "@expo/vector-icons";
+import {colors} from "../../styles/index.style";
 
-class DirectMessageScreen extends Component {
+class JoinChannel extends Component {
 
     constructor(props) {
 
         super(props);
 
         this.state = {
-            filteredPartners: [],
-            partners: [],
+            filteredChannels: [],
+            channels: [],
             isLoading: true,
             isRefreshing: false,
             filter: '',
@@ -35,7 +35,7 @@ class DirectMessageScreen extends Component {
     static navigationOptions = ({navigation}) => ({
         headerTitle:<CustomText
                 type={'bold'}
-                children={'MENSAGEM DIRETA'}
+                children={'JUNTAR-ME A CANAL'}
                 style={{
                     color: '#ffffff',
                     fontSize: 16
@@ -59,7 +59,7 @@ class DirectMessageScreen extends Component {
             this.props.navigation.state.params.onNavigateBack();
         });
 
-        await this.getPartners();
+        await this.getChannels();
 
     }
 
@@ -69,40 +69,15 @@ class DirectMessageScreen extends Component {
 
     }
 
-    async getPartners(){
-
-        const params = {
-            ids: [],
-            fields: ['image', 'display_name', 'partner_id'],
-            order: 'display_name',
-            //limit: 10
-        };
-
-        response = await this.props.odoo.search_read('res.users', params)
-
-        if (response.success){
-
-            await this.setState({
-                partners: response.data,
-                filteredPartners: response.data,
-                isLoading: false
-            })
-
-        }
-
-    }
-
-    async getDirectChannel(partner_id) {
+    async getChannels(){
 
         const params = {
             kwargs: {
                 context: this.props.odoo.context,
             },
             model: 'mail.channel',
-            method: 'channel_get',
-            args: [ 
-                partners_to=[partner_id]
-            ]
+            method: 'channel_search_to_join',
+            args: []
         };
 
         const response = await this.props.odoo.rpc_call(
@@ -112,53 +87,66 @@ class DirectMessageScreen extends Component {
 
         if (response.success){
 
-            const channel_id = response.data.id
+            const channels = response.data
+            const c = []
 
-            const params2 = {
-                domain: [
-                    ['id', '=', channel_id]
-                ],
-                fields: [
-                    'id',
-                    'display_name',
-                    'description',
-                    'image',
-                    'uuid',
-                    'channel_type'
-                ]
-            };
+            for (let i = 0; i < channels.length; i++){
 
-            const response2 = await this.props.odoo.search_read('mail.channel', params2);
+                const ch = channels[i]
 
-            if (response2.success){
+                const channel = {
+                    id: ch.id,
+                    name: '#' + ch.name
+                } 
 
-                const channelInfo = response2.data[0];
-
-                const item = {
-                    id: channelInfo.id,
-                    name: '#' + channelInfo.display_name,
-                    description: channelInfo.description,
-                    image: channelInfo.image,
-                    uuid: channelInfo.uuid,
-                    type: channelInfo.channel_type
-                };
-
-                this.props.navigation.navigate('ConcreteChat',{
-                    item,
-                    originChannel: 2
-                })
-
-            } else {
-
-                Alert.alert('Problema a estabelecer conexão. Tente mais tarde.')
-
+                c.push(channel)
             }
+
+            await this.setState({
+                channels: c,
+                filteredChannels: c,
+                isLoading: false,
+                isRefreshing: false
+            })
+
+        }
+
+    }
+
+    async joinChannel (channel_id){
+
+        console.log(channel_id)
+
+        const params = {
+            kwargs: {
+                context: this.props.odoo.context,
+            },
+            model: 'mail.channel',
+            method: 'channel_join_and_get_info',
+            args: [
+                channel_id
+            ]
+        };
+
+        const response = await this.props.odoo.rpc_call(
+            '/web/dataset/call_kw',
+            params
+        );
+
+        console.log(response)
+
+        if (response.success){
+
+            Alert.alert('Sucesso', 'Foi adicionado ao canal com sucesso.')
+            this.props.navigation.state.params.onNavigateBack();
+            this.props.navigation.goBack();
 
         } else {
 
-            Alert.alert('Problema a estabelecer conexão. Tente mais tarde.')
-        
+            Alert.alert('Erro', 'Ocorreu um problema. Tente de novo.')
+            
         }
+
     }
 
     /**
@@ -170,47 +158,24 @@ class DirectMessageScreen extends Component {
 
         return (
             <ListItem
-                title={item.display_name}
+                title={item.name}
                 titleStyle={{fontWeight: 'bold'}}
-                leftAvatar={this.partnerImage(item.image)}
-                chevron
+                leftAvatar={<FontAwesome
+                    name="group"
+                    size={37}
+                    color={colors.darkGrayColor}
+                />}
+                chevron={<AntDesign
+                    name="adduser"
+                    size={25}
+                    color={colors.gradient1}
+                />}
                 onPress={() => (
-                    this.getDirectChannel(item.partner_id[0])
+                    this.joinChannel(item.id)
                 )}
             />
         );
 
-    };
-
-    partnerImage = (image) => {
-
-        let img;
-
-        if (image) {
-            img = (
-                <Avatar
-                    rounded
-                    source={{
-                        uri: `data:image/png;base64,${image}`,
-                    }}
-                    size="small"
-                />
-            );
-        } else {
-            img = (
-                <Avatar
-                    rounded
-                    source={require('../../../assets/user-account.png')}
-                    size="small"
-                />
-            );
-        }
-
-        return (
-            <View>
-                {img}
-            </View>
-        );
     };
 
     renderSeparator = () => (
@@ -227,31 +192,31 @@ class DirectMessageScreen extends Component {
 
         this.setState({
             filter: '',
-            filteredPartners: this.state.partners
+            filteredChannels: this.state.channels
         });
         
     };
 
-    contains = ({display_name}, text) => {
+    contains = ({name}, text) => {
         
         // case insensitive
-        return display_name.toUpperCase().includes(text.toUpperCase());
+        return name.toUpperCase().includes(text.toUpperCase());
     };
 
     handleSearch = (text) => {
 
-        const data = _.filter(this.state.partners, partner => {
-            return this.contains(partner, text);
+        const data = _.filter(this.state.channels, channel => {
+            return this.contains(channel, text);
         });
         this.setState({
             filter: text,
-            filteredPartners: data
+            filteredChannels: data
         });
     };
 
     renderHeader = () => (
         <SearchBar
-            placeholder={"Pesquisa o nome da pessoa"}
+            placeholder={"Pesquisa um grupo"}
             lightTheme
             round
             onClear={this.handleSearchClear}
@@ -281,13 +246,13 @@ class DirectMessageScreen extends Component {
 
     handleRefresh = () => {
         this.setState({
-            partners: [],
-            filteredPartners: [],
+            channels: [],
+            filteredChannels: [],
             isRefreshing: true,
             isLoading: false
         },
         async () => {
-            await this.getPartners()
+            await this.getChannels()
         });
     };
 
@@ -295,8 +260,8 @@ class DirectMessageScreen extends Component {
         return (
             <View style={styles.container}>
                 <FlatList
-                    keyExtractor={item => item.id + item.display_name}
-                    data={this.state.filteredPartners}
+                    keyExtractor={item => item.id + item.name}
+                    data={this.state.filteredChannels}
                     renderItem={this.renderItem}
                     ItemSeparatorComponent={this.renderSeparator}
                     ListHeaderComponent={this.renderHeader}
@@ -322,4 +287,4 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => ({});
 
-export default connect(mapStateToProps, mapDispatchToProps)(DirectMessageScreen);
+export default connect(mapStateToProps, mapDispatchToProps)(JoinChannel);

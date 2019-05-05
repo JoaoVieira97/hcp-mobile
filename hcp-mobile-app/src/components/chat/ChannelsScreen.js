@@ -13,6 +13,8 @@ import { FAB } from 'react-native-paper';
 import {connect} from 'react-redux';
 import _ from 'lodash';
 import {colors} from "../../styles/index.style";
+import Menu, { MenuItem, MenuDivider } from 'react-native-material-menu';
+import {Ionicons, MaterialCommunityIcons} from "@expo/vector-icons";
 
 
 class ChannelsScreen extends Component {
@@ -33,6 +35,7 @@ class ChannelsScreen extends Component {
     async componentDidMount() {
         
         await this.getChannels();
+
     }
 
     /**
@@ -41,45 +44,77 @@ class ChannelsScreen extends Component {
      */
     async getChannels(){
 
-        const params = {
-            domain: [
-                ['channel_partner_ids', '=', this.props.user.partner_id]
-            ],
-            fields: [
-                'id',
-                'display_name',
-                'description',
-                'image'
-            ],
-            order:  'display_name ASC',
+        const c_params = {
+            kwargs: {
+                context: this.props.odoo.context,
+            },
+            model: 'mail.channel',
+            method: 'channel_fetch_slot',
+            args: []
         };
 
-        const response = await this.props.odoo.search_read('mail.channel', params);
-        if (response.success && response.data.length > 0) {
+        const c_response = await this.props.odoo.rpc_call(
+            '/web/dataset/call_kw',
+            c_params
+        );
 
-            let channelsList = [];
-            const size = response.data.length;
+        if (c_response.success){
 
-            // Parsing channels and get last message for each one
-            for (let i = 0; i < size; i++) {
+            const public_channels = c_response.data.channel_channel
+            const direct_channels = c_response.data.channel_direct_message
+            const private_channels = c_response.data.channel_private_group
 
-                const channelInfo = response.data[i];
+            const channels = []
 
-                const lastMessage = await this.getLastMessage(channelInfo.id);
-                const channel = {
-                    id: channelInfo.id,
-                    name: '#' + channelInfo.display_name,
-                    description: channelInfo.description,
-                    image: channelInfo.image,
-                    lastMessage: lastMessage
-                };
-                channelsList.push(channel);
+            for (let i = 0; i < public_channels.length; i++) channels.push(public_channels[i].id)
+            for (let i = 0; i < direct_channels.length; i++) channels.push(direct_channels[i].id)
+            for (let i = 0; i < private_channels.length; i++) channels.push(private_channels[i].id)
+
+            const params = {
+                domain: [
+                    ['id', 'in', channels]
+                ],
+                fields: [
+                    'id',
+                    'display_name',
+                    'description',
+                    'image',
+                    'uuid',
+                    'channel_type',
+                ],
+                order:  'display_name ASC',
+            };
+    
+            const response = await this.props.odoo.search_read('mail.channel', params);
+            if (response.success && response.data.length > 0) {
+    
+                let channelsList = [];
+                const size = response.data.length;
+    
+                // Parsing channels and get last message for each one
+                for (let i = 0; i < size; i++) {
+    
+                    const channelInfo = response.data[i];
+    
+                    const lastMessage = await this.getLastMessage(channelInfo.id);
+                    const channel = {
+                        id: channelInfo.id,
+                        name: '#' + channelInfo.display_name,
+                        description: channelInfo.description,
+                        image: channelInfo.image,
+                        lastMessage: lastMessage,
+                        uuid: channelInfo.uuid,
+                        type: channelInfo.channel_type
+                    };
+                    channelsList.push(channel);
+                }
+    
+                this.setState({
+                    channels: channelsList,
+                    filteredChannels: channelsList,
+                });
             }
 
-            this.setState({
-                channels: channelsList,
-                filteredChannels: channelsList,
-            });
         }
 
         this.setState({
@@ -292,6 +327,35 @@ class ChannelsScreen extends Component {
         });
     };
 
+    _menu = null;
+
+    setMenuRef = ref => {
+        this._menu = ref;
+    };
+
+    hideMenu = () => {
+        this._menu.hide();
+    };
+
+    showMenu = () => {
+        console.log('teste1')
+        this._menu.show();
+    };
+
+    menuDirectMessage = () => {
+        this.hideMenu();
+        this.props.navigation.navigate('DirectMessageScreen',{
+            onNavigateBack: this.handleRefresh
+        })
+    };
+
+    menuJoinChannel = () => {
+        this.hideMenu();
+        this.props.navigation.navigate('JoinChannel',{
+            onNavigateBack: this.handleRefresh
+        })
+    };
+
     render() {
         return (
             <View style={styles.container}>
@@ -305,15 +369,32 @@ class ChannelsScreen extends Component {
                     refreshing={this.state.isRefreshing}
                     onRefresh={this.handleRefresh}
                 />
+                <Menu ref={this.setMenuRef} >
+                    <MenuItem onPress={this.menuDirectMessage} style={{width: 200, alignItems: 'center'}}>
+                        <Ionicons
+                            name="md-person"
+                            size={20}
+                            color={colors.gradient1}
+                        />
+                        <Text>   Mensagem direta</Text>
+                    </MenuItem>
+                    <MenuDivider/>
+                    <MenuItem onPress={this.menuJoinChannel} style={{width: 200, alignItems: 'center'}}>
+                        <MaterialCommunityIcons
+                            name="account-group"
+                            size={20}
+                            color={colors.gradient1}
+                        />
+                        <Text>   Juntar-me a grupo</Text>
+                    </MenuItem>
+                </Menu>
                 <FAB
                     //small
                     color={'#fff'}
                     style={styles.fab}
                     icon="add"
                     onPress={() => (
-                        this.props.navigation.navigate('DirectMessageScreen',{
-                            onNavigateBack: this.handleRefresh
-                        })
+                        this.showMenu()
                     )}
                 />
             </View>
