@@ -9,7 +9,6 @@ import {
     RefreshControl,
     FlatList,
     TouchableOpacity,
-    ActivityIndicator,
     Alert
 } from 'react-native';
 import {connect} from 'react-redux';
@@ -19,9 +18,8 @@ import { ListItem } from 'react-native-elements';
 import CustomText from "../../CustomText";
 import { DangerZone } from 'expo';
 const { Lottie } = DangerZone;
-
-import {removeTraining} from "../../../redux/actions/openedTrainings";
 import {colors} from "../../../styles/index.style";
+import Loader from "../../screens/Loader";
 
 class OpenedTraining extends React.Component {
 
@@ -34,16 +32,15 @@ class OpenedTraining extends React.Component {
             animation: false,
             training: {},
             coaches: ['A carregar...'],
+            secretaries: ['A carregar...'],
             athletes: [],
             startTime: ""
-        }
+        };
     }
 
     componentWillMount() {
 
-        const training = this.props.trainingsList.find(
-            training => training.id === this.props.navigation.getParam('id')
-        );
+        const training = this.props.navigation.state.params.training;
 
         const date_hour = training.display_start.split(' ');
         const date =
@@ -54,7 +51,7 @@ class OpenedTraining extends React.Component {
         const hour = date_hour[1].slice(0,5) + 'h';
 
         this.setState({
-            startTime: date + '  |  ' + hour,
+            startTime: date + '  |  ' + hour + '\n' + training.duracao + ' min',
             training: training
         });
     }
@@ -62,10 +59,13 @@ class OpenedTraining extends React.Component {
     async componentDidMount() {
 
         await this.fetchData();
+        await this.setState({isLoading: false});
     }
 
     /**
-     * Definir as opções da barra de navegação no topo.
+     * Define navigations header components.
+     * @param navigation
+     * @returns {{headerRight: *, headerLeft: *, headerTitle: *}}
      */
     static navigationOptions = ({navigation}) => ({
         headerTitle: //'Treino',
@@ -105,7 +105,8 @@ class OpenedTraining extends React.Component {
     });
 
     /**
-     * Buscar todos os dados necessários sobre o treino.
+     * Fetch all needed data.
+     * @returns {Promise<void>}
      */
     async fetchData() {
 
@@ -113,7 +114,8 @@ class OpenedTraining extends React.Component {
             ids: [this.state.training.id],
             fields: [
                 'treinador',
-                'convocatorias'
+                'convocatorias',
+                'seccionistas'
             ],
         };
 
@@ -122,41 +124,39 @@ class OpenedTraining extends React.Component {
 
             await this.fetchAthletes(response.data[0].convocatorias);
             await this.fetchCoaches(response.data[0].treinador);
-
-            await this.setState({
-                isLoading: false,
-                isRefreshing: false
-            });
+            await this.fetchSecretaries(response.data[0].seccionistas)
         }
     }
 
     /**
-     * Buscar os atletas que foram convocados, bem como a sua disponibilidade.
+     * Fetch athletes data. Order by squad number.
      * @param ids
+     * @returns {Promise<void>}
      */
     async fetchAthletes(ids) {
 
         const params = {
-            ids: ids,
             fields: [
+                'id',
                 'atleta',
                 'disponivel',
                 'numero'
             ],
+            domain: [['id', 'in', ids]],
+            order: 'numero ASC'
         };
 
-        const response = await this.props.odoo.get('ges.linha_convocatoria', params);
+        const response = await this.props.odoo.search_read('ges.linha_convocatoria', params);
         if(response.success && response.data.length > 0) {
 
             const data = response.data;
             const ids = data.map(athlete => {return athlete.atleta[0]});
-
             let athletes = [];
             const athletesImages = await this.fetchAthletesImages(ids);
 
             data.forEach(item => {
 
-                const image = athletesImages.find(imageItem =>
+                const athleteImageEchelon = athletesImages.find(imageItem =>
                     item.atleta[0] === imageItem.id
                 );
 
@@ -165,21 +165,21 @@ class OpenedTraining extends React.Component {
                     name: item.atleta[1],
                     squad_number: item.numero,
                     available: item.disponivel,
-                    image: image.image
+                    image: athleteImageEchelon ? athleteImageEchelon.image : false,
+                    echelon: athleteImageEchelon ? athleteImageEchelon.escalao[1] : 'erro'
                 };
 
                 athletes.push(athlete);
             });
 
-            this.setState(state => ({
-                athletes: [...state.athletes, ...athletes]
-            }));
+            this.setState({athletes: athletes});
         }
     }
 
     /**
-     * Buscar as imagens dos atletas.
+     * Fetch athletes images.
      * @param ids
+     * @returns {Promise<Array|*>}
      */
     async fetchAthletesImages(ids) {
 
@@ -188,11 +188,11 @@ class OpenedTraining extends React.Component {
             fields: [
                 'id',
                 'image',
+                'escalao'
             ]
         };
 
         const response = await this.props.odoo.get('ges.atleta', params);
-
         if(response.success && response.data.length > 0)
             return response.data;
 
@@ -200,7 +200,9 @@ class OpenedTraining extends React.Component {
     }
 
     /**
-     * Buscar os nomes dos treinadores associados ao treino.
+     * Fetch coaches names.
+     * @param ids
+     * @returns {Promise<void>}
      */
     async fetchCoaches(ids) {
 
@@ -230,9 +232,34 @@ class OpenedTraining extends React.Component {
     }
 
     /**
-     * Registar presenças.
+     * Fetch secretaries names.
+     * @param ids
+     * @returns {Promise<void>}
      */
-    async markPresences() {
+    async fetchSecretaries(ids) {
+
+        const params = {
+            ids: ids,
+            fields: ['name'],
+        };
+
+        const response = await this.props.odoo.get('ges.seccionista', params);
+        if(response.success && response.data.length > 0) {
+
+            await this.setState({secretaries: response.data.map(item => item.name)});
+
+        } else {
+            this.setState({
+                secretaries: ['Nenhum seccionista atribuído']
+            });
+        }
+    }
+
+    /**
+     * Close invitations alert.
+     * @returns {Promise<void>}
+     */
+    markPresences() {
 
         Alert.alert(
             'Confirmação',
@@ -241,43 +268,7 @@ class OpenedTraining extends React.Component {
                 {text: 'Cancelar', style: 'cancel'},
                 {
                     text: 'Confirmar',
-                    onPress: async () => {
-
-                        const params = {
-                            kwargs: {
-                                context: this.props.odoo.context,
-                            },
-                            model: 'ges.treino',
-                            method: 'marcar_presencas',
-                            args: [this.state.training.id]
-                        };
-
-                        const response = await this.props.odoo.rpc_call(
-                            '/web/dataset/call_kw',
-                            params
-                        );
-
-                        if (response.success) {
-
-                            await this.props.removeTraining(this.state.training.id);
-                            await this.setState({animation: true});
-                            this.animation.play();
-
-                            setTimeout(() => {
-                                this.props.navigation.goBack();
-                            }, 1100);
-                        }
-
-                        /*
-                        await this.props.removeTraining(this.state.training.id);
-                        await this.setState({animation: true});
-                        this.animation.play();
-
-                        setTimeout(() => {
-                            this.props.navigation.goBack();
-                        }, 1100);
-                         */
-                    }
+                    onPress: async () => this._markPresences()
                 },
             ],
             {cancelable: true},
@@ -285,84 +276,66 @@ class OpenedTraining extends React.Component {
     }
 
     /**
-     * Renderizar o item da lista presente no header.
-     * @param {Object} item
+     * Close invitations.
+     * @returns {Promise<void>}
+     * @private
      */
-    renderItemOfList = ({ item }) => (
-        <ListItem
-            title={item.name}
-            subtitle={item.subtitle}
-            leftAvatar={
-                <View style={{width: 25}}>
-                    <Ionicons name={item.icon} size={27} /*style={{paddingBottom: 5}}*/ />
-                </View>
-            }
-            containerStyle={{
-                backgroundColor: '#ffe3e4',
-                height: 60,
-            }}
-        />
-    );
+    async _markPresences() {
 
-    /**
-     * Renderizar o item dos atletas convocados.
-     * @param {Object} item
-     */
-    renderItem = ({item}) => {
+        await this.setState({isLoading: true});
 
-        if(item.image) {
-            return (
-                <View style={[
-                    styles.itemContainer,
-                    {backgroundColor: item.available ? '#81c784' : '#e57373'}]}>
-                    <Image
-                        source={{uri: `data:image/png;base64,${item.image}`}}
-                        style={{width: '100%', height: '60%', opacity: 1,
-                            borderTopLeftRadius: 5, borderTopRightRadius: 5 }}>
-                    </Image>
-                    <View style={{flex: 1, padding: 5, justifyContent: 'center'}}>
-                        <Text style={styles.itemName}>
-                            {item.name.substring(0, 27)}
-                        </Text>
-                        <Text style={styles.itemCode}>#{item.squad_number}</Text>
-                    </View>
-                </View>
+        const params = {
+            kwargs: {
+                context: this.props.odoo.context,
+            },
+            model: 'ges.treino',
+            method: 'marcar_presencas',
+            args: [this.state.training.id]
+        };
+
+        const response = await this.props.odoo.rpc_call('/web/dataset/call_kw', params);
+        if (response.success) {
+
+            // remove training from list
+            this.props.navigation.state.params.removeTraining(this.state.training.id);
+
+            await this.setState({isLoading: false, animation: true});
+
+            this.animation.play();
+            setTimeout(() => {this.props.navigation.goBack()}, 1100);
+
+        } else {
+
+            await this.setState({isLoading: false});
+
+            Alert.alert(
+                'Erro',
+                'Não foi possível fechar o período de convocatórias para este treino.' +
+                        ' Por favor, tente mais tarde.',
+                [{text: 'Confirmar', style: 'cancel'}],
+                {cancelable: true},
             );
         }
+    }
 
-        return (
-            <View style={[
-                styles.itemContainer,
-                {backgroundColor: item.available ? '#81c784' : '#e57373'}]}>
-                <Image
-                    source={require('../../../../assets/user-account.png')}
-                    style={{width: '100%', height: '60%', opacity: 0.8,
-                        borderTopLeftRadius: 5, borderTopRightRadius: 5 }}>
-                </Image>
-                <View style={{flex: 1, padding: 5, justifyContent: 'center'}}>
-                    <Text style={styles.itemName}>
-                        {item.name.substring(0, 27)}
-                    </Text>
-                    <Text style={styles.itemCode}>#{item.squad_number}</Text>
-                </View>
-            </View>
-        );
-    };
-
+    /**
+     * Render the header of top list.
+     * @returns {*}
+     */
     renderHeader = () => {
 
         return (
             <TouchableOpacity
-                onPress={async () => {await this.markPresences();}}
+                onPress={() => this.markPresences()}
                 style={{
-                flex: 1,
-                alignItems: 'center',
-                backgroundColor: 'rgba(173, 46, 83, 0.8)', //rgba(173, 46, 83, 0.8)
-                padding: 10,
-                marginHorizontal: 10,
-                marginVertical: 5,
-                borderRadius: 5
-            }}>
+                    flex: 1,
+                    alignItems: 'center',
+                    backgroundColor: 'rgba(173, 46, 83, 0.8)',
+                    padding: 10,
+                    marginHorizontal: 10,
+                    marginVertical: 5,
+                    borderRadius: 5
+                }}>
                 <Text style={{color: '#fff', fontWeight: '700', fontSize: 15}}>
                     FECHAR CONVOCATÓRIA
                 </Text>
@@ -374,16 +347,78 @@ class OpenedTraining extends React.Component {
     };
 
     /**
-     * Função que permite atualizar o conteúdo do componente.
+     * Render item of first list.
+     * @param item
+     * @returns {*}
      */
-    onRefresh = () => {
-        this.setState({
-            isRefreshing: true,
-            athletes: []
-        }, async () => {
+    renderItemOfList = ({ item }) => {
+        return (
+            <ListItem
+                title={item.name}
+                subtitle={item.subtitle}
+                leftAvatar={
+                    <View style={{width: 25}}>
+                        <Ionicons name={item.icon} size={27} /*style={{paddingBottom: 5}}*/ />
+                    </View>
+                }
+                containerStyle={{
+                    backgroundColor: colors.lightRedColor,
+                    minHeight: 60,
+                }}
+            />
+        );
+    };
 
-            await this.fetchData();
-        });
+    /**
+     * Render item of athletes list.
+     * @param item
+     * @returns {*}
+     */
+    renderItem = ({item}) => {
+
+        let userImage;
+        if (item.image)
+            userImage = (
+                <Image
+                    source={{uri: `data:image/png;base64,${item.image}`}}
+                    style={{width: '100%', height: '60%', opacity: 1,
+                        borderTopLeftRadius: 5, borderTopRightRadius: 5 }}>
+                </Image>
+            );
+        else
+            userImage = (
+                <Image
+                    source={require('../../../../assets/user-account.png')}
+                    style={{width: '100%', height: '60%', opacity: 0.8,
+                        borderTopLeftRadius: 5, borderTopRightRadius: 5 }}>
+                </Image>
+            );
+
+        return (
+            <View style={[
+                styles.itemContainer,
+                {backgroundColor: item.available ? '#81c784' : '#e57373'}]}>
+                {userImage}
+                <View style={{flex: 1, padding: 5, justifyContent: 'center'}}>
+                    <Text numberOfLines={2} ellipsizeMode='tail' style={styles.itemName}>
+                        {item.name}
+                    </Text>
+                    <Text numberOfLines={1} ellipsizeMode='tail' style={styles.itemCode}>
+                        #{item.squad_number} - {item.echelon}
+                    </Text>
+                </View>
+            </View>
+        );
+    };
+
+    /**
+     * When user refresh this screen.
+     */
+    onRefresh = async () => {
+
+        await this.setState({isRefreshing: true});
+        await this.fetchData();
+        this.setState({isRefreshing: false});
     };
 
     render() {
@@ -393,26 +428,26 @@ class OpenedTraining extends React.Component {
             icon: 'md-shirt',
             subtitle: this.state.training.escalao[1],
         }, {
-            name: 'Início',
+            name: 'Início e duração',
             icon: 'md-time',
             subtitle: this.state.startTime,
         }, {
             name: 'Local',
             icon: 'md-pin',
-            subtitle: this.state.training.local[1],
+            subtitle: this.state.training.local ? this.state.training.local[1] : 'Nenhum local atribuído',
         }, {
             name: 'Treinadores',
             icon: 'md-people',
             subtitle: this.state.coaches.join(', ')
+        }, {
+            name: 'Seccionistas',
+            icon: 'md-clipboard',
+            subtitle: this.state.secretaries.join(', ')
         }];
 
         return (
             <View style={{flex: 1}}>
-                { this.state.isLoading &&
-                    <View style={styles.loading} opacity={0.5}>
-                        <ActivityIndicator size='large' color={colors.loadingColor} />
-                    </View>
-                }
+                <Loader isLoading={this.state.isLoading}/>
                 { this.state.animation &&
                     <View style={styles.loading} opacity={0.8}>
                         <Lottie
@@ -449,7 +484,7 @@ class OpenedTraining extends React.Component {
                         itemDimension={100}
                         spacing={10}
                         sections={[{
-                            title: 'Atletas convocados | Disponibilidade',
+                            title: 'Atletas convocados',
                             data: this.state.athletes,
                         }]}
                         style={styles.gridView}
@@ -473,7 +508,15 @@ const styles = StyleSheet.create({
         borderBottomLeftRadius: 20,
         borderBottomRightRadius: 20,
         paddingVertical: 10,
-        elevation: 5
+        // shadow
+        shadowColor: "#000",
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+        elevation: 5,
     },
     gridView: {
         marginTop: 10,
@@ -484,11 +527,20 @@ const styles = StyleSheet.create({
         borderRadius: 5,
         padding: 0,
         height: 150,
+        //shadow
+        shadowColor: "#000",
+        shadowOffset: {
+            width: 0,
+            height: 3,
+        },
+        shadowOpacity: 0.29,
+        shadowRadius: 4.65,
+        elevation: 7,
     },
     itemName: {
-        fontSize: 16,
+        fontSize: 15,
         color: '#000',
-        fontWeight: '600',
+        fontWeight: '500',
     },
     itemCode: {
         fontWeight: '600',
@@ -526,14 +578,8 @@ const styles = StyleSheet.create({
 const mapStateToProps = state => ({
 
     odoo: state.odoo.odoo,
-    trainingsList: state.openedTrainings.trainingsList
 });
 
-const mapDispatchToProps = dispatch => ({
-
-    removeTraining: (trainingsList) => {
-        dispatch(removeTraining(trainingsList))
-    },
-});
+const mapDispatchToProps = dispatch => ({});
 
 export default connect(mapStateToProps, mapDispatchToProps)(OpenedTraining);

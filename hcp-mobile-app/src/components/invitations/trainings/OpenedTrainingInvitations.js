@@ -21,7 +21,6 @@ import CustomText from "../../CustomText";
 import { DangerZone } from 'expo';
 const { Lottie } = DangerZone;
 
-import {removeTraining} from "../../../redux/actions/openedTrainings";
 import {colors} from "../../../styles/index.style";
 
 class OpenedTrainingInvitations extends Component {
@@ -103,7 +102,7 @@ class OpenedTrainingInvitations extends Component {
     async fetchData() {
         await this.fetchAthletes(this.state.training.invitationIds);
         await this.fetchCoaches(this.state.training.coachIds);
-        await this.fetchSecretarys(this.state.training.secretaryIds);
+        await this.fetchSecretaries(this.state.training.secretaryIds);
 
 
         await this.setState({
@@ -221,7 +220,7 @@ class OpenedTrainingInvitations extends Component {
         }
     }
 
-    async fetchSecretarys(ids) {
+    async fetchSecretaries(ids) {
 
         const params = {
             ids: ids,
@@ -489,7 +488,7 @@ class OpenedTrainingInvitations extends Component {
             subtitle: this.state.coaches.join(', ')
         }, {
             name: 'Seccionistas',
-            icon: 'md-people',
+            icon: 'md-clipboard',
             subtitle: this.state.secretaries.join(', ')
         }];
 

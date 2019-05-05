@@ -60,22 +60,6 @@ class Wizard extends PureComponent {
      */
     _onSubmit = async () => {
 
-        /*
-        const coachInfo = this.props.user.groups.filter(item => item.name === 'Treinador');
-        const response = await this.props.odoo.create(
-            'ges.treino',
-            {
-                start: '2019-05-10 19:30:00',
-                stop: '2019-05-10 20:30:00',
-                escalao: 8,
-                treinador: [[6,0,[coachInfo[0].id]]],
-                local: 3,
-                seccionistas: [[6,0,[12]]],
-                atletas: [[6,0,[60, 61, 63]]]
-            }
-        );
-        */
-
         const startDate = this.props.newTraining.startDateTime.split('T');
         const endDate = this.props.newTraining.endDateTime.split('T');
 
@@ -85,34 +69,34 @@ class Wizard extends PureComponent {
             escalao: this.props.newTraining.echelonId,
             treinador: [[6,0,this.props.newTraining.coaches]],
             local: this.props.newTraining.localId,
-            seccionistas: [[6,0,this.props.newTraining.athletes]],
-            atletas: [[6,0,this.props.newTraining.secretaries]],
+            seccionistas: [[6,0,this.props.newTraining.secretaries]],
+            atletas: [[6,0,this.props.newTraining.athletes]],
         };
 
-        console.log(newTraining);
-
+        let alertMessage;
         const response = await this.props.odoo.create('ges.treino', newTraining);
-        console.log(response);
         if(response.success) {
-            Alert.alert(
-                "Sucesso",
-                "Treino de teste criado com sucesso. ID: " + response.data.toString(),
-                [
-                    {text: 'OK', onPress: () => this.props.navigation.cancelTraining()},
-                ],
-                {cancelable: false},
-            );
+
+            alertMessage = {
+                'title': 'Sucesso',
+                'message': 'O treino foi criado com sucesso. As pessoas envolvidas serão notificadas.'
+            };
         }
         else {
-            Alert.alert(
-                "Erro",
-                "Treino de teste não foi criado.",
-                [
-                    {text: 'OK', onPress: () => this.props.navigation.cancelTraining()},
-                ],
-                {cancelable: false},
-            );
+            alertMessage = {
+                'title': 'Erro',
+                'message': 'Ocorreu um erro ao criar este treino. Por favor, tente mais tarde.'
+            };
         }
+
+        Alert.alert(
+            alertMessage.title,
+            alertMessage.message,
+            [
+                {text: 'OK', onPress: () => {this.props.navigation.cancelTraining()}},
+            ],
+            {cancelable: false},
+        );
     };
 
     render() {
@@ -130,7 +114,6 @@ class Wizard extends PureComponent {
                                 !this.props.newTraining.isStepReady[this.props.newTraining.stepId] :
                                 true
                             ,
-                            //isStepDisabled: false,
                             isLast: this.props.newTraining.stepId === this.props.children.length - 1,
                             onSubmit: this._onSubmit,
                         });

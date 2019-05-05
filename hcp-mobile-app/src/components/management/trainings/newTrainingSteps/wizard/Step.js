@@ -19,13 +19,13 @@ class Step extends React.Component {
                     <View style={styles.footerProgressBar}>
                         <ProgressBar
                             progress={(this.props.currentIndex + 1) / this.props.totalIndex}
-                            color={colors.redText}
+                            color={colors.redColor}
                         />
                     </View>
                     <View style={styles.footerButtons}>
                         <View style={{flex: 1}}>
                             <Button
-                                color={colors.greyText}
+                                color={colors.darkGrayColor}
                                 mode="contained"
                                 contentStyle={styles.buttonInside}
                                 style={styles.buttonOutside}
@@ -38,7 +38,7 @@ class Step extends React.Component {
                         <View style={{flex: 1}}>
                             {this.props.isLast ? (
                                 <Button
-                                    color={colors.redText}
+                                    color={colors.redColor}
                                     mode="contained"
                                     contentStyle={styles.buttonInside}
                                     style={styles.buttonOutside}
@@ -49,7 +49,7 @@ class Step extends React.Component {
                                 </Button>
                             ) : (
                                 <Button
-                                    color={colors.redText}
+                                    color={colors.redColor}
                                     mode="contained"
                                     contentStyle={styles.buttonInside}
                                     style={styles.buttonOutside}

@@ -91,7 +91,7 @@ class NewTrainingStep2 extends Component {
                                         height: 20,
                                         width: 40,
                                     }}>
-                                    <Ionicons name={"md-close"} size={26} color={colors.redText}/>
+                                    <Ionicons name={"md-close"} size={26} color={colors.redColor}/>
                                 </TouchableOpacity>
                             )}
                         />

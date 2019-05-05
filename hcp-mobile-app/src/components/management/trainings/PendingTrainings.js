@@ -5,55 +5,50 @@ import {ListItem} from 'react-native-elements';
 import {connect} from 'react-redux';
 import {Ionicons} from "@expo/vector-icons";
 import CustomText from "../../CustomText";
-
+import {colors} from "../../../styles/index.style";
 
 class TrainingItem extends React.PureComponent {
 
     render() {
 
         const date_hour = this.props.training.display_start.split(' ');
-
-        let color;
-        switch (this.props.index % 2) {
-            case 0:
-                color = '#f4f4f4';
-                break;
-            default:
-                color = '#fff';
-                break;
-        }
+        const date =
+            date_hour[0].slice(8,10) + '/' +
+            date_hour[0].slice(5,7) + '/' +
+            date_hour[0].slice(0,4);
 
         return (
             <ListItem
                 title={(
                     <View style={{flex: 1, flexDirection: 'row'}}>
                         <Text style={{fontSize: 16, fontWeight: '700'}}>
-                            {this.props.training.escalao[1] + ' | '}
+                            {'Treino ' + this.props.training.escalao[1] + ' | '}
                         </Text>
                         <Text style={{fontSize: 16, fontWeight: '400'}}>
-                            {date_hour[0]}
+                            {date}
                         </Text>
                     </View>
                 )}
                 subtitle={(
                     <View  style={{flex: 1, flexDirection: 'column'}}>
-                        <View style={{flex: 1, flexDirection: 'row'}}>
-                            <Text style={{color: '#919391'}}>
-                                {this.props.training.local[1] + ' - '}
-                            </Text>
-                            <Text style={{color: '#919391'}}>
-                                {date_hour[1].slice(0, -3) + 'h'}
-                            </Text>
-                        </View>
-                        <Text style={{color: '#919391'}}>
-                            {this.props.training.duracao + ' min'}
+                        <Text style={{color: colors.darkGrayColor}}>
+                            {
+                                'Início às ' + date_hour[1].slice(0, -3) + 'h' +
+                                ' com duração de ' + this.props.training.duracao + ' min'
+                            }
+                        </Text>
+                        <Text numberOfLines={1} ellipsizeMode='tail' style={{color: colors.darkGrayColor}}>
+                            {
+                                this.props.training.local ?
+                                    this.props.training.local[1] : 'Nenhum local atribuído'
+                            }
                         </Text>
                     </View>
                 )}
                 leftAvatar={(<Ionicons name={'md-hourglass'} size={28} />)}
                 chevron
                 containerStyle={{
-                    backgroundColor: color
+                    backgroundColor: this.props.index % 2 === 0 ? colors.lightGrayColor : '#fff'
                 }}
             />
         )
@@ -66,38 +61,29 @@ class PendingTrainings extends Component {
         super(props);
 
         this.state = {
-            trainingsList: [],
-            lastIDFetched: false,
             isLoading: true,
             isRefreshing: false,
+            trainingsList: [],
         };
     }
 
-    componentDidMount() {
+    async componentDidMount() {
 
-        this.willFocus = this.props.navigation.addListener('willFocus', () => {
-            this.setState({
-                trainingsList: [],
-                lastIDFetched: false,
-            }, () => {
-                this.fetchTrainings();
-            });
-        });
-    }
-
-    componentWillUnmount() {
-
-        this.willFocus.remove();
+        // fetch all trainings, max 20
+        await this.fetchTrainings(20, true);
+        await this.setState({isLoading: false});
     }
 
     /**
-     * Definir as opções da barra de navegação no topo.
+     * Define navigations header components.
+     * @param navigation
+     * @returns {{headerLeft: *, headerTitle: *}}
      */
     static navigationOptions = ({navigation}) => ({
-        headerTitle: //'Convocatórias fechadas',
+        headerTitle:
             <CustomText
                 type={'bold'}
-                children={'CONVOCATÓRIAS EM ABERTO'}
+                children={'CONVOCATÓRIAS FECHADAS'}
                 style={{
                     color: '#ffffff',
                     fontSize: 16
@@ -118,111 +104,93 @@ class PendingTrainings extends Component {
     });
 
     /**
-     * Buscar treinos com convocatória fechadas.
-     * O número de treinos retornados é menor ou igual ao limite apresentado.
-     *
+     * Fetch all pending trainings. Maximum of limit items.
      * @param limit
+     * @param clear
+     * @returns {Promise<void>}
      */
-    async fetchTrainings(limit=15) {
+    async fetchTrainings(limit=20, clear=false) {
 
-        const id = this.state.lastIDFetched ? this.state.lastIDFetched : 2147483647;
+        if(clear) {
+            await this.setState({trainingsList: []});
+        }
+
+        const idsFetched = this.state.trainingsList.map(training => {return training.id});
         const params = {
             domain: [
-                ['id', '<', id.toString()],
+                ['id', 'not in', idsFetched],
                 ['state', '=', 'convocatorias_fechadas']
             ],
             fields: ['id', 'display_start', 'local', 'escalao', 'duracao'],
             limit: limit,
-            order: 'id DESC'
+            order: 'display_start DESC'
         };
 
         const response = await this.props.odoo.search_read('ges.treino', params);
-        if (response.success) {
+        if (response.success && response.data.length > 0) {
 
-            if (response.data.length > 0) {
-
-                await this.setState({
-                    trainingsList: [...this.state.trainingsList, ...response.data],
-                    lastIDFetched: response.data[response.data.length-1].id
-                });
-            }
+            await this.setState(state => ({
+                trainingsList: [...state.trainingsList, ...response.data]
+            }));
         }
-
-        await this.setState({
-            isLoading: false,
-            isRefreshing: false
-        });
     }
 
     /**
-     * Função que trata de atualizar a lista dos treinos.
+     * When user refresh current screen.
+     * @returns {Promise<void>}
      */
-    handleRefresh = () => {
-        this.setState({
-                trainingsList: [],
-                lastIDFetched: false,
-                isRefreshing: true,
-                isLoading: false
-            },
-            () => {
-                this.fetchTrainings();
-            });
+    handleRefresh = async () => {
+
+        this.setState({isRefreshing: true, isLoading: false});
+
+        // fetch all trainings and clear current list
+        await this.fetchTrainings(20, true);
+
+        this.setState({isRefreshing: false});
     };
 
     /**
-     * Função que trata de adicionar, se existirem, treinos antigos.
+     * Add more trainings if they exist.
+     * @returns {Promise<void>}
      */
-    handleMoreData = () => {
-        this.setState({
-                isLoading: true
-            },
-            () => {
-                this.fetchTrainings();
-            });
+    handleMoreData = async () => {
+
+        this.setState({isLoading: true});
+
+        // fetch more trainings
+        await this.fetchTrainings();
+
+        this.setState({isLoading: false});
     };
 
     /**
-     * Retorna o componente ActivityIndicator se estiver a fazer loading.
+     * Renders ActivityIndicator if is loading.
+     * @returns {*}
      */
     renderFooter = () => {
 
-        if(this.state.isLoading) {
-
-            return (
-                <View style={{
-                    paddingVertical: 20,
-                    borderTopWidth: 1,
-                    borderTopColor: '#ced0ce'
-                }}>
+        return (
+            <View style={{paddingVertical: 20}}>
+                {
+                    this.state.isLoading &&
                     <ActivityIndicator
                         size={'large'}
-                        color={'#ced0ce'}
+                        color={colors.loadingColor}
                     />
-                </View>
-            );
-        }
-
-        return null;
-    };
-
-    /**
-     * Renderiza uma linha entre os items da lista.
-     */
-    renderSeparator = () => {
-        return (
-            <View style={{
-                height: 0,
-                width: '100%',
-                backgroundColor: '#ced0ce',
-            }}/>
+                }
+            </View>
         );
     };
 
     /**
-     * Retorna o componente que representa um item da lista.
+     * PureComponent used for rendering items of FlatList.
      * @param item
+     * @param index
+     * @returns {*}
      */
-    renderItem = ({ item, index }) => (<TrainingItem training={item} index={index} />);
+    renderItem = ({ item, index }) => (
+        <TrainingItem key={item.id + item.escalao} training={item} index={index} navigation={this.props.navigation} />
+    );
 
     render() {
 
@@ -235,7 +203,6 @@ class PendingTrainings extends Component {
                 onRefresh={this.handleRefresh}
                 onEndReached={this.handleMoreData}
                 onEndReachedThreshold={0.1}
-                ItemSeparatorComponent={this.renderSeparator}
                 ListFooterComponent={this.renderFooter}
             />
         );

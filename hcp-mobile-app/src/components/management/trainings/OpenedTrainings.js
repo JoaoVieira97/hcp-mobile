@@ -5,9 +5,7 @@ import {ListItem} from 'react-native-elements';
 import {connect} from 'react-redux';
 import {Ionicons} from "@expo/vector-icons";
 import CustomText from "../../CustomText";
-
-import {setTrainings, addTrainings, clearAllTrainings} from "../../../redux/actions/openedTrainings";
-
+import {colors} from "../../../styles/index.style";
 
 class TrainingItem extends React.PureComponent {
 
@@ -18,16 +16,6 @@ class TrainingItem extends React.PureComponent {
             date_hour[0].slice(8,10) + '/' +
             date_hour[0].slice(5,7) + '/' +
             date_hour[0].slice(0,4);
-
-        let color;
-        switch (this.props.index % 2) {
-            case 0:
-                color = '#f4f4f4';
-                break;
-            default:
-                color = '#fff';
-                break;
-        }
 
         return (
             <ListItem
@@ -43,28 +31,29 @@ class TrainingItem extends React.PureComponent {
                 )}
                 subtitle={(
                     <View  style={{flex: 1, flexDirection: 'column'}}>
-                        <View style={{flex: 1, flexDirection: 'row'}}>
-                            <Text style={{color: '#919391'}}>
-                                {this.props.training.local[1] + ' - '}
-                            </Text>
-                            <Text style={{color: '#919391'}}>
-                                {date_hour[1].slice(0, -3) + 'h'}
-                            </Text>
-                        </View>
-                        <Text style={{color: '#919391'}}>
-                            {this.props.training.duracao + ' min'}
+                        <Text style={{color: colors.darkGrayColor}}>
+                            {
+                                'Início às ' + date_hour[1].slice(0, -3) + 'h' +
+                                ' com duração de ' + this.props.training.duracao + ' min'
+                            }
+                        </Text>
+                        <Text numberOfLines={1} ellipsizeMode='tail' style={{color: colors.darkGrayColor}}>
+                            {
+                                this.props.training.local ?
+                                this.props.training.local[1] : 'Nenhum local atribuído'
+                            }
                         </Text>
                     </View>
                 )}
                 leftAvatar={(<Ionicons name={'md-hourglass'} size={28} />)}
                 chevron
                 containerStyle={{
-                    backgroundColor: color
+                    backgroundColor: this.props.index % 2 === 0 ? colors.lightGrayColor : '#fff'
                 }}
                 onPress={() => {
                     this.props.navigation.navigate(
                         'OpenedTraining',
-                        {id: this.props.training.id}
+                        {training: this.props.training, removeTraining: (id) => this.props.removeTraining(id)}
                     );
                 }}
             />
@@ -80,12 +69,16 @@ class OpenedTrainings extends Component {
         this.state = {
             isLoading: true,
             isRefreshing: false,
+            trainingsList: [],
         };
     }
 
     async componentDidMount() {
 
+        // fetch all trainings, max 20
         await this.fetchTrainings(20, true);
+        await this.setState({isLoading: false});
+
         /*
         this.willFocus = this.props.navigation.addListener('willFocus', () => {
             this.setState({
@@ -95,19 +88,21 @@ class OpenedTrainings extends Component {
                 await this.fetchTrainings();
             });
         });
-        */
-    }
 
-    componentWillUnmount() {
+        componentWillUnmount() {
 
         //this.willFocus.remove();
     }
+        */
+    }
 
     /**
-     * Definir as opções da barra de navegação no topo.
+     * Define navigations header components.
+     * @param navigation
+     * @returns {{headerLeft: *, headerTitle: *}}
      */
     static navigationOptions = ({navigation}) => ({
-        headerTitle: //'Convocatórias em aberto',
+        headerTitle:
             <CustomText
                 type={'bold'}
                 children={'CONVOCATÓRIAS EM ABERTO'}
@@ -131,21 +126,20 @@ class OpenedTrainings extends Component {
     });
 
     /**
-     * Buscar treinos com convocatória em aberto.
-     * O número de treinos retornados é menor ou igual ao limite apresentado.
-     *
+     * Fetch all opened trainings. Maximum of limit items.
      * @param limit
+     * @param clear
+     * @returns {Promise<void>}
      */
     async fetchTrainings(limit=20, clear=false) {
 
         if(clear) {
-            await this.props.clearAllTrainings();
+            await this.setState({trainingsList: []});
         }
 
-        const idsFetched = this.props.trainingsList.map(training => {return training.id});
+        const idsFetched = this.state.trainingsList.map(training => {return training.id});
         const params = {
             domain: [
-                //['display_start', '<=', '3000-01-01 24:00:00'],
                 ['id', 'not in', idsFetched],
                 ['state', '=', 'aberto']
             ],
@@ -155,104 +149,96 @@ class OpenedTrainings extends Component {
         };
 
         const response = await this.props.odoo.search_read('ges.treino', params);
-        if (response.success) {
+        if (response.success && response.data.length > 0) {
 
-            if (response.data.length > 0) {
-
-                //this.props.setTrainings(response.data);
-                await this.props.addTrainings(response.data);
-            }
-        } else
-            console.log("error");
-
-        await this.setState({
-            isLoading: false,
-            isRefreshing: false
-        });
+            await this.setState(state => ({
+                trainingsList: [...state.trainingsList, ...response.data]
+            }));
+        }
     }
 
     /**
-     * Função que trata de atualizar a lista dos treinos.
+     * Remove training from current list when user change training state.
+     * @param trainingId
      */
-    handleRefresh = () => {
+    removeTraining(trainingId) {
 
-        this.setState({
-                isRefreshing: true,
-                isLoading: false
-            },
-            async () => {
-                await this.props.clearAllTrainings();
-                await this.fetchTrainings();
-            });
+        const trainingsListAux = this.state.trainingsList.filter(item => item.id !== trainingId);
+        this.setState({trainingsList: trainingsListAux});
+    }
+
+    /**
+     * When user refresh current screen.
+     * @returns {Promise<void>}
+     */
+    handleRefresh = async () => {
+
+        this.setState({isRefreshing: true, isLoading: false});
+
+        // fetch all trainings and clear current list
+        await this.fetchTrainings(20, true);
+
+        this.setState({isRefreshing: false});
     };
 
     /**
-     * Função que trata de adicionar, se existirem, treinos antigos.
+     * Add more trainings if they exist.
+     * @returns {Promise<void>}
      */
-    handleMoreData = () => {
-        this.setState({
-                isLoading: true
-            },
-            async () => {
-                await this.fetchTrainings();
-            });
+    handleMoreData = async () => {
+
+        this.setState({isLoading: true});
+
+        // fetch more trainings
+        await this.fetchTrainings();
+
+        this.setState({isLoading: false});
     };
 
     /**
-     * Retorna o componente ActivityIndicator se estiver a fazer loading.
+     * Renders ActivityIndicator if is loading.
+     * @returns {*}
      */
     renderFooter = () => {
 
-        if(this.state.isLoading) {
-
-            return (
-                <View style={{
-                    paddingVertical: 20,
-                }}>
+        return (
+            <View style={{paddingVertical: 20}}>
+                {
+                    this.state.isLoading &&
                     <ActivityIndicator
                         size={'large'}
-                        color={'#ced0ce'}
+                        color={colors.loadingColor}
                     />
-                </View>
-            );
-        }
-
-        return null;
-    };
-
-    /**
-     * Renderiza uma linha entre os items da lista.
-     */
-    renderSeparator = () => {
-        return (
-            <View style={{
-                height: 0,
-                width: '100%',
-                backgroundColor: '#ced0ce',
-            }}/>
+                }
+            </View>
         );
     };
 
     /**
-     * Retorna o componente que representa um item da lista.
+     * PureComponent used for rendering items of FlatList.
      * @param item
+     * @param index
+     * @returns {*}
      */
     renderItem = ({ item, index }) => (
-        <TrainingItem training={item} key={item.id} navigation={this.props.navigation} />
+        <TrainingItem
+            key={item.id + item.escalao}
+            training={item}
+            index={index}
+            removeTraining={(id) => this.removeTraining(id)}
+            navigation={this.props.navigation} />
     );
 
     render() {
-
         return (
             <FlatList
                 keyExtractor={item => item.id.toString()}
-                data={this.props.trainingsList}
+                data={this.state.trainingsList}
                 renderItem={this.renderItem}
                 refreshing={this.state.isRefreshing}
                 onRefresh={this.handleRefresh}
                 onEndReached={this.handleMoreData}
                 onEndReachedThreshold={0.1}
-                ItemSeparatorComponent={this.renderSeparator}
                 ListFooterComponent={this.renderFooter}
             />
         );
@@ -264,22 +250,8 @@ class OpenedTrainings extends Component {
 const mapStateToProps = state => ({
 
     odoo: state.odoo.odoo,
-    trainingsList: state.openedTrainings.trainingsList
 });
 
-const mapDispatchToProps = dispatch => ({
-
-    setTrainings: (trainingsList) => {
-        dispatch(setTrainings(trainingsList))
-    },
-
-    addTrainings: (trainingsList) => {
-        dispatch(addTrainings(trainingsList))
-    },
-
-    clearAllTrainings: () => {
-        dispatch(clearAllTrainings())
-    }
-});
+const mapDispatchToProps = dispatch => ({});
 
 export default connect(mapStateToProps, mapDispatchToProps)(OpenedTrainings);

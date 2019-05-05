@@ -172,7 +172,7 @@ class LoginScreen extends React.Component {
                             disabled={this.state.isUsernameDisabled}
                             theme={{ colors: {
                                     ...DefaultTheme.colors,
-                                    primary: colors.blueText,
+                                    primary: colors.blueColor,
                                 }}}
                             autoCapitalize={'none'}
                             autoComplete={'email'}
@@ -191,7 +191,7 @@ class LoginScreen extends React.Component {
                                 secureTextEntry={this.state.hidePassword}
                                 theme={{ colors: {
                                         ...DefaultTheme.colors,
-                                        primary: colors.blueText,
+                                        primary: colors.blueColor,
                                     }}}
                                 autoCapitalize={'none'}
                             />

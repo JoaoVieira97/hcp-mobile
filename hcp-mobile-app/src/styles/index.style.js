@@ -1,37 +1,21 @@
-import { StyleSheet } from 'react-native';
-
 export const colors = {
 
-    grayColor: '#dbdbdb',
-    darkGrayColor: '#919391',
-    redColor: '#ad2e53',
-    blueColor: '#0000e5',
+    // DEFAULT APP COLORS
+    grayColor: '#dbdbdb', // used as background color
+    darkGrayColor: '#919391', // used in FlatList on subtitle items
+    lightGrayColor: '#f4f4f4', // used in FlatList to distinguish the list items
+    lightRedColor: '#ffe3e4', // used on Home screen, and training screens
+    redColor: '#ad2e53', // app red color
+    blueColor: '#0000e5', // app blue text
 
-    // GRADIENT COLORS
-    gradient1: '#ad2e53', // used in AppNavigator
+    // TOP HEADER GRADIENT COLORS
+    gradient1: '#ad2e53',
     gradient2: '#2f2d3b',
 
-    // LOADING INDICATOR
-    loadingColor: '#ced0ce', //'#0000e5'
+    // LOADING INDICATOR COLOR
+    loadingColor: '#ced0ce',
 
     // TRAINING and GAME COLORS
-    gameColor: '#ef9c88', //'#fab1a0',
-    trainingColor: '#30c9c9', //'#81ecec'
-
-    // DELETE
-    // --------------------------------------------
-    background1: '#d7e8ff', // used in LoginScreen
-
-    blueText: '#0000e5',
-    redText: '#ad2e53',
-    greyText: '#a2a2a2',
-    // --------------------------------------------
+    gameColor: '#ef9c88',
+    trainingColor: '#30c9c9',
 };
-
-
-export default StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: colors.background1
-    }
-});
