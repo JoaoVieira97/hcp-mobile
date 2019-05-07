@@ -2,20 +2,18 @@ import React, {Component} from 'react';
 import {
     View,
     FlatList,
-    ActivityIndicator, StyleSheet, Text, Alert
+    ActivityIndicator, StyleSheet, Text, Alert, Button
 } from 'react-native';
 import {
     ListItem,
     Avatar,
     SearchBar
 } from 'react-native-elements';
-import { FAB } from 'react-native-paper';
 import {connect} from 'react-redux';
 import _ from 'lodash';
 import {colors} from "../../styles/index.style";
 import Menu, { MenuItem, MenuDivider } from 'react-native-material-menu';
-import {Ionicons, MaterialCommunityIcons} from "@expo/vector-icons";
-
+import { AntDesign } from "@expo/vector-icons";
 
 class ChannelsScreen extends Component {
 
@@ -32,8 +30,69 @@ class ChannelsScreen extends Component {
         };
     }
 
+    _menu = null;
+
+    setMenuRef = ref => {
+        this._menu = ref;
+    };
+
+    hideMenu = () => {
+        this._menu.hide();
+    };
+
+    showMenu = () => {
+        this._menu.show();
+    };
+
+    menuDirectMessage = () => {
+        this.hideMenu();
+        this.props.navigation.navigate('DirectMessageScreen',{
+            onNavigateBack: this.handleRefresh
+        })
+    };
+
+    menuJoinChannel = () => {
+        this.hideMenu();
+        this.props.navigation.navigate('JoinChannel',{
+            onNavigateBack: this.handleRefresh
+        })
+    };
+
+    static navigationOptions = ({navigation}) => {
+        const {params = {}} = navigation.state;
+
+        return ({
+            headerRight: 
+                <Menu
+                    ref={params.setMenuRef}
+                    button={<AntDesign
+                        name="pluscircle"
+                        size={28}
+                        color={'#ffffff'}
+                        style={{paddingRight: 10}}
+                        onPress={params.showMenu} 
+                    />}
+                >
+                    <MenuItem onPress={params.menuDirectMessage} style={{width: 250, alignItems: 'center'}}>
+                        Mensagem direta
+                    </MenuItem>
+                    <MenuDivider/>
+                    <MenuItem onPress={params.menuJoinChannel} style={{width: 250, alignItems: 'center'}}>
+                        Juntar-me a grupo
+                    </MenuItem>
+                </Menu>
+        });
+    }
+
     async componentDidMount() {
-        
+
+        this.props.navigation.setParams({
+            showMenu: this.showMenu,
+            setMenuRef: this.setMenuRef,
+            menuDirectMessage: this.menuDirectMessage,
+            menuJoinChannel: this.menuJoinChannel,
+        });
+
         await this.getChannels();
 
     }
@@ -357,6 +416,7 @@ class ChannelsScreen extends Component {
     };
 
     render() {
+
         return (
             <View style={styles.container}>
                 <FlatList
@@ -369,50 +429,16 @@ class ChannelsScreen extends Component {
                     refreshing={this.state.isRefreshing}
                     onRefresh={this.handleRefresh}
                 />
-                <Menu ref={this.setMenuRef} >
-                    <MenuItem onPress={this.menuDirectMessage} style={{width: 200, alignItems: 'center'}}>
-                        <Ionicons
-                            name="md-person"
-                            size={20}
-                            color={colors.gradient1}
-                        />
-                        <Text>   Mensagem direta</Text>
-                    </MenuItem>
-                    <MenuDivider/>
-                    <MenuItem onPress={this.menuJoinChannel} style={{width: 200, alignItems: 'center'}}>
-                        <MaterialCommunityIcons
-                            name="account-group"
-                            size={20}
-                            color={colors.gradient1}
-                        />
-                        <Text>   Juntar-me a grupo</Text>
-                    </MenuItem>
-                </Menu>
-                <FAB
-                    //small
-                    color={'#fff'}
-                    style={styles.fab}
-                    icon="add"
-                    onPress={() => (
-                        this.showMenu()
-                    )}
-                />
             </View>
         );
     }
+
 }
 
 const styles = StyleSheet.create({
     container: {
         flex: 1
-    },
-    fab: {
-        position: 'absolute',
-        margin: 25,
-        right: 0,
-        bottom: 0,
-        backgroundColor: colors.redColor
-    },
+    }
 });
 
 const mapStateToProps = state => ({

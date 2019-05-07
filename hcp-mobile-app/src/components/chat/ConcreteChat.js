@@ -176,27 +176,15 @@ class ConcreteChat extends Component {
                     onPress={navigation.state.params.showMenu} />}
             >
                 <MenuItem onPress={navigation.state.params.leaveChannel} style={{width: 250, alignItems: 'center'}}>
-                    <MaterialCommunityIcons
-                        name="arrow-collapse-left"
-                        size={20}
-                        color={colors.gradient1}
-                    />
-                    <Text>   {(navigation.state.params.channel_type == 'channel') ? 
+                    {(navigation.state.params.channel_type == 'channel') ? 
                         "Deixar o canal" : 
                         "Desmarcar conversa"}
-                    </Text>
                 </MenuItem>
                 <MenuDivider/>
                 <MenuItem onPress={navigation.state.params.channelInfo} style={{width: 250, alignItems: 'center'}}>
-                    <Entypo
-                        name="info"
-                        size={20}
-                        color={colors.gradient1}
-                    />
-                    <Text>   {(navigation.state.params.channel_type == 'channel') ?
+                    {(navigation.state.params.channel_type == 'channel') ?
                         "Ver detalhes do canal" : 
                         "Ver detalhes da conversa"}
-                    </Text>
                 </MenuItem>
             </Menu>
     });
@@ -281,7 +269,7 @@ class ConcreteChat extends Component {
             params
         );
 
-        if (response.success){
+        if (response.success & response.data.length > 0){
 
             let messages = [];
             let ids_msgs = [];
