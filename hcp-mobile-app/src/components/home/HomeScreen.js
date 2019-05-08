@@ -39,7 +39,8 @@ class HomeScreen extends React.Component {
 
     async componentDidMount() {
 
-        await this.fetchEvents();
+        if(await this.fetchOwnEvents() === false)
+            await this.fetchOtherEvents();
 
         await this.registerForPushNotificationsAsync();
         await this.addUserToken();
@@ -92,11 +93,11 @@ class HomeScreen extends React.Component {
     };
 
     /**
-     * Fetch future events. All events are associated to the current user.
+     * Fetch own future events. All events are associated to the current user.
      * Display the first 5 events from now.
-     * @returns {Promise<void>}
+     * @returns {Promise<boolean>}
      */
-    async fetchEvents() {
+    async fetchOwnEvents() {
 
         // Create aux domain
         let auxDomain = [];
@@ -173,7 +174,58 @@ class HomeScreen extends React.Component {
         };
 
         const response = await this.props.odoo.search_read('ges.evento_desportivo', params);
-        if (response.success) {
+        if (response.success && response.data.length > 0) {
+
+            let trainingsIds = [];
+            let gamesIds = [];
+            let eventsOrder = [];
+
+            for (let i=0; i<response.data.length; i++) {
+
+                const event = response.data[i].evento_ref.split(",");
+
+                if (event[0] === 'ges.jogo')
+                    gamesIds.push(parseInt(event[1]));
+                else
+                    trainingsIds.push(parseInt(event[1]));
+
+                eventsOrder.push({type: event[0], id: event[1]})
+            }
+
+            if (trainingsIds.length > 0 || gamesIds.length > 0)
+                await this.parseEvents(trainingsIds, gamesIds, eventsOrder);
+
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Fetch other future events. All events are associated to the current user.
+     * Display the first 5 events from now.
+     * @returns {Promise<void>}
+     */
+    async fetchOtherEvents() {
+
+        // Get today using "xxxx-xx-xx" format
+        const now = new Date().toJSON().split('T');
+        const nowDate = now[0] + ' ' + now[1].slice(0,8);
+
+        const domain = [
+            '&',
+            ['start_datetime', '>=', nowDate],
+            ['state', '=', 'convocatorias_fechadas']
+        ];
+
+        const params = {
+            domain: domain,
+            fields: ['evento_ref'],
+            order: 'start_datetime ASC',
+            limit: 6
+        };
+
+        const response = await this.props.odoo.search_read('ges.evento_desportivo', params);
+        if (response.success && response.data.length > 0) {
 
             let trainingsIds = [];
             let gamesIds = [];
@@ -205,6 +257,10 @@ class HomeScreen extends React.Component {
      */
     async parseEvents(trainingsIds, gamesIds, eventsOrder) {
 
+        console.log(trainingsIds);
+        console.log(gamesIds);
+        console.log(eventsOrder);
+
         let trainings = [];
         let games = [];
         let finalEvents = [];
@@ -215,8 +271,10 @@ class HomeScreen extends React.Component {
 
         // Parsing trainings
         let response = await this.props.odoo.get('ges.treino', params);
+        console.log(response);
         if(response.success && response.data.length > 0) {
 
+            console.log(response.data);
             for (let i = 0; i < response.data.length; i++) {
 
                 const training = response.data[i];
@@ -281,15 +339,18 @@ class HomeScreen extends React.Component {
             if (item.type === 'ges.treino')
             {
                 const training = trainings.find(training => training.id === parseInt(item.id));
-                finalEvents.push(training);
+                if(training)
+                    finalEvents.push(training);
             }
             else {
                 const game = games.find(game => game.id === parseInt(item.id));
-                finalEvents.push(game);
+                if (game)
+                    finalEvents.push(game);
             }
         });
 
-        this.setState({entries: finalEvents})
+        if(finalEvents.length > 0)
+            this.setState({entries: finalEvents})
     }
 
     /**
