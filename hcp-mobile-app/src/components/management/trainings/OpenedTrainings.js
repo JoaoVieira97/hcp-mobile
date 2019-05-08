@@ -6,16 +6,15 @@ import {connect} from 'react-redux';
 import {Ionicons} from "@expo/vector-icons";
 import CustomText from "../../CustomText";
 import {colors} from "../../../styles/index.style";
+import ConvertTime from "../../ConvertTime";
 
 class TrainingItem extends React.PureComponent {
 
     render() {
 
-        const date_hour = this.props.training.display_start.split(' ');
-        const date =
-            date_hour[0].slice(8,10) + '/' +
-            date_hour[0].slice(5,7) + '/' +
-            date_hour[0].slice(0,4);
+        const convertTime = new ConvertTime();
+        convertTime.setDate(this.props.training.display_start);
+        const date = convertTime.getTimeObject();
 
         return (
             <ListItem
@@ -25,22 +24,23 @@ class TrainingItem extends React.PureComponent {
                             {'Treino ' + this.props.training.escalao[1] + ' | '}
                         </Text>
                         <Text style={{fontSize: 16, fontWeight: '400'}}>
-                            {date}
+                            {date.date}
                         </Text>
                     </View>
                 )}
                 subtitle={(
                     <View  style={{flex: 1, flexDirection: 'column'}}>
                         <Text style={{color: colors.darkGrayColor}}>
-                            {
-                                'Início às ' + date_hour[1].slice(0, -3) + 'h' +
-                                ' com duração de ' + this.props.training.duracao + ' min'
-                            }
+                            {'Início: ' + date.hour}
+                        </Text>
+                        <Text style={{color: colors.darkGrayColor}}>
+                            {'Duração: ' + this.props.training.duracao + ' min'}
                         </Text>
                         <Text numberOfLines={1} ellipsizeMode='tail' style={{color: colors.darkGrayColor}}>
                             {
                                 this.props.training.local ?
-                                this.props.training.local[1] : 'Nenhum local atribuído'
+                                'Local: ' + this.props.training.local[1] :
+                                'Nenhum local atribuído'
                             }
                         </Text>
                     </View>

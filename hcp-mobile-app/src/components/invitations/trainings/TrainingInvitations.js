@@ -5,9 +5,60 @@ import {Ionicons} from "@expo/vector-icons";
 import {connect} from "react-redux";
 import {ListItem} from "react-native-elements";
 import moment from 'moment';
+import {colors} from "../../../styles/index.style";
 
+import ConvertTime  from '../../ConvertTime';
 
-// import styles from './styles';
+class TrainingItem extends React.PureComponent {
+
+    render() {
+
+        const training = this.props.training;
+
+        const colorText = !training.canChangeAvailability ? '#919391' : '#0d0d0d' ;
+        const colorBackground = !training.canChangeAvailability ? colors.lightGrayColor : '#fff';
+        const iconName = !training.canChangeAvailability ?  'md-done-all' : 'md-hourglass';
+        const iconSize = !training.canChangeAvailability ?  22 : 28;
+
+        return (
+            <ListItem
+                title={(
+                    <View style={{flex: 1, flexDirection: 'row'}}>
+                        <Text style={{fontSize: 16, fontWeight: '700', color: colorText}}>
+                            {'Treino ' + training.echelon[1] + ' | '}
+                        </Text>
+                        <Text style={{fontSize: 16, fontWeight: '400', color: colorText}}>
+                            {training.date}
+                        </Text>
+                    </View>
+                )}
+                subtitle={(
+                    <View  style={{flex: 1, flexDirection: 'column'}}>
+                        <Text style={{color: colors.darkGrayColor}}>
+                            {'Início: ' + training.hours}
+                        </Text>
+                        <Text style={{color: colors.darkGrayColor}}>
+                            {'Duração: ' + training.duration + ' min'}
+                        </Text>
+                        <Text numberOfLines={1} ellipsizeMode='tail' style={{color: colors.darkGrayColor}}>
+                            {
+                                training.place ?
+                                    'Local: ' + training.place[1] :
+                                    'Nenhum local atribuído'
+                            }
+                        </Text>
+                    </View>
+                )}
+                leftAvatar={(<Ionicons name={iconName} size={iconSize} color={colorText} />)}
+                chevron
+                containerStyle={{
+                    backgroundColor: colorBackground
+                }}
+                onPress={() => { this.props.navigation.navigate('OpenedTrainingInvitations', {training: training})}}
+            />
+        )
+    }
+}
 
 class TrainingInvitations extends Component {
 
@@ -18,139 +69,121 @@ class TrainingInvitations extends Component {
             isLoading: true,
             isRefreshing: false,
             trainings: [],
-            date:'',
+            date: '',
         };
     }
 
     async componentDidMount() {
 
         const date = moment().format();
+        await this.setState({date: date});
 
-        await this.setState({
-            date: date,
-        });
-
+        // fetch data
         await this.fetchTrainings(20);
+
+        await this.setState({isLoading: false});
     }
 
-    async fetchTrainings(limit=20) {
-
-        const athleteInfo = this.props.user.groups.filter(group => group.name === 'Atleta');
-        const athleteId = athleteInfo[0].id;
-
-        const idsFetched = this.state.trainings.map(training => {return training.id});
-
-        const params = {
-            domain: [
-                ['id', 'not in', idsFetched],
-            ],
-            fields: ['id', 'atletas', 'display_start', 'local', 'escalao', 'duracao', 'convocatorias','treinador', 'seccionistas'],
-            limit: limit,
-            order: 'display_start DESC',
-        };
-
-        const response = await this.props.odoo.search_read('ges.treino', params);
-
-        if (response.success && response.data.length > 0) {
-
-            //PARECE QUE NAO É PRECISO!
-            let athleteTrainings = response.data.filter(training => training.atletas.indexOf(athleteId) >= 0);
-            let trainings = [];
-
-            athleteTrainings.forEach(item => {
-
-                const splitItemDate =  item.display_start.split(/[ :-]/);
-                const date = splitItemDate[2] + '/' + splitItemDate[1] + '/' + splitItemDate[0];
-                const hours = splitItemDate[3] + ':' + splitItemDate[4];
-
-                const isoItemDate = item.display_start.replace(" ","T");
-                let canChangeAvailability = moment(isoItemDate).isAfter(this.state.date);
-
-                const training = {
-                    id: item.id,
-                    place: item.local,
-                    echelon: item.escalao,
-                    duration: item.duracao,
-                    date: date,
-                    hours: hours,
-                    athleteIds : item.atletas,
-                    invitationIds: item.convocatorias,
-                    coachIds: item.treinador,
-                    secretaryIds: item.seccionistas,
-                    canChangeAvailability: canChangeAvailability,
-                };
-
-                console.log(training.secretaryIds);
-
-                trainings.push(training);
-            });
-
-            this.setState(state => ({
-                trainings: [...state.trainings, ...trainings]
-            }));
-        }
-
-        await this.setState({
-            isLoading: false,
-            isRefreshing: false
-        });
-    }
-
+    /**
+     * Define navigator name.
+     */
     static navigationOptions = {
         title: 'Treinos',
     };
 
-    renderItem =  ({item, index}) => {
+    /**
+     * Fetch all opened trainings. Maximum of limit items.
+     * @param limit
+     * @param clear
+     * @returns {Promise<void>}
+     */
+    async fetchTrainings(limit=20, clear=false) {
 
-        let colorText = !item.canChangeAvailability? '#919391' : '#0d0d0d' ;
-        let colorBackground = !item.canChangeAvailability? '#efefef' : '#fff';
-        let iconName = !item.canChangeAvailability?  'md-done-all' : 'md-hourglass';
-        let iconSize = !item.canChangeAvailability?  22 : 28;
+        if(clear) {
+            await this.setState({trainings: []});
+        }
 
-        return (
-            <ListItem
-                title={(
-                    <View style={{flex: 1, flexDirection: 'row'}}>
-                        <Text style={{fontSize: 16, fontWeight: '700', color: colorText}}>
-                            {'Treino ' + item.echelon[1] + ' | '}
-                        </Text>
-                        <Text style={{fontSize: 16, fontWeight: '400', color: colorText}}>
-                            {item.date}
-                        </Text>
-                    </View>
-                )}
-                subtitle={(
-                    <View  style={{flex: 1, flexDirection: 'column'}}>
-                        <View style={{flex: 1, flexDirection: 'row'}}>
-                            <Text style={{color: '#919391'}}>
-                                {item.place[1] + ' - ' + item.hours + 'h'}
-                            </Text>
-                        </View>
-                        <Text style={{color: '#919391'}}>
-                            {item.duration + ' min'}
-                        </Text>
-                    </View>
-                )}
-                leftAvatar={(<Ionicons name={iconName} size={iconSize} color={colorText} />)}
-                chevron
-                containerStyle={{
-                    backgroundColor: colorBackground
-                }}
-                onPress={() => { this.props.navigation.navigate('OpenedTrainingInvitations', {training: item})}}
-                //disabled = {disabled}
-            />
-        )
+        const athleteInfo = this.props.user.groups.filter(group => group.name === 'Atleta');
+        if(athleteInfo) {
+
+            const athleteId = athleteInfo[0].id;
+            const idsFetched = this.state.trainings.map(training => {return training.id});
+
+            const params = {
+                domain: [
+                    ['id', 'not in', idsFetched],
+                    ['atletas', 'in', athleteId]
+                ],
+                fields: ['id', 'atletas', 'display_start', 'local', 'escalao', 'duracao', 'convocatorias','treinador', 'seccionistas'],
+                limit: limit,
+                order: 'display_start DESC',
+            };
+
+            const response = await this.props.odoo.search_read('ges.treino', params);
+            if (response.success && response.data.length > 0) {
+
+                let trainings = [];
+                const convertTime = new ConvertTime();
+                response.data.forEach(item => {
+
+                    convertTime.setDate(item.display_start);
+                    const date = convertTime.getTimeObject();
+
+                    let canChangeAvailability = moment(convertTime.getDate()).isAfter(this.state.date);
+
+                    const training = {
+                        id: item.id,
+                        place: item.local,
+                        echelon: item.escalao,
+                        duration: item.duracao,
+                        date: date.date,
+                        hours: date.hour,
+                        athleteIds : item.atletas,
+                        invitationIds: item.convocatorias,
+                        coachIds: item.treinador,
+                        secretaryIds: item.seccionistas,
+                        canChangeAvailability: canChangeAvailability,
+                    };
+
+                    trainings.push(training);
+                });
+
+                this.setState(state => ({
+                    trainings: [...state.trainings, ...trainings]
+                }));
+            }
+        }
+    }
+
+    /**
+     * PureComponent used for rendering items of FlatList.
+     * @param item
+     * @param index
+     * @returns {*}
+     */
+    renderItem =  ({item, index}) => (
+        <TrainingItem
+            key={item.id + item.date}
+            training={item}
+            index={index}
+            navigation={this.props.navigation} />
+    );
+
+    /**
+     * Add more trainings if they exist.
+     * @returns {Promise<void>}
+     */
+    handleMoreData = async () => {
+
+        this.setState({isLoading: true});
+        await this.fetchTrainings();
+        this.setState({isLoading: false});
     };
 
-    handleMoreData = () => {
-        this.setState({
-                isLoading: true
-            },
-            async () => {
-                await this.fetchTrainings();
-            });
-    };
-
+    /**
+     * Renders ActivityIndicator if is loading.
+     * @returns {*}
+     */
     renderFooter = () => {
 
         return (
@@ -170,7 +203,10 @@ class TrainingInvitations extends Component {
         );
     };
 
-
+    /**
+     * Renders separator line.
+     * @returns {*}
+     */
     renderSeparator = () => (
         <View style={{
             height: 1,
@@ -179,27 +215,28 @@ class TrainingInvitations extends Component {
         }}/>
     );
 
+    /**
+     * When user refresh current screen.
+     * @returns {Promise<void>}
+     */
+    handleRefresh = async () => {
 
-    handleRefresh = () => {
-        this.setState({
-                trainings: [],
-                isRefreshing: true,
-                isLoading: false
-            },
-            async () => {
-                await this.fetchTrainings(20);
-            });
+        this.setState({isRefreshing: true, isLoading: false});
+
+        // fetch all trainings and clear current list
+        await this.fetchTrainings(20, true);
+
+        this.setState({isRefreshing: false});
     };
 
     render() {
 
         return (
             <FlatList
-                keyExtractor={item => item.id.toString()}
+                keyExtractor={item => item.id + item.date}
                 data={this.state.trainings}
                 renderItem={this.renderItem}
                 ItemSeparatorComponent={this.renderSeparator}
-                //ListHeaderComponent={this.renderHeader}
                 onEndReached={this.handleMoreData}
                 onEndReachedThreshold={0.1}
                 ListFooterComponent={this.renderFooter}
@@ -216,8 +253,7 @@ const mapStateToProps = state => ({
     odoo: state.odoo.odoo,
 });
 
-const mapDispatchToProps = dispatch => ({
-});
+const mapDispatchToProps = dispatch => ({});
 
 export default connect(mapStateToProps, mapDispatchToProps)(TrainingInvitations);
 

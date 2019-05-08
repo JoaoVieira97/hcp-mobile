@@ -22,7 +22,9 @@ import {
 } from 'react-native';
 
 import Menu, { MenuItem, MenuDivider } from 'react-native-material-menu';
-
+import moment from 'moment';
+import 'moment/locale/pt'
+import ConvertTime from "../ConvertTime";
 var listener = null;
 
 class ConcreteChat extends Component {
@@ -191,6 +193,8 @@ class ConcreteChat extends Component {
 
     async componentDidMount(){
 
+        console.log(moment.locale('pt'))
+
         await this.setState({
             channel: this.props.navigation.state.params.item
         });
@@ -284,10 +288,14 @@ class ConcreteChat extends Component {
 
                 let partner_image = await this.getPartnerImage(msg.author_id[0]);
 
+                const convertTime = new ConvertTime();
+                convertTime.setDate(msg.date);
+                const date = convertTime.getDate();
+
                 let message = {
                     _id: parseInt(msg.id),
                     text: msg.body.replace(regex, ''),
-                    createdAt: msg.date,
+                    createdAt: date,
                     user: {
                         _id: parseInt(msg.author_id[0]),
                         name: msg.author_id[1],
@@ -354,10 +362,14 @@ class ConcreteChat extends Component {
 
                     let partner_image = await this.getPartnerImage(msg.author_id[0]);
 
+                    const convertTime = new ConvertTime();
+                    convertTime.setDate(msg.date);
+                    const date = convertTime.getDate();
+
                     let message = {
                         _id: parseInt(msg.id),
                         text: msg.body.replace(regex, ''),
-                        createdAt: msg.date,
+                        createdAt: date,
                         user: {
                             _id: parseInt(msg.author_id[0]),
                             name: msg.author_id[1],
@@ -504,6 +516,10 @@ class ConcreteChat extends Component {
                     renderSend={this.renderSend}
                     loadEarlier
                     renderLoadEarlier={this.renderLoad.bind(this)}
+                    locale={moment.locale('pt')}
+                    timeFormat={'LT'}
+                    dateFormat={'LL'}
+
                 />
 
                 {Platform.OS === 'android' ? <KeyboardSpacer /> : null }

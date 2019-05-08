@@ -8,7 +8,6 @@ import {
     ScrollView,
     RefreshControl,
     FlatList,
-    ListView,
     TouchableOpacity,
     ActivityIndicator,
     Alert
@@ -18,9 +17,6 @@ import {Ionicons} from "@expo/vector-icons";
 import { SectionGrid } from 'react-native-super-grid';
 import { ListItem, CheckBox } from 'react-native-elements';
 import CustomText from "../../CustomText";
-import { DangerZone } from 'expo';
-const { Lottie } = DangerZone;
-
 import {colors} from "../../../styles/index.style";
 
 class OpenedTrainingInvitations extends Component {
@@ -51,15 +47,6 @@ class OpenedTrainingInvitations extends Component {
         }
     }
 
-    /*
-   componentWillMount() {
-
-        this.setState({
-            training: this.props.navigation.getParam('training'),
-        });
-    }
-*/
-
     async componentDidMount() {
 
         await this.setState({
@@ -70,7 +57,9 @@ class OpenedTrainingInvitations extends Component {
     }
 
     /**
-     * Definir as opções da barra de navegação no topo.
+     * Define navigations header components.
+     * @param navigation
+     * @returns {{headerLeft: *, headerTitle: *}}
      */
     static navigationOptions = ({navigation}) => ({
         headerTitle: //'Treino',
@@ -100,10 +89,10 @@ class OpenedTrainingInvitations extends Component {
      * Buscar todos os dados necessários sobre o treino.
      */
     async fetchData() {
+
         await this.fetchAthletes(this.state.training.invitationIds);
         await this.fetchCoaches(this.state.training.coachIds);
         await this.fetchSecretaries(this.state.training.secretaryIds);
-
 
         await this.setState({
             isLoading: false,
@@ -148,7 +137,7 @@ class OpenedTrainingInvitations extends Component {
                     name: item.atleta[1],
                     squad_number: item.numero,
                     available: item.disponivel,
-                    image: image.image,
+                    image: image ? image.image : false,
                 };
 
                 athletes.push(athlete);
@@ -255,7 +244,7 @@ class OpenedTrainingInvitations extends Component {
 
     /**
      * Mudar disponibilidade atual.
-     * TODO Send notifications to coaches and secretarys
+     * TODO Send notifications to coaches and secretaries
      */
     async changeAvailability(){
 
@@ -477,7 +466,7 @@ class OpenedTrainingInvitations extends Component {
         }, {
             name: 'Início',
             icon: 'md-time',
-            subtitle: this.state.training.date + ' | ' + this.state.training.hours + 'h',
+            subtitle: this.state.training.date + ' | ' + this.state.training.hours,
         }, {
             name: 'Local',
             icon: 'md-pin',
@@ -605,11 +594,9 @@ const styles = StyleSheet.create({
 const mapStateToProps = state => ({
 
     user: state.user,
-    odoo: state.odoo.odoo,
-    trainingsList: state.openedTrainings.trainingsList
+    odoo: state.odoo.odoo
 });
 
-const mapDispatchToProps = dispatch => ({
-});
+const mapDispatchToProps = dispatch => ({});
 
 export default connect(mapStateToProps, mapDispatchToProps)(OpenedTrainingInvitations);

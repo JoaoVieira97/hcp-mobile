@@ -14,6 +14,7 @@ import _ from 'lodash';
 import {colors} from "../../styles/index.style";
 import Menu, { MenuItem, MenuDivider } from 'react-native-material-menu';
 import { AntDesign } from "@expo/vector-icons";
+import ConvertTime from "../ConvertTime";
 
 class ChannelsScreen extends Component {
 
@@ -203,18 +204,15 @@ class ChannelsScreen extends Component {
 
             const messageInfo = response.data[0];
 
-            const dateHour = messageInfo.last_message.date.split(' ');
-            const date =
-                dateHour[0].slice(8,10) + '/' +
-                dateHour[0].slice(5,7) + '/' +
-                dateHour[0].slice(0,4);
-            const hour = dateHour[1].slice(0,5) + 'h';
+            const convertTime = new ConvertTime();
+            convertTime.setDate(messageInfo.last_message.date);
+            const date = convertTime.getTimeObject();
 
             const regex = /(<([^>]+)>)/ig;
 
             return {
                 author: messageInfo.last_message.author_id[1],
-                timestamp: '(' + date + ' às ' + hour + ')',
+                timestamp: '(' + date.date + ' às ' + date.hour + ')',
                 //body: messageInfo.last_message.body.slice(3, messageInfo.last_message.body.length - 4)
                 body: messageInfo.last_message.body.replace(regex, '')
             };
