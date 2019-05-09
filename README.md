@@ -97,6 +97,28 @@ ls $HOME/hcp-1/addons
 odoo --addons-path=~/.virtualenvs/hcpwebapp/lib/python3.6/site-packages/odoo-11.0.post20190227-py3.6.egg/odoo/addons/,$HOME/hcp-1/addons
 ```
 
+---
+
+Create Odoo module *gestao_equipas_app* to extend *gestao_equipas*
+
+```bash
+# Assuming that you have the "gestao_equipas" folder in the following directory:
+ls $HOME/hcp-1/addons
+# Assuming that we will create the new module in the $HOME location
+cd $HOME
+# To create the new module
+source ~/.virtualenvs/hcpwebapp/bin/activate
+odoo scaffold gestao_equipas_app addons # This will create the new module inside the 'addons' folder
+# After do your modifications to your new module you can run the server like this:
+odoo --addons-path=~/.virtualenvs/hcpwebapp/lib/python3.6/site-packages/odoo-11.0.post20190227-py3.6.egg/odoo/addons,$HOME/hcp-1/addons,$HOME/addons
+# After this, open Odoo (http://0.0.0.0:8069) with the admin account
+#   * Go to 'Apps'
+#   * Remove the 'Apps' filter on the search bar
+#   * Search for your new module
+#   * Click on it and install the module
+#   * You're done
+```
+
 <br >
 
 ## Requirements (Linux)
