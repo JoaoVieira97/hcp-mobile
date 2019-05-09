@@ -1,2 +1,6 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_gestao_equipas_app_gestao_equipas_app,gestao_equipas_app.gestao_equipas_app,model_gestao_equipas_app_gestao_equipas_app,,1,0,0,0
+access_ges_token1,access_ges_token1,model_ges_token,gestao_equipas.ges_user_atleta,1,1,1,1
+access_ges_token2,access_ges_token2,model_ges_token,gestao_equipas.ges_user_treinador,1,1,1,1
+access_ges_token3,access_ges_token3,model_ges_token,gestao_equipas.ges_user_pai,1,1,1,1
+access_ges_token4,access_ges_token4,model_ges_token,gestao_equipas.ges_user_seccionista,1,1,1,1
+access_ges_token5,access_ges_token5,model_ges_token,gestao_equipas.ges_user_admin,1,1,1,1

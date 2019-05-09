@@ -12,6 +12,6 @@ class Token(models.Model):
     device = fields.Char('Device', required=True)
     token = fields.Char('Token', required=True)
 
-    partner_id = fields.Many2one('res.partner',
-                                'Partner',
+    user_id = fields.Many2one('res.users',
+                                'User',
                                 ondelete='cascade')
