@@ -485,6 +485,7 @@ const styles = StyleSheet.create({
         color: '#000',
         fontSize: 20,
         marginTop: 10,
+        textAlign: 'center'
     },
     userImageContainer: {
         shadowColor: "#000",
@@ -500,7 +501,8 @@ const styles = StyleSheet.create({
         color: colors.redColor,
         fontSize: 15,
         marginTop: 5,
-        letterSpacing: 2
+        letterSpacing: 2,
+        textAlign: 'center'
     },
     athleteContent: {
         flexDirection: 'row',

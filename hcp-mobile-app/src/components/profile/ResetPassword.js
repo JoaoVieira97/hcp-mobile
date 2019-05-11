@@ -44,6 +44,8 @@ class ResetPassword extends Component {
     static navigationOptions = ({navigation}) => ({
         headerTitle:
             <CustomText
+                numberOfLines={1}
+                ellipsizeMode='tail'
                 type={'bold'}
                 children={'REDEFINIR PALAVRA-PASSE'}
                 style={{

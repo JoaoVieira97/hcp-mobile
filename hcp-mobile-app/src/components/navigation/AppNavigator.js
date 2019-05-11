@@ -49,6 +49,7 @@ import TrainingInvitations from "../invitations/trainings/TrainingInvitations";
 import GameInvitations from "../invitations/games/GameInvitations";
 import OpenedTrainingInvitations from "../invitations/trainings/OpenedTrainingInvitations";
 import ChildesScreen from "../father/ChildesScreen";
+import ChildScreen from "../father/ChildScreen";
 
 const styles = StyleSheet.create({
     container: {
@@ -171,6 +172,8 @@ const HomeStackNavigator = createStackNavigator({
             headerTitle: (
                 <CustomText
                     type={'bold'}
+                    numberOfLines={1}
+                    ellipsizeMode='tail'
                     children={'INÍCIO'}
                     style={{
                         color: colors.redColor,
@@ -206,6 +209,8 @@ const CalendarStackNavigator = createStackNavigator({
             headerTitle:
                 <CustomText
                     type={'bold'}
+                    numberOfLines={1}
+                    ellipsizeMode='tail'
                     children={'CALENDÁRIO'}
                     style={{
                         color: '#ffffff',
@@ -273,6 +278,8 @@ const InvitationsStackNavigator = createStackNavigator({
             headerTitle:
                 <CustomText
                     type={'bold'}
+                    numberOfLines={1}
+                    ellipsizeMode='tail'
                     children={'CONVOCATÓRIAS'}
                     style={{
                         color: '#ffffff',
@@ -341,6 +348,8 @@ const ManagementStackNavigator = createStackNavigator({
             headerTitle:
                 <CustomText
                     type={'bold'}
+                    numberOfLines={1}
+                    ellipsizeMode='tail'
                     children={'GESTÃO'}
                     style={{
                         color: '#ffffff',
@@ -390,6 +399,8 @@ const AthletesStackNavigator = createStackNavigator({
             headerTitle:
                 <CustomText
                     type={'bold'}
+                    numberOfLines={1}
+                    ellipsizeMode='tail'
                     children={'ATLETAS'}
                     style={{
                         color: '#ffffff',
@@ -438,6 +449,8 @@ const ProfileStackNavigator = createStackNavigator({
             headerTitle: (
                 <CustomText
                     type={'bold'}
+                    numberOfLines={1}
+                    ellipsizeMode='tail'
                     children={'PERFIL'}
                     style={{
                         color: '#fff',
@@ -491,6 +504,8 @@ const ChatStackNavigator = createStackNavigator({
             },
             headerTitle:
                 <CustomText
+                    numberOfLines={1}
+                    ellipsizeMode='tail'
                     type={'bold'}
                     children={'CHAT'}
                     style={{
@@ -528,7 +543,8 @@ const ChatStackNavigator = createStackNavigator({
 
 // CHILDREN STACK
 const ChildrenStackNavigator = createStackNavigator({
-    ChildesScreen: {screen: ChildesScreen}
+    ChildesScreen: {screen: ChildesScreen},
+    ChildScreen: {screen: ChildScreen}
 }, {
     initialRouteName: 'ChildesScreen',
     defaultNavigationOptions: ({navigation}) => {
@@ -541,6 +557,8 @@ const ChildrenStackNavigator = createStackNavigator({
             headerTitle:
                 <CustomText
                     type={'bold'}
+                    numberOfLines={1}
+                    ellipsizeMode='tail'
                     children={'FILHOS'}
                     style={{
                         color: '#ffffff',
@@ -811,7 +829,7 @@ const FatherDrawerNavigator = createDrawerNavigator({
     ChatStack: drawerNavigatorFullStacks['ChatStack']
 }, {
     ...drawerNavigatorDefaultSettings,
-    initialRouteName: 'ChildesStack',
+    initialRouteName: 'HomeStack',
     order: ['HomeStack', 'ChildesStack', 'CalendarStack', 'ProfileStack', 'ChatStack'],
 });
 
@@ -841,6 +859,20 @@ const AthleteAndFatherDrawerNavigator = createDrawerNavigator({
     initialRouteName: 'HomeStack',
     order: ['HomeStack', 'CalendarStack', 'InvitationsStack', 'ProfileStack', 'ChildesStack', 'ChatStack'],
 });
+
+const FatherAndCoachOrSecretaryDrawerNavigator = createDrawerNavigator({
+    HomeStack: drawerNavigatorFullStacks['HomeStack'],
+    ChildesStack: drawerNavigatorFullStacks['ChildesStack'],
+    CalendarStack: drawerNavigatorFullStacks['CalendarStack'],
+    ManagementStack: drawerNavigatorFullStacks['ManagementStack'],
+    AthletesStack: drawerNavigatorFullStacks['AthletesStack'],
+    ProfileStack: drawerNavigatorFullStacks['ProfileStack'],
+    ChatStack: drawerNavigatorFullStacks['ChatStack']
+}, {
+    ...drawerNavigatorDefaultSettings,
+    initialRouteName: 'HomeStack',
+    order: ['HomeStack', 'ChildesStack', 'CalendarStack', 'ManagementStack', 'AthletesStack', 'ProfileStack', 'ChatStack'],
+});
 // ---------------------------------------------------------------------
 // ---------------------------------------------------------------------
 
@@ -854,7 +886,8 @@ const AppSwitchNavigator = createSwitchNavigator({
     CoachAndSecretaryStack: {screen: CoachAndSecretaryDrawerNavigator},
     FatherStack: {screen: FatherDrawerNavigator},
     AthleteAndCoachOrSecretaryStack: {screen: AthleteAndCoachOrSecretaryDrawerNavigator},
-    AthleteAndFatherStack: {screen: AthleteAndFatherDrawerNavigator}
+    AthleteAndFatherStack: {screen: AthleteAndFatherDrawerNavigator},
+    FatherAndCoachOrSecretaryStack: {screen: FatherAndCoachOrSecretaryDrawerNavigator}
 }, {
     initialRouteName: 'AuthenticationLoading',
 });

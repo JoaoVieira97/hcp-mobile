@@ -1,33 +1,32 @@
-import React, {Component} from 'react';
+import React, { Component } from 'react';
 
-import {
-    ScrollView,
-    View,
-    StyleSheet, TouchableOpacity
-} from 'react-native';
-import { Button} from 'react-native-paper';
-import { Avatar } from 'react-native-elements';
-import {connect} from 'react-redux';
-import {Ionicons} from "@expo/vector-icons";
-import * as Animatable from "react-native-animatable";
-import {colors} from "../../styles/index.style";
+import {ScrollView, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+
+import { connect } from 'react-redux';
 import CustomText from "../CustomText";
+import {Ionicons} from "@expo/vector-icons";
+import {colors} from "../../styles/index.style";
+import Loader from "../screens/Loader";
+import {Avatar} from "react-native-elements";
+import * as Animatable from "react-native-animatable";
+import {Button} from "react-native-paper";
 
-class AthleteScreen extends Component {
+
+class ChildScreen extends Component {
 
     constructor(props) {
         super(props);
 
         this.state = {
-            athlete: {},
+            child: {},
             isLoading: true
         }
-    }
+    };
 
     async componentDidMount() {
 
         await this.setState({
-            athlete: this.props.navigation.getParam('athlete'),
+            child: this.props.navigation.getParam('child'),
         });
 
         this.setState({isLoading: false});
@@ -37,23 +36,22 @@ class AthleteScreen extends Component {
      * Define navigation properties.
      * @param navigation
      */
-    static navigationOptions = ({navigation}) => {
+    static navigationOptions = ({navigation}) => ({
+        headerLeft:
+            <TouchableOpacity style={{
+                width:42,
+                height:42,
+                alignItems:'center',
+                justifyContent:'center',
+                marginLeft: 10}} onPress = {() => navigation.goBack()}>
+                <Ionicons
+                    name="md-arrow-back"
+                    size={28}
+                    color={'#ffffff'} />
+            </TouchableOpacity>
+    });
 
-        return ({
-            headerLeft:
-                <TouchableOpacity style={{
-                    width:42,
-                    height:42,
-                    alignItems:'center',
-                    justifyContent:'center',
-                    marginLeft: 10}} onPress = {() => navigation.goBack()}>
-                    <Ionicons
-                        name="md-arrow-back"
-                        size={28}
-                        color={'#ffffff'} />
-                </TouchableOpacity>
-        });
-    };
+
 
     render() {
 
@@ -66,20 +64,20 @@ class AthleteScreen extends Component {
         }
         else {
 
-            const athlete = this.state.athlete;
-            let athleteImage;
-            if(athlete.image !== false) {
-                athleteImage = (
+            const child = this.state.child;
+            let childImage;
+            if(child.image !== false) {
+                childImage = (
                     <Avatar
                         size={90}
                         rounded
-                        source={{uri: `data:image/png;base64,${athlete.image}`}}
+                        source={{uri: `data:image/png;base64,${child.image}`}}
                         containerStyle={styles.userImageContainer}
                     />
                 );
             }
             else{
-                athleteImage = (
+                childImage = (
                     <Avatar
                         size={90}
                         rounded
@@ -95,36 +93,36 @@ class AthleteScreen extends Component {
                         <View style={styles.header}>
                             <View style={{flex: 1, flexDirection: 'row'}}>
                                 <View style={styles.headerImage}>
-                                    {athleteImage}
+                                    {childImage}
                                 </View>
                             </View>
-                            <CustomText type={'bold'} style={styles.headerName}>{athlete.name}</CustomText>
+                            <CustomText type={'bold'} style={styles.headerName}>{child.name}</CustomText>
                         </View>
                         <View style={styles.athleteContent}>
                             <View style={{width: '50%', alignItems: 'center'}}>
                                 <CustomText type={'bold'} style={styles.athleteValue}>
-                                    {athlete.squadNumber}
+                                    {child.squadNumber}
                                 </CustomText>
                                 <CustomText type={'bold'} style={styles.athleteTitle}>CAMISOLA</CustomText>
                             </View>
                             <View style={{width: '50%', alignItems: 'center'}}>
                                 {
-                                    athlete.echelon.includes('Sub') ?
-                                        <View style={{flex: 1, flexDirection: 'row', justifyContent: 'center'}}>
-                                            <CustomText
-                                                type={'bold'}
-                                                style={[styles.athleteValue, {fontSize: 10, marginTop: 16, marginRight: 3}]}
-                                            >SUB
-                                            </CustomText>
-                                            <CustomText type={'bold'} style={styles.athleteValue}>
-                                                {
-                                                    athlete.echelon.slice(4)
-                                                }
-                                            </CustomText>
-                                        </View> :
-                                        <CustomText type={'bold'} style={styles.athleteValue}>
-                                            {athlete.echelon}
+                                    child.echelon.includes('Sub') ?
+                                    <View style={{flex: 1, flexDirection: 'row', justifyContent: 'center'}}>
+                                        <CustomText
+                                            type={'bold'}
+                                            style={[styles.athleteValue, {fontSize: 10, marginTop: 16, marginRight: 3}]}
+                                        >SUB
                                         </CustomText>
+                                        <CustomText type={'bold'} style={styles.athleteValue}>
+                                            {
+                                                child.echelon.slice(4)
+                                            }
+                                        </CustomText>
+                                    </View> :
+                                    <CustomText type={'bold'} style={styles.athleteValue}>
+                                        {child.echelon}
+                                    </CustomText>
                                 }
                                 <CustomText type={'bold'} style={styles.athleteTitle}>ESCALÃO</CustomText>
                             </View>
@@ -133,19 +131,29 @@ class AthleteScreen extends Component {
                             <View>
                                 <CustomText type={'bold'} style={styles.contentTitle}>E-MAIL</CustomText>
                                 <CustomText type={'normal'} style={styles.contentValue}>
-                                    {athlete.email}
+                                    {child.email}
                                 </CustomText>
                             </View>
                             <View style={{marginTop: 15}}>
                                 <CustomText type={'bold'} style={styles.contentTitle}>DATA DE NASCIMENTO</CustomText>
                                 <CustomText type={'normal'} style={styles.contentValue}>
                                     {
-                                        athlete.age !== "Idade não definida" ?
-                                            athlete.birthday + '  ( ' +  athlete.age + ' )' :
-                                            athlete.birthday
+                                        child.age !== "Idade não definida" ?
+                                        child.birthday + '  ( ' +  child.age + ' )' :
+                                        child.birthday
                                     }
                                 </CustomText>
                             </View>
+                        </View>
+                        <View style={styles.buttonContent}>
+                            <Button
+                                color={'#fff'}
+                                mode="contained"
+                                contentStyle={{height: 55}}
+                                onPress={() => console.log('Pressed')}
+                            >
+                                Convocatórias
+                            </Button>
                         </View>
                         <View style={styles.buttonContent}>
                             <Button
@@ -311,4 +319,4 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => ({});
 
-export default connect(mapStateToProps, mapDispatchToProps)(AthleteScreen);
+export default connect(mapStateToProps, mapDispatchToProps)(ChildScreen);

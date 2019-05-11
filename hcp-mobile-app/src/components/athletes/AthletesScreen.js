@@ -6,6 +6,7 @@ import {connect} from 'react-redux';
 import {Ionicons} from "@expo/vector-icons";
 import _ from 'lodash';
 import CustomText from "../CustomText";
+import moment from 'moment';
 
 
 class AthletesScreen extends Component {
@@ -68,7 +69,7 @@ class AthletesScreen extends Component {
     async getAthletes() {
 
         const params = {
-            fields: ['id', 'user_id', 'display_name', 'image', 'escalao', 'numerocamisola', 'posicao'],
+            fields: ['id', 'user_id', 'display_name', 'image', 'escalao', 'numerocamisola', 'posicao', 'birthdate', 'email'],
             domain: [['escalao', '=', this.state.echelon.id]],
             order:  'posicao DESC, numerocamisola ASC',
         };
@@ -78,15 +79,32 @@ class AthletesScreen extends Component {
 
             let athletes = [];
             const size = response.data.length;
+            const currDate = moment();
+
             for (let i = 0; i < size; i++) {
 
                 const athleteInfo = response.data[i];
+                let athleteAge;
+                let athleteBirth = null;
+                let athleteBirthay = null;
+                if(athleteInfo.birthdate) {
+                    athleteBirth = moment(athleteInfo.birthdate);
+                    athleteAge = currDate.diff(athleteBirth, 'years');
+
+                    athleteBirthay =
+                        athleteInfo.birthdate.slice(8,10) + '/' +
+                        athleteInfo.birthdate.slice(5,7) + '/' +
+                        athleteInfo.birthdate.slice(0,4);
+                }
 
                 const athlete = {
                     'id': athleteInfo.id,
                     'name': athleteInfo.display_name,
+                    'email': athleteInfo.email ? athleteInfo.email : 'Não definido',
+                    'birthday': athleteInfo.birthdate ? athleteBirthay : 'Não definida',
+                    'age': athleteInfo.birthdate ? athleteAge + ' anos' : "Idade não definida",
                     'image': athleteInfo.image,
-                    'squad_number': athleteInfo.numerocamisola,
+                    'squadNumber': athleteInfo.numerocamisola,
                     'echelon': this.state.echelon.denomination,
                     'user_id': athleteInfo.user_id[0],
                     'position': athleteInfo.posicao,
@@ -186,7 +204,7 @@ class AthletesScreen extends Component {
                 title={item.name}
                 subtitle={item.echelon}
                 leftElement={this.renderPosition(item)}
-                leftAvatar={this.leftAvatar(item.image, item.squad_number.toString())}
+                leftAvatar={this.leftAvatar(item.image, item.squadNumber.toString())}
                 chevron={true}
                 onPress={() => (
                     this.props.navigation.navigate('AthleteScreen', {athlete: item})
@@ -277,7 +295,7 @@ class AthletesScreen extends Component {
                 renderItem={this.renderItem}
                 ItemSeparatorComponent={this.renderSeparator}
                 ListHeaderComponent={this.renderHeader}
-                ListFooterComponent={this.renderFooter}
+                ListFooterComponent={this.renderFooter.bind(this)}
                 refreshing={this.state.isRefreshing}
                 onRefresh={this.handleRefresh}
             />

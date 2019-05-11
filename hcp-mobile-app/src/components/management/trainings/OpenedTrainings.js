@@ -239,7 +239,7 @@ class OpenedTrainings extends Component {
                 onRefresh={this.handleRefresh}
                 onEndReached={this.handleMoreData}
                 onEndReachedThreshold={0.1}
-                ListFooterComponent={this.renderFooter}
+                ListFooterComponent={this.renderFooter.bind(this)}
             />
         );
     }

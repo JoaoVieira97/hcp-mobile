@@ -13,7 +13,7 @@ import {colors} from "../../styles/index.style";
 import Carousel, { Pagination } from 'react-native-snap-carousel';
 import CustomText from "../CustomText";
 import {Ionicons} from "@expo/vector-icons";
-import { Permissions, Notifications } from 'expo';
+import ConvertTime from "../ConvertTime";
 import {Avatar} from "react-native-paper";
 
 class HomeScreen extends React.Component {
@@ -229,12 +229,9 @@ class HomeScreen extends React.Component {
                 const eventReference = event.evento_ref.split(",");
 
                 // get datetime
-                const date_hour = event.display_start.split(' ');
-                const date =
-                    date_hour[0].slice(8,10) + '/' +
-                    date_hour[0].slice(5,7) + '/' +
-                    date_hour[0].slice(0,4);
-                const hour = date_hour[1].slice(0,5) + 'h';
+                const convertTime = new ConvertTime();
+                convertTime.setDate(event.display_start);
+                const date = convertTime.getTimeObject();
 
                 if (eventReference[0] === 'ges.jogo') {
 
@@ -244,8 +241,8 @@ class HomeScreen extends React.Component {
                         id: parseInt(eventReference[1]),
                         type: 0,
                         title: 'Jogo | ' + event.escalao[1],
-                        date: date,
-                        time: hour,
+                        date: date.date,
+                        time: date.hour,
                         description: opponent ? 'Adversário: ' + opponent : "",
                         local: event.local[0],
                         localName: event.local[1],
@@ -257,8 +254,8 @@ class HomeScreen extends React.Component {
                         id: parseInt(eventReference[1]),
                         type: 1,
                         title: 'Treino | ' + event.escalao[1],
-                        date: date,
-                        time: hour,
+                        date: date.date,
+                        time: date.hour,
                         description: 'Duração: ' + event.duracao + ' min',
                         local: event.local[0],
                         localName: event.local[1],
@@ -323,8 +320,8 @@ class HomeScreen extends React.Component {
                                     source={require('../../../assets/hoquei-home-icon.png')}
                                     resizeMode={"contain"}
                                     style={{
-                                        height: '50%',
-                                        width: '50%',
+                                        height: '45%',
+                                        width: '45%',
                                         opacity: 0.7
                                     }}
                                 />
@@ -333,6 +330,8 @@ class HomeScreen extends React.Component {
                                     type={'bold'}
                                     style={{color: textColor, textAlign: 'center', fontSize: 17}}/>
                                 <CustomText
+                                    numberOfLines={1}
+                                    ellipsizeMode='tail'
                                     children={item.description}
                                     type={'regular'}
                                     style={{color: textColor, textAlign: 'center', marginTop: 6}}/>

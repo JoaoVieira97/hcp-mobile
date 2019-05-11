@@ -182,7 +182,7 @@ class EchelonsScreen extends Component {
                 keyExtractor={item => item.denomination}
                 data={this.state.data}
                 renderItem={this.renderItem}
-                ListFooterComponent={this.renderFooter}
+                ListFooterComponent={this.renderFooter.bind(this)}
                 refreshing={this.state.isRefreshing}
                 onRefresh={this.handleRefresh}
             />

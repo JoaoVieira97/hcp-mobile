@@ -9,7 +9,7 @@ import {
 } from "../../redux/actions/user";
 import {AsyncStorage} from 'react-native';
 import Odoo from "react-native-odoo-promise-based";
-import {HOST, PORT, DATABASE} from 'react-native-dotenv';
+import { HOST, PORT, DATABASE } from 'react-native-dotenv';
 
 
 export default class Authentication {
@@ -111,9 +111,8 @@ export default class Authentication {
                 return 'CoachAndSecretaryStack';
 
             // Pai e (Treinador ou Seccionista)
-            // TODO: change this
             else if(groupsNames.includes('Pai') && (groupsNames.includes('Treinador') || groupsNames.includes('Seccionista')))
-                return 'CoachAndSecretaryStack';
+                return 'FatherAndCoachOrSecretaryStack';
         }
 
         return 'AppStack';
