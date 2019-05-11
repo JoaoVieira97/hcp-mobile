@@ -17,7 +17,7 @@ import {
     createMaterialTopTabNavigator,
     DrawerItems
 } from 'react-navigation';
-import { Ionicons, Entypo } from '@expo/vector-icons';
+import { Ionicons, FontAwesome, Entypo } from '@expo/vector-icons';
 import { LinearGradient } from 'expo';
 
 import {colors} from "../../styles/index.style";
@@ -47,6 +47,7 @@ import EchelonsScreen from "../athletes/EchelonsScreen";
 import TrainingInvitations from "../invitations/trainings/TrainingInvitations";
 import GameInvitations from "../invitations/games/GameInvitations";
 import OpenedTrainingInvitations from "../invitations/trainings/OpenedTrainingInvitations";
+import ChildesScreen from "../father/ChildesScreen";
 
 const styles = StyleSheet.create({
     container: {
@@ -523,7 +524,54 @@ const ChatStackNavigator = createStackNavigator({
     }
 });
 
-
+// CHILDREN STACK
+const ChildrenStackNavigator = createStackNavigator({
+    ChildesScreen: {screen: ChildesScreen}
+}, {
+    initialRouteName: 'ChildesScreen',
+    defaultNavigationOptions: ({navigation}) => {
+        return {
+            headerStyle: {
+                //elevation: 0, // remove shadow on Android
+                //shadowOpacity: 0, // remove shadow on iOS
+                backgroundColor: colors.gradient2
+            },
+            headerTitle:
+                <CustomText
+                    type={'bold'}
+                    children={'FILHOS'}
+                    style={{
+                        color: '#ffffff',
+                        fontSize: 16
+                    }}
+                />,
+            headerTitleStyle: {
+                color: '#ffffff',
+            },
+            headerBackground: (
+                <LinearGradient
+                    colors={[colors.gradient1, colors.gradient2]}
+                    style={{ flex: 1 }}
+                    start={[0, 0]}
+                    end={[0.8, 0]}
+                />
+            ),
+            headerLeft: (
+                <TouchableOpacity style={{
+                    width:42,
+                    height:42,
+                    alignItems:'center',
+                    justifyContent:'center',
+                    marginLeft: 10}} onPress = {() => navigation.openDrawer()}>
+                    <Ionicons
+                        name="md-menu"
+                        size={30}
+                        color={'#ffffff'}/>
+                </TouchableOpacity>
+            )
+        }
+    }
+});
 
 
 
@@ -544,9 +592,9 @@ const drawerNavigatorFullStacks = {
                         }}
                     />
                 </View>,
-            drawerIcon: <Ionicons
-                name="md-home"
-                size={28}
+            drawerIcon: <Entypo
+                name="home"
+                size={25}
                 color={'#000000'}
             />
         })
@@ -670,6 +718,26 @@ const drawerNavigatorFullStacks = {
                 color={'#000000'}
             />
         })
+    },
+    ChildesStack: {
+        screen: ChildrenStackNavigator,
+        navigationOptions: ({
+            drawerLabel:
+                <View style={{marginVertical: 15}}>
+                    <CustomText
+                        type={'bold'}
+                        children={'Filhos'}
+                        style={{
+                            fontSize: 16
+                        }}
+                    />
+                </View>,
+            drawerIcon: <FontAwesome
+                name="child"
+                size={27}
+                color={'#000000'}
+            />
+        })
     }
 };
 
@@ -735,13 +803,14 @@ const CoachAndSecretaryDrawerNavigator = createDrawerNavigator({
 
 const FatherDrawerNavigator = createDrawerNavigator({
     HomeStack: drawerNavigatorFullStacks['HomeStack'],
+    ChildesStack: drawerNavigatorFullStacks['ChildesStack'],
     CalendarStack: drawerNavigatorFullStacks['CalendarStack'],
     ProfileStack: drawerNavigatorFullStacks['ProfileStack'],
     ChatStack: drawerNavigatorFullStacks['ChatStack']
 }, {
     ...drawerNavigatorDefaultSettings,
-    initialRouteName: 'HomeStack',
-    order: ['HomeStack', 'CalendarStack', 'ProfileStack', 'ChatStack'],
+    initialRouteName: 'ChildesStack',
+    order: ['HomeStack', 'ChildesStack', 'CalendarStack', 'ProfileStack', 'ChatStack'],
 });
 
 const AthleteAndCoachOrSecretaryDrawerNavigator = createDrawerNavigator({
@@ -763,11 +832,12 @@ const AthleteAndFatherDrawerNavigator = createDrawerNavigator({
     CalendarStack: drawerNavigatorFullStacks['CalendarStack'],
     InvitationsStack: drawerNavigatorFullStacks['InvitationsStack'],
     ProfileStack: drawerNavigatorFullStacks['ProfileStack'],
+    ChildesStack: drawerNavigatorFullStacks['ChildesStack'],
     ChatStack: drawerNavigatorFullStacks['ChatStack']
 }, {
     ...drawerNavigatorDefaultSettings,
     initialRouteName: 'HomeStack',
-    order: ['HomeStack', 'CalendarStack', 'InvitationsStack', 'ProfileStack', 'ChatStack'],
+    order: ['HomeStack', 'CalendarStack', 'InvitationsStack', 'ProfileStack', 'ChildesStack', 'ChatStack'],
 });
 // ---------------------------------------------------------------------
 // ---------------------------------------------------------------------
