@@ -28,6 +28,10 @@ class ChatDetails extends Component {
             channel: {},
             partners: [],
             isLoading: true,
+            isComplete: false,
+            partner_ids: [],
+            partners_fetched: [],
+            loading: false
         }
     }
 
@@ -36,8 +40,8 @@ class ChatDetails extends Component {
         headerTitle:<CustomText
                 type={'bold'}
                 children={(navigation.state.params.channel_type == 'channel') ? 
-                        "Detalhes do canal" : 
-                        "Detalhes da conversa"}
+                        "DETALHES DO CANAL" : 
+                        "DETALHES DA CONVERSA"}
                 style={{
                     color: '#ffffff',
                     fontSize: 16
@@ -95,26 +99,11 @@ class ChatDetails extends Component {
             }
 
             await this.setState({
-                channel: channel_info
+                channel: channel_info,
+                partner_ids: partner_ids
             })
 
-            var params2 = {
-                domain: [
-                    ['partner_id', 'in', partner_ids]
-                ],
-                fields: ['image', 'display_name', 'id'],
-                order: 'display_name'
-            };
-
-            const response2 = await this.props.odoo.search_read('res.users', params2)
-
-            if (response2.success){
-
-                await this.setState({
-                    partners: response2.data
-                })
-
-            }
+            await this.handlePartners()
         }
 
         await this.setState({
@@ -122,6 +111,62 @@ class ChatDetails extends Component {
         })
 
     }
+
+    async handlePartners() {
+
+        console.log('entrei')
+        
+        if (!this.state.isComplete && !this.state.loading){
+
+            await this.setState({
+                loading: true
+            })
+
+            console.log('again')
+            
+            var params = {
+                domain: [
+                    ['partner_id', 'in', this.state.partner_ids],
+                    ['partner_id', 'not in', this.state.partners_fetched]
+                ],
+                fields: ['image', 'display_name', 'id', 'partner_id'],
+                order: 'display_name',
+                limit: 20
+            };
+
+            const response = await this.props.odoo.search_read('res.users', params)
+
+            if (response.success){
+
+                //console.log(response)
+
+                if (response.data.length == 0){
+                    
+                    console.log('aqui nao')
+                    await this.setState({
+                        isComplete: true
+                    })
+
+                } else {
+                    console.log('aqui')
+                    await this.setState({
+                        partners: [...this.state.partners, ...response.data], 
+                        partners_fetched: [...this.state.partners_fetched, ...response.data.map(partner => {return partner.partner_id[0]})]
+                    })
+
+                }
+
+            } else {
+                console.log('nao deu')
+            }
+
+            await this.setState({
+                loading: false
+            })
+
+        }
+    }
+
 
     async componentWillMount(){
 
@@ -224,16 +269,18 @@ class ChatDetails extends Component {
                                 </View>
                             <View style={{maxHeight: 300, marginTop: 20}}>
                                 <Text style={{fontSize: 18, fontWeight: '400'}}>
-                                    Utilizadores participantes ({this.state.partners.length})
+                                    Utilizadores participantes ({this.state.partner_ids.length})
                                 </Text>
                                 <ScrollView>
                                     <FlatList
-                                        keyExtractor={item => item.id + item.display_name}
+                                        keyExtractor={item => item.partner_id + item.display_name}
                                         data={this.state.partners}
                                         renderItem={this.renderItem}
                                         ListEmptyComponent={() => (
                                             <Text>Sem participantes.</Text>
                                         )}
+                                        onEndReached={async () => await this.handlePartners()}
+                                        onEndReachedThreshold={0.01}
                                     />
                                 </ScrollView>
                             </View>

@@ -265,7 +265,7 @@ class JoinChannel extends Component {
                     renderItem={this.renderItem}
                     ItemSeparatorComponent={this.renderSeparator}
                     ListHeaderComponent={this.renderHeader}
-                    ListFooterComponent={this.renderFooter}
+                    ListFooterComponent={this.renderFooter.bind(this)}
                     refreshing={this.state.isRefreshing}
                     onRefresh={this.handleRefresh}
                 />

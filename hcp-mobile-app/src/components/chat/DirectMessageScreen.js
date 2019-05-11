@@ -72,15 +72,18 @@ class DirectMessageScreen extends Component {
     async getPartners(){
 
         const params = {
-            ids: [],
+            domain: [
+                ['id', '!=', this.props.user.id]
+            ],
             fields: ['image', 'display_name', 'partner_id'],
             order: 'display_name',
-            //limit: 10
         };
 
         response = await this.props.odoo.search_read('res.users', params)
 
         if (response.success){
+
+            console.log(response.data.length)
 
             await this.setState({
                 partners: response.data,
@@ -300,7 +303,7 @@ class DirectMessageScreen extends Component {
                     renderItem={this.renderItem}
                     ItemSeparatorComponent={this.renderSeparator}
                     ListHeaderComponent={this.renderHeader}
-                    ListFooterComponent={this.renderFooter}
+                    ListFooterComponent={this.renderFooter.bind(this)}
                     refreshing={this.state.isRefreshing}
                     onRefresh={this.handleRefresh}
                 />
