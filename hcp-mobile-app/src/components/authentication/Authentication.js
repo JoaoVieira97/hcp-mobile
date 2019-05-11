@@ -68,6 +68,58 @@ export default class Authentication {
     }
 
     /**
+     * Get user drawerNavigator name.
+     * @returns {Promise<string>}
+     */
+    static async getUserDrawerNavigator() {
+
+        const groups = await store.getState().user.groups;
+        const groupsNames = groups.map(item => item.name);
+
+        if(groupsNames.length === 1) {
+
+            switch (groupsNames[0]) {
+
+                case 'Atleta':
+                    return 'AthleteStack';
+
+                case 'Treinador':
+                    return 'CoachAndSecretaryStack';
+
+                case 'Seccionista':
+                    return 'CoachAndSecretaryStack';
+
+                case 'Pai':
+                    return 'FatherStack';
+
+                default:
+                    break;
+            }
+        }
+        else if(groupsNames.length === 2) {
+
+            // Atleta e (Treinador ou Seccionista)
+            if(groupsNames.includes('Atleta') && (groupsNames.includes('Treinador') || groupsNames.includes('Seccionista')))
+                return 'AthleteAndCoachOrSecretaryStack';
+
+            // Atleta e Pai
+            else if(groupsNames.includes('Atleta') && groupsNames.includes('Pai'))
+                return 'AthleteAndFatherStack';
+
+            // Treinador e Seccionista
+            else if(groupsNames.includes('Treinador') && groupsNames.includes('Seccionista'))
+                return 'CoachAndSecretaryStack';
+
+            // Pai e (Treinador ou Seccionista)
+            // TODO: change this
+            else if(groupsNames.includes('Pai') && (groupsNames.includes('Treinador') || groupsNames.includes('Seccionista')))
+                return 'CoachAndSecretaryStack';
+        }
+
+        return 'AppStack';
+    };
+
+    /**
      * Create Odoo instance.
      * @param username
      * @param password

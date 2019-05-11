@@ -10,8 +10,8 @@
 ### Treinador
 
 ```
-253@localhost
 100@localhost (e atleta)
+128@localhost (e atleta)
 ```
 
 ### Seccionista

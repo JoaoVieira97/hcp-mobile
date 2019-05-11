@@ -107,7 +107,6 @@ const styles = StyleSheet.create({
 
 const WIDTH = Dimensions.get('window').width;
 
-
 const CustomDrawerContentComponent = (props) => {
 
     async function _logout() {
@@ -524,8 +523,14 @@ const ChatStackNavigator = createStackNavigator({
     }
 });
 
-// FULL - DRAWER NAVIGATOR
-const AppDrawerNavigator = createDrawerNavigator({
+
+
+
+
+// ---------------------------------------------------------------------
+// DRAWER NAVIGATOR SETTINGS
+// ---------------------------------------------------------------------
+const drawerNavigatorFullStacks = {
     HomeStack: {
         screen: HomeStackNavigator,
         navigationOptions: ({
@@ -666,9 +671,10 @@ const AppDrawerNavigator = createDrawerNavigator({
             />
         })
     }
-}, {
-    initialRouteName: 'HomeStack',
-    order: ['HomeStack', 'CalendarStack', 'InvitationsStack' ,'ManagementStack', 'AthletesStack', 'ProfileStack', 'ChatStack'],
+};
+
+const drawerNavigatorDefaultSettings = {
+
     drawerWidth: WIDTH*0.7,
     contentComponent: CustomDrawerContentComponent,
     contentOptions: {
@@ -684,10 +690,87 @@ const AppDrawerNavigator = createDrawerNavigator({
             fontSize: 16,
             marginLeft: 5
         }
-    },
+    }
+};
+
+
+const AppDrawerNavigator = createDrawerNavigator({
+    HomeStack: drawerNavigatorFullStacks['HomeStack'],
+    CalendarStack: drawerNavigatorFullStacks['CalendarStack'],
+    InvitationsStack: drawerNavigatorFullStacks['InvitationsStack'],
+    ManagementStack: drawerNavigatorFullStacks['ManagementStack'],
+    AthletesStack: drawerNavigatorFullStacks['AthletesStack'],
+    ProfileStack: drawerNavigatorFullStacks['ProfileStack'],
+    ChatStack: drawerNavigatorFullStacks['ChatStack']
+}, {
+    ...drawerNavigatorDefaultSettings,
+    initialRouteName: 'HomeStack',
+    order: ['HomeStack', 'CalendarStack', 'InvitationsStack', 'ManagementStack', 'AthletesStack', 'ProfileStack', 'ChatStack'],
 });
 
+const AthleteDrawerNavigator = createDrawerNavigator({
+    HomeStack: drawerNavigatorFullStacks['HomeStack'],
+    CalendarStack: drawerNavigatorFullStacks['CalendarStack'],
+    InvitationsStack: drawerNavigatorFullStacks['InvitationsStack'],
+    ProfileStack: drawerNavigatorFullStacks['ProfileStack'],
+    ChatStack: drawerNavigatorFullStacks['ChatStack']
+}, {
+    ...drawerNavigatorDefaultSettings,
+    initialRouteName: 'HomeStack',
+    order: ['HomeStack', 'CalendarStack', 'InvitationsStack', 'ProfileStack', 'ChatStack'],
+});
 
+const CoachAndSecretaryDrawerNavigator = createDrawerNavigator({
+    HomeStack: drawerNavigatorFullStacks['HomeStack'],
+    CalendarStack: drawerNavigatorFullStacks['CalendarStack'],
+    ManagementStack: drawerNavigatorFullStacks['ManagementStack'],
+    AthletesStack: drawerNavigatorFullStacks['AthletesStack'],
+    ProfileStack: drawerNavigatorFullStacks['ProfileStack'],
+    ChatStack: drawerNavigatorFullStacks['ChatStack']
+}, {
+    ...drawerNavigatorDefaultSettings,
+    initialRouteName: 'HomeStack',
+    order: ['HomeStack', 'CalendarStack', 'ManagementStack', 'AthletesStack', 'ProfileStack', 'ChatStack'],
+});
+
+const FatherDrawerNavigator = createDrawerNavigator({
+    HomeStack: drawerNavigatorFullStacks['HomeStack'],
+    CalendarStack: drawerNavigatorFullStacks['CalendarStack'],
+    ProfileStack: drawerNavigatorFullStacks['ProfileStack'],
+    ChatStack: drawerNavigatorFullStacks['ChatStack']
+}, {
+    ...drawerNavigatorDefaultSettings,
+    initialRouteName: 'HomeStack',
+    order: ['HomeStack', 'CalendarStack', 'ProfileStack', 'ChatStack'],
+});
+
+const AthleteAndCoachOrSecretaryDrawerNavigator = createDrawerNavigator({
+    HomeStack: drawerNavigatorFullStacks['HomeStack'],
+    CalendarStack: drawerNavigatorFullStacks['CalendarStack'],
+    ManagementStack: drawerNavigatorFullStacks['ManagementStack'],
+    InvitationsStack: drawerNavigatorFullStacks['InvitationsStack'],
+    AthletesStack: drawerNavigatorFullStacks['AthletesStack'],
+    ProfileStack: drawerNavigatorFullStacks['ProfileStack'],
+    ChatStack: drawerNavigatorFullStacks['ChatStack']
+}, {
+    ...drawerNavigatorDefaultSettings,
+    initialRouteName: 'HomeStack',
+    order: ['HomeStack', 'CalendarStack', 'ManagementStack', 'InvitationsStack', 'AthletesStack', 'ProfileStack', 'ChatStack'],
+});
+
+const AthleteAndFatherDrawerNavigator = createDrawerNavigator({
+    HomeStack: drawerNavigatorFullStacks['HomeStack'],
+    CalendarStack: drawerNavigatorFullStacks['CalendarStack'],
+    InvitationsStack: drawerNavigatorFullStacks['InvitationsStack'],
+    ProfileStack: drawerNavigatorFullStacks['ProfileStack'],
+    ChatStack: drawerNavigatorFullStacks['ChatStack']
+}, {
+    ...drawerNavigatorDefaultSettings,
+    initialRouteName: 'HomeStack',
+    order: ['HomeStack', 'CalendarStack', 'InvitationsStack', 'ProfileStack', 'ChatStack'],
+});
+// ---------------------------------------------------------------------
+// ---------------------------------------------------------------------
 
 
 // APPLICATION
@@ -695,6 +778,11 @@ const AppSwitchNavigator = createSwitchNavigator({
     AuthenticationLoading: {screen: AuthenticationLoading},
     Authentication: {screen: LoginScreen},
     AppStack: {screen: AppDrawerNavigator},
+    AthleteStack: {screen: AthleteDrawerNavigator},
+    CoachAndSecretaryStack: {screen: CoachAndSecretaryDrawerNavigator},
+    FatherStack: {screen: FatherDrawerNavigator},
+    AthleteAndCoachOrSecretaryStack: {screen: AthleteAndCoachOrSecretaryDrawerNavigator},
+    AthleteAndFatherStack: {screen: AthleteAndFatherDrawerNavigator}
 }, {
     initialRouteName: 'AuthenticationLoading',
 });

@@ -114,10 +114,8 @@ class LoginScreen extends React.Component {
 
                 // if user has a valid groups
                 if(this.props.user.groups.length > 0) {
-
-                    // go to app stack
-                    // TODO: check available groups
-                    this.props.navigation.navigate('AppStack');
+                    const stackName = await Authentication.getUserDrawerNavigator();
+                    this.props.navigation.navigate(stackName);
                 }
                 else {
                     Alert.alert("Erro","Por favor, verifique com o administrador os acessos à aplicação.");

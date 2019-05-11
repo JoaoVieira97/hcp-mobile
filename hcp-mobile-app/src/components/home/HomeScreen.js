@@ -5,7 +5,8 @@ import {
     StyleSheet,
     Dimensions,
     TouchableOpacity,
-    ScrollView, Text
+    ScrollView,
+    ActivityIndicator
 } from 'react-native';
 import {connect} from 'react-redux';
 import {colors} from "../../styles/index.style";
@@ -22,6 +23,7 @@ class HomeScreen extends React.Component {
         super(props);
 
         this.state = {
+            isLoading: true,
             entries: [{
                 type: 2,
                 title: 'Sem eventos'
@@ -39,11 +41,23 @@ class HomeScreen extends React.Component {
 
     async componentDidMount() {
 
-        if(await this.fetchOwnEvents() === false)
-            await this.fetchOtherEvents();
+        this.subscriptions = [
 
-        await this.registerForPushNotificationsAsync();
-        await this.addUserToken();
+            this.props.navigation.addListener('willFocus', async () => {
+
+                await this.setState({isLoading: true});
+
+                if(await this.fetchOwnEvents() === false)
+                    await this.fetchOtherEvents();
+
+                await this.setState({isLoading: false});
+            })
+        ];
+    }
+
+    componentWillUnmount() {
+
+        this.subscriptions.forEach(sub => sub.remove());
     }
 
     /**
@@ -126,6 +140,7 @@ class HomeScreen extends React.Component {
         // (A and (B or C or D)) = & A or B or C D
         let domain = [];
         if (auxDomain.length === 0) {
+
             domain = [
                 '&',
                 ['start_datetime', '>=', nowDate],
@@ -166,38 +181,7 @@ class HomeScreen extends React.Component {
             ];
         }
 
-        const params = {
-            domain: domain,
-            fields: ['evento_ref'],
-            order: 'start_datetime ASC',
-            limit: 6
-        };
-
-        const response = await this.props.odoo.search_read('ges.evento_desportivo', params);
-        if (response.success && response.data.length > 0) {
-
-            let trainingsIds = [];
-            let gamesIds = [];
-            let eventsOrder = [];
-
-            for (let i=0; i<response.data.length; i++) {
-
-                const event = response.data[i].evento_ref.split(",");
-
-                if (event[0] === 'ges.jogo')
-                    gamesIds.push(parseInt(event[1]));
-                else
-                    trainingsIds.push(parseInt(event[1]));
-
-                eventsOrder.push({type: event[0], id: event[1]})
-            }
-
-            if (trainingsIds.length > 0 || gamesIds.length > 0)
-                await this.parseEvents(trainingsIds, gamesIds, eventsOrder);
-
-            return true;
-        }
-        return false;
+        return await this.fetchData(domain);
     }
 
     /**
@@ -217,140 +201,101 @@ class HomeScreen extends React.Component {
             ['state', '=', 'convocatorias_fechadas']
         ];
 
+        await this.fetchData(domain);
+    }
+
+    /**
+     * Fetch all necessary data.
+     * @param domain
+     * @returns {Promise<boolean>}
+     */
+    async fetchData(domain) {
+
         const params = {
             domain: domain,
-            fields: ['evento_ref'],
+            fields: ['evento_ref', 'duracao', 'local', 'display_start', 'display_name', 'escalao'],
             order: 'start_datetime ASC',
             limit: 6
         };
 
         const response = await this.props.odoo.search_read('ges.evento_desportivo', params);
         if (response.success && response.data.length > 0) {
-
-            let trainingsIds = [];
-            let gamesIds = [];
             let eventsOrder = [];
 
+            // parsing data
             for (let i=0; i<response.data.length; i++) {
 
-                const event = response.data[i].evento_ref.split(",");
+                const event = response.data[i];
+                const eventReference = event.evento_ref.split(",");
 
-                if (event[0] === 'ges.jogo')
-                    gamesIds.push(parseInt(event[1]));
-                else
-                    trainingsIds.push(parseInt(event[1]));
+                // get datetime
+                const date_hour = event.display_start.split(' ');
+                const date =
+                    date_hour[0].slice(8,10) + '/' +
+                    date_hour[0].slice(5,7) + '/' +
+                    date_hour[0].slice(0,4);
+                const hour = date_hour[1].slice(0,5) + 'h';
 
-                eventsOrder.push({type: event[0], id: event[1]})
+                if (eventReference[0] === 'ges.jogo') {
+
+                    const opponent = await this.fetchGameOpponent(parseInt(eventReference[1]));
+
+                    eventsOrder.push({
+                        id: parseInt(eventReference[1]),
+                        type: 0,
+                        title: 'Jogo | ' + event.escalao[1],
+                        date: date,
+                        time: hour,
+                        description: opponent ? 'Adversário: ' + opponent : "",
+                        local: event.local[0],
+                        localName: event.local[1],
+                    });
+                }
+                else {
+
+                    eventsOrder.push({
+                        id: parseInt(eventReference[1]),
+                        type: 1,
+                        title: 'Treino | ' + event.escalao[1],
+                        date: date,
+                        time: hour,
+                        description: 'Duração: ' + event.duracao + ' min',
+                        local: event.local[0],
+                        localName: event.local[1],
+                    });
+                }
             }
 
-            if (trainingsIds.length > 0 || gamesIds.length > 0)
-                await this.parseEvents(trainingsIds, gamesIds, eventsOrder);
+            if(eventsOrder.length > 0)
+                this.setState({entries: eventsOrder});
+
+            return true;
         }
+        return false;
     }
 
     /**
-     * Parsing events. Parsing trainings and games.
-     * @param trainingsIds
-     * @param gamesIds
-     * @param eventsOrder
-     * @returns {Promise<void>}
+     * Fetch game opponent.
+     * @param gameId
+     * @returns {Promise<string|null>}
      */
-    async parseEvents(trainingsIds, gamesIds, eventsOrder) {
+    async fetchGameOpponent(gameId) {
 
-        console.log(trainingsIds);
-        console.log(gamesIds);
-        console.log(eventsOrder);
-
-        let trainings = [];
-        let games = [];
-        let finalEvents = [];
-        let params = {
-            ids: trainingsIds,
-            fields: ['id','display_name','start_datetime','duracao','local', 'escalao'],
+        const params = {
+            ids: [gameId],
+            fields: ['equipa_adversaria'],
         };
 
         // Parsing trainings
-        let response = await this.props.odoo.get('ges.treino', params);
-        console.log(response);
+        const response = await this.props.odoo.get('ges.jogo', params);
         if(response.success && response.data.length > 0) {
 
-            console.log(response.data);
-            for (let i = 0; i < response.data.length; i++) {
+            const game = response.data[0];
 
-                const training = response.data[i];
-                const level = training.escalao[1];
-                const date_hour = training.start_datetime.split(' ');
-                const date =
-                    date_hour[0].slice(8,10) + '/' +
-                    date_hour[0].slice(5,7) + '/' +
-                    date_hour[0].slice(0,4);
-                const hour = date_hour[1].slice(0,5) + 'h';
-
-                trainings = [...trainings, {
-                    id: training.id,
-                    type: 1,
-                    title: 'Treino | ' + level,
-                    date: date,
-                    time: hour,
-                    description: 'Duração: ' + training.duracao + ' min',
-                    local: training.local[0],
-                    localName: training.local[1],
-                }];
-            }
+            return game.equipa_adversaria ? game.equipa_adversaria[1] : "";
         }
 
-        // Parsing games
-        params = {
-            ids: gamesIds,
-            fields: ['id','start_datetime', 'escalao', 'equipa_adversaria', 'local']
-        };
-        response = await this.props.odoo.get('ges.jogo', params);
-        if(response.success && response.data.length > 0) {
-
-            for (let i = 0; i < response.data.length; i++) {
-
-                const game = response.data[i];
-
-                const level = game.escalao[1];
-                const opponent = game.equipa_adversaria[1];
-                const date_hour = game.start_datetime.split(' ');
-                const date =
-                    date_hour[0].slice(8,10) + '/' +
-                    date_hour[0].slice(5,7) + '/' +
-                    date_hour[0].slice(0,4);
-                const hour = date_hour[1].slice(0,5) + 'h';
-                const localId = game.local[0];
-                const local_name = game.local[1];
-
-                games = [...games, {
-                    id: game.id,
-                    type: 0,
-                    title: 'Jogo | ' + level,
-                    date: date,
-                    time: hour,
-                    description: 'Adversário: ' + opponent,
-                    local: localId,
-                    localName: local_name,
-                }];
-            }
-        }
-
-        eventsOrder.forEach(item => {
-            if (item.type === 'ges.treino')
-            {
-                const training = trainings.find(training => training.id === parseInt(item.id));
-                if(training)
-                    finalEvents.push(training);
-            }
-            else {
-                const game = games.find(game => game.id === parseInt(item.id));
-                if (game)
-                    finalEvents.push(game);
-            }
-        });
-
-        if(finalEvents.length > 0)
-            this.setState({entries: finalEvents})
+        return null;
     }
 
     /**
@@ -360,7 +305,7 @@ class HomeScreen extends React.Component {
      */
     renderItem ({item}) {
 
-        if(item.type < 2) {
+        if(!this.state.isLoading && item.type < 2) {
             const backgroundColor = (item.type === 0) ? 'rgba(173, 46, 83, 0.15)' : 'rgba(47,45,59,0.38)';
             const textColor = (item.type === 0) ? colors.redColor : 'rgb(76,76,76)';
             return (
@@ -449,7 +394,11 @@ class HomeScreen extends React.Component {
                                     width: '60%',
                                 }}
                             />
-                            <CustomText children={item.title} type={'bold'} style={{color: '#000'}}/>
+                            {
+                                this.state.isLoading ?
+                                    <ActivityIndicator color={colors.loadingColor} size={'large'} />:
+                                    <CustomText children={item.title} type={'bold'} style={{color: '#000'}}/>
+                            }
                         </View>
                     </View>
                 </View>
@@ -485,7 +434,7 @@ class HomeScreen extends React.Component {
         );
     };
 
-
+    /*
     sendNotificationJS(){
         let title = "Nova convocatória (JS)"
         let body = "Foste convocado para o jogo deste fim-de-semana"
@@ -568,6 +517,7 @@ class HomeScreen extends React.Component {
             console.log('token err', err)
         })
     }
+    */
 
     render() {
         return (
@@ -649,12 +599,11 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingTop: 10,
         paddingBottom: 20,
-        //backgroundColor: '#fff'
     },
     slideInnerContainer: {
         flex: 1,
         width: slideWidth,
-        backgroundColor: '#fff', //'#9b6976'
+        backgroundColor: '#fff',
         // border
         borderRadius: entryBorderRadius,
         overflow: 'hidden',
