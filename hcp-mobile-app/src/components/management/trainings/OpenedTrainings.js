@@ -12,29 +12,25 @@ class TrainingItem extends React.PureComponent {
 
     render() {
 
-        const convertTime = new ConvertTime();
-        convertTime.setDate(this.props.training.display_start);
-        const date = convertTime.getTimeObject();
-
         return (
             <ListItem
                 title={(
                     <View style={{flex: 1, flexDirection: 'row'}}>
                         <Text style={{fontSize: 16, fontWeight: '700'}}>
-                            {'Treino ' + this.props.training.escalao[1] + ' | '}
+                            {'Treino ' + this.props.training.echelon[1] + ' | '}
                         </Text>
                         <Text style={{fontSize: 16, fontWeight: '400'}}>
-                            {date.date}
+                            {this.props.training.date}
                         </Text>
                     </View>
                 )}
                 subtitle={(
                     <View  style={{flex: 1, flexDirection: 'column'}}>
                         <Text style={{color: colors.darkGrayColor}}>
-                            {'Início: ' + date.hour}
+                            {'Início: ' + this.props.training.hour}
                         </Text>
                         <Text style={{color: colors.darkGrayColor}}>
-                            {'Duração: ' + this.props.training.duracao + ' min'}
+                            {'Duração: ' + this.props.training.duration + ' min'}
                         </Text>
                         <Text numberOfLines={1} ellipsizeMode='tail' style={{color: colors.darkGrayColor}}>
                             {
@@ -78,22 +74,6 @@ class OpenedTrainings extends Component {
         // fetch all trainings, max 20
         await this.fetchTrainings(20, true);
         await this.setState({isLoading: false});
-
-        /*
-        this.willFocus = this.props.navigation.addListener('willFocus', () => {
-            this.setState({
-                trainingsList: [],
-                lastIDFetched: false,
-            }, async () => {
-                await this.fetchTrainings();
-            });
-        });
-
-        componentWillUnmount() {
-
-        //this.willFocus.remove();
-    }
-        */
     }
 
     /**
@@ -143,7 +123,7 @@ class OpenedTrainings extends Component {
                 ['id', 'not in', idsFetched],
                 ['state', '=', 'aberto']
             ],
-            fields: ['id', 'display_start', 'local', 'escalao', 'duracao'],
+            fields: ['id', 'atletas', 'display_start', 'local', 'escalao', 'duracao', 'convocatorias','treinador', 'seccionistas'],
             limit: limit,
             order: 'display_start DESC'
         };
@@ -151,8 +131,31 @@ class OpenedTrainings extends Component {
         const response = await this.props.odoo.search_read('ges.treino', params);
         if (response.success && response.data.length > 0) {
 
-            await this.setState(state => ({
-                trainingsList: [...state.trainingsList, ...response.data]
+            let trainings = [];
+            const convertTime = new ConvertTime();
+            response.data.forEach(item => {
+
+                convertTime.setDate(item.display_start);
+                const date = convertTime.getTimeObject();
+
+                const training = {
+                    id: item.id,
+                    local: item.local,
+                    echelon: item.escalao,
+                    duration: item.duracao,
+                    date: date.date,
+                    hour: date.hour,
+                    athleteIds : item.atletas,
+                    invitationIds: item.convocatorias,
+                    coachIds: item.treinador,
+                    secretaryIds: item.seccionistas,
+                };
+
+                trainings.push(training);
+            });
+
+            this.setState(state => ({
+                trainingsList: [...state.trainingsList, ...trainings]
             }));
         }
     }

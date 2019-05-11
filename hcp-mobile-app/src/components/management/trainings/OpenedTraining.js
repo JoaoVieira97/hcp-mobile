@@ -34,25 +34,13 @@ class OpenedTraining extends React.Component {
             coaches: ['A carregar...'],
             secretaries: ['A carregar...'],
             athletes: [],
-            startTime: ""
         };
     }
 
     componentWillMount() {
 
-        const training = this.props.navigation.state.params.training;
-
-        const date_hour = training.display_start.split(' ');
-        const date =
-            date_hour[0].slice(8,10) + '/' +
-            date_hour[0].slice(5,7) + '/' +
-            date_hour[0].slice(0,4);
-
-        const hour = date_hour[1].slice(0,5) + 'h';
-
         this.setState({
-            startTime: date + '  |  ' + hour + '\n' + training.duracao + ' min',
-            training: training
+            training: this.props.navigation.state.params.training
         });
     }
 
@@ -110,22 +98,9 @@ class OpenedTraining extends React.Component {
      */
     async fetchData() {
 
-        let params = {
-            ids: [this.state.training.id],
-            fields: [
-                'treinador',
-                'convocatorias',
-                'seccionistas'
-            ],
-        };
-
-        const response = await this.props.odoo.get('ges.treino', params);
-        if (response.success && response.data.length > 0) {
-
-            await this.fetchAthletes(response.data[0].convocatorias);
-            await this.fetchCoaches(response.data[0].treinador);
-            await this.fetchSecretaries(response.data[0].seccionistas)
-        }
+        await this.fetchAthletes(this.state.training.invitationIds);
+        await this.fetchCoaches(this.state.training.coachIds);
+        await this.fetchSecretaries(this.state.training.secretaryIds);
     }
 
     /**
@@ -426,11 +401,14 @@ class OpenedTraining extends React.Component {
         const list = [{
             name: 'Escalão',
             icon: 'md-shirt',
-            subtitle: this.state.training.escalao[1],
+            subtitle: this.state.training.echelon[1],
         }, {
             name: 'Início e duração',
             icon: 'md-time',
-            subtitle: this.state.startTime,
+            subtitle:
+                this.state.training.date + '  |  ' +
+                this.state.training.hour + '\n' +
+                this.state.training.duration + ' min',
         }, {
             name: 'Local',
             icon: 'md-pin',
@@ -438,11 +416,11 @@ class OpenedTraining extends React.Component {
         }, {
             name: 'Treinadores',
             icon: 'md-people',
-            subtitle: this.state.coaches.join(', ')
+            subtitle: this.state.coaches.join(',  ')
         }, {
             name: 'Seccionistas',
             icon: 'md-clipboard',
-            subtitle: this.state.secretaries.join(', ')
+            subtitle: this.state.secretaries.join(',  ')
         }];
 
         return (
