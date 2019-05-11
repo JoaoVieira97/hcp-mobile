@@ -129,21 +129,21 @@ class ConcreteChat extends Component {
     channelInfo = async () => {
 
         this.hideMenu()
+
+        this.props.navigation.navigate('ChatDetails', {
+            channel_id: this.state.channel.id,
+            channel_type: this.state.channel.type,
+            channel_name: this.state.channel.name,
+            onReturn: this.onReturn
+        })
+
+    }
+
+    onReturn = () => {
+        console.log('return')
         
-        console.log('channel info')
-
-        var params = {
-            domain: [
-                ['id', '=', this.state.channel.id],
-            ],
-            fields: [],
-            limit: 5
-        }; //params
-        this.props.odoo.search_read('mail.channel', params)
-            .then(response => {
-                console.log(response)
-            });
-
+        clearInterval(listener)
+        listener = setInterval(async () => { await this.getNewMessages() }, 3500);
     }
 
     static navigationOptions = ({navigation}) => ({
@@ -461,7 +461,7 @@ class ConcreteChat extends Component {
 
     renderLoad(){
 
-        return(
+        if (this.state.messages.length >= 10) return (
             <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
                 <Ionicons
                     name="md-add-circle-outline"
@@ -474,6 +474,7 @@ class ConcreteChat extends Component {
                 </Text>
             </View>
         );
+        else return null;
     }
 
     renderSend(props) {
