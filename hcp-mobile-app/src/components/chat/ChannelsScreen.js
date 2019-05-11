@@ -395,7 +395,6 @@ class ChannelsScreen extends Component {
     };
 
     showMenu = () => {
-        console.log('teste1')
         this._menu.show();
     };
 
