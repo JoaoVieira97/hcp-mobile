@@ -50,6 +50,8 @@ import GameInvitations from "../invitations/games/GameInvitations";
 import OpenedTrainingInvitations from "../invitations/trainings/OpenedTrainingInvitations";
 import ChildesScreen from "../father/ChildesScreen";
 import ChildScreen from "../father/ChildScreen";
+import AthleteInjuriesTypes from "../athletes/AthleteInjuriesTypes";
+import AthleteInjuries from "../athletes/AthleteInjuries";
 
 const styles = StyleSheet.create({
     container: {
@@ -386,7 +388,8 @@ const ManagementStackNavigator = createStackNavigator({
 const AthletesStackNavigator = createStackNavigator({
     EchelonsScreen: {screen: EchelonsScreen},
     AthletesScreen: {screen: AthletesScreen},
-    AthleteScreen: {screen: AthleteScreen}
+    AthleteScreen: {screen: AthleteScreen},
+    AthleteInjuriesTypesScreen: {screen: AthleteInjuriesTypes}
 }, {
     initialRouteName: 'EchelonsScreen',
     defaultNavigationOptions: ({navigation}) => {
@@ -544,7 +547,9 @@ const ChatStackNavigator = createStackNavigator({
 // CHILDREN STACK
 const ChildrenStackNavigator = createStackNavigator({
     ChildesScreen: {screen: ChildesScreen},
-    ChildScreen: {screen: ChildScreen}
+    ChildScreen: {screen: ChildScreen},
+    ChildInjuriesTypesScreen: {screen: AthleteInjuriesTypes},
+    ChildInjuriesScreen:  {screen: AthleteInjuries}
 }, {
     initialRouteName: 'ChildesScreen',
     defaultNavigationOptions: ({navigation}) => {

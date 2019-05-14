@@ -6,7 +6,6 @@ import { connect } from 'react-redux';
 import CustomText from "../CustomText";
 import {Ionicons} from "@expo/vector-icons";
 import {colors} from "../../styles/index.style";
-import Loader from "../screens/Loader";
 import {Avatar} from "react-native-elements";
 import * as Animatable from "react-native-animatable";
 import {Button} from "react-native-paper";
@@ -147,6 +146,7 @@ class ChildScreen extends Component {
                         </View>
                         <View style={styles.buttonContent}>
                             <Button
+                                disabled={true}
                                 color={'#fff'}
                                 mode="contained"
                                 contentStyle={{height: 55}}
@@ -157,11 +157,18 @@ class ChildScreen extends Component {
                         </View>
                         <View style={styles.buttonContent}>
                             <Button
-                                disabled={true}
                                 color={'#fff'}
                                 mode="contained"
                                 contentStyle={{height: 55}}
-                                onPress={() => console.log('Pressed')}
+                                onPress={() =>
+                                    this.props.navigation.navigate('ChildInjuriesTypesScreen',
+                                        {
+                                            athleteId: this.state.child.id,
+                                            athleteName: this.state.child.name,
+                                            athleteImage: this.state.child.image
+                                        }
+                                    )
+                                }
                             >
                                 Lesões
                             </Button>
