@@ -54,9 +54,9 @@ import GameInvitations from "../invitations/games/GameInvitations";
 import OpenedTrainingInvitations from "../invitations/trainings/OpenedTrainingInvitations";
 import ChildesScreen from "../father/ChildesScreen";
 import ChildScreen from "../father/ChildScreen";
-import AthleteInjuriesTypes from "../athletes/AthleteInjuriesTypes";
-import AthleteInjuries from "../athletes/AthleteInjuries";
-import AthleteInjury from "../athletes/AthleteInjury";
+import AthleteInjuriesTypes from "../athletes/injuries/AthleteInjuriesTypes";
+import AthleteInjuries from "../athletes/injuries/AthleteInjuries";
+import AthleteInjury from "../athletes/injuries/AthleteInjury";
 
 const styles = StyleSheet.create({
     container: {
@@ -121,8 +121,7 @@ const CustomDrawerContentComponent = (props) => {
 
     async function _logout() {
 
-        let device = Constants.deviceName
-
+        const device = Constants.deviceName;
         const params = {
             kwargs: {
                 context: store.getState().odoo.odoo.context,
@@ -465,6 +464,9 @@ const AthletesStackNavigator = createStackNavigator({
 const ProfileStackNavigator = createStackNavigator({
     ProfileScreen: {screen: ProfileScreen},
     ResetPassword: {screen: ResetPassword},
+    ProfileInjuriesTypesScreen: {screen: AthleteInjuriesTypes},
+    ProfileInjuriesScreen:  {screen: AthleteInjuries},
+    ProfileInjuryScreen: {screen: AthleteInjury}
 }, {
     initialRouteName: 'ProfileScreen',
     defaultNavigationOptions: ({navigation}) => {

@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
 
 import {StyleSheet, View} from 'react-native';
-import CustomText from "../CustomText";
-import {Avatar} from "react-native-elements";
+import CustomText from "../../CustomText";
+import {Avatar} from "react-native-elements/src/index";
 
 
 export default class AthleteInjuriesHeader extends Component {
@@ -23,7 +23,7 @@ export default class AthleteInjuriesHeader extends Component {
                 <Avatar
                     size={65}
                     rounded
-                    source={require('../../../assets/user-account.png')}
+                    source={require('../../../../assets/user-account.png')}
                 />
             )
         }

@@ -9,8 +9,7 @@ import { ImagePicker, Permissions } from 'expo';
 import {Button} from 'react-native-paper';
 import { Avatar } from 'react-native-elements';
 import {connect} from "react-redux";
-import {setOdooInstance} from "../../redux/actions/odoo";
-import {setUserData, setUserGroups, setUserImage} from "../../redux/actions/user";
+import {setUserImage} from "../../redux/actions/user";
 
 import {colors} from "../../styles/index.style";
 import CustomText from "../CustomText";
@@ -26,6 +25,7 @@ class ProfileScreen extends Component {
         this.state = {
             isLoading: true,
             isAthlete: false,
+            athleteId: false,
             squadNumber: undefined,
             level: undefined,
             birthday: undefined,
@@ -45,6 +45,8 @@ class ProfileScreen extends Component {
 
             const athleteId = athleteInfo[0].id;
             await this.fetchAthleteData(athleteId);
+
+            this.setState({athleteId: athleteId});
         }
 
         this.setState({isLoading: false});
@@ -416,6 +418,24 @@ class ProfileScreen extends Component {
                             <View style={{paddingBottom: 20}}>
                                 <View style={styles.buttonContent}>
                                     <Button
+                                        color={'#fff'}
+                                        mode="contained"
+                                        contentStyle={{height: 55}}
+                                        onPress={() =>
+                                            this.props.navigation.navigate('ProfileInjuriesTypesScreen',
+                                                {
+                                                    athleteId: this.state.athleteId,
+                                                    athleteName: this.props.user.name,
+                                                    athleteImage: this.state.image
+                                                }
+                                            )
+                                        }
+                                    >
+                                        Lesões
+                                    </Button>
+                                </View>
+                                <View style={styles.buttonContent}>
+                                    <Button
                                         disabled={true}
                                         color={'#fff'}
                                         mode="contained"
@@ -571,18 +591,9 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => ({
 
-    setOdooInstance: (odoo) => {
-        dispatch(setOdooInstance(odoo))
-    },
-    setUserData: (id, user) => {
-        dispatch(setUserData(id, user))
-    },
     setUserImage: (image) => {
         dispatch(setUserImage(image))
-    },
-    setUserGroups: (groups) => {
-        dispatch(setUserGroups(groups))
-    },
+    }
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(ProfileScreen);

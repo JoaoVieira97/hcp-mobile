@@ -3,11 +3,11 @@ import React, { Component } from 'react';
 import {FlatList, StyleSheet, TouchableOpacity, View} from 'react-native';
 
 import { connect } from 'react-redux';
-import {Ionicons} from "@expo/vector-icons";
-import CustomText from "../CustomText";
-import {Avatar, ListItem} from "react-native-elements";
-import {colors} from "../../styles/index.style";
-import Loader from "../screens/Loader";
+import {Ionicons} from "@expo/vector-icons/build/Icons";
+import CustomText from "../../CustomText";
+import {Avatar, ListItem} from "react-native-elements/src/index";
+import {colors} from "../../../styles/index.style";
+import Loader from "../../screens/Loader";
 import AthleteInjuriesHeader from "./AthleteInjuriesHeader";
 
 
@@ -232,7 +232,20 @@ class AthleteInjuriesTypes extends Component {
                         type = 'Tratadas';
                     }
 
-                    if(this.props.navigation.state.routeName === 'AthleteInjuriesTypesScreen') {
+                    if(this.props.navigation.state.routeName === 'ProfileInjuriesTypesScreen') {
+
+                        this.props.navigation.navigate(
+                            'ProfileInjuriesScreen',
+                            {
+                                athleteId: this.state.athleteId,
+                                athleteName: this.state.athleteName,
+                                athleteImage: this.state.athleteImage,
+                                type: type,
+                                injuries: injuriesList
+                            }
+                        );
+                    }
+                    else if(this.props.navigation.state.routeName === 'AthleteInjuriesTypesScreen') {
 
                         this.props.navigation.navigate(
                             'AthleteInjuriesScreen',

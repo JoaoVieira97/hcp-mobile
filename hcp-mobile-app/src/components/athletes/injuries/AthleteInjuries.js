@@ -3,10 +3,10 @@ import React, {Component} from 'react';
 import {FlatList, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 
 import {connect} from 'react-redux';
-import {Ionicons} from "@expo/vector-icons";
-import {colors} from "../../styles/index.style";
-import {Avatar, ListItem} from "react-native-elements";
-import CustomText from "../CustomText";
+import {Ionicons} from "@expo/vector-icons/build/Icons";
+import {colors} from "../../../styles/index.style";
+import {Avatar, ListItem} from "react-native-elements/src/index";
+import CustomText from "../../CustomText";
 import _ from 'lodash';
 import AthleteInjuriesHeader from "./AthleteInjuriesHeader";
 
@@ -201,7 +201,20 @@ class AthleteInjuries extends Component {
                 chevron={true}
                 onPress={() => {
 
-                    if(this.props.navigation.state.routeName === 'AthleteInjuriesScreen') {
+                    if(this.props.navigation.state.routeName === 'ProfileInjuriesScreen') {
+
+                        this.props.navigation.navigate(
+                            'ProfileInjuryScreen',
+                            {
+                                athleteId: this.state.athleteId,
+                                athleteName: this.state.athleteName,
+                                athleteImage: this.state.athleteImage,
+                                type: this.state.type,
+                                injury: item
+                            }
+                        );
+                    }
+                    else if(this.props.navigation.state.routeName === 'AthleteInjuriesScreen') {
 
                         this.props.navigation.navigate(
                             'AthleteInjuryScreen',

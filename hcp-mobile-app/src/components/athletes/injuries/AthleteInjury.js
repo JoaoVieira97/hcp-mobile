@@ -1,11 +1,11 @@
 import React, { Component } from 'react';
 import {StyleSheet, TouchableOpacity, View} from 'react-native';
 import { connect } from 'react-redux';
-import CustomText from "../CustomText";
+import CustomText from "../../CustomText";
 import {Ionicons} from "@expo/vector-icons";
 import AthleteInjuriesHeader from "./AthleteInjuriesHeader";
-import {colors} from "../../styles/index.style";
-import Loader from "../screens/Loader";
+import {colors} from "../../../styles/index.style";
+import Loader from "../../screens/Loader";
 import {Text} from "react-native-paper";
 
 class DiagnosisInjury extends React.PureComponent {
