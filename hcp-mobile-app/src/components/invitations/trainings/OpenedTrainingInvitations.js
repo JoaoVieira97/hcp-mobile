@@ -44,7 +44,7 @@ class OpenedTrainingInvitations extends Component {
             coaches: ["A carregar..."],
             secretaries: ["A carregar..."],
             athletes: [],
-            checked: false
+            checked: true
         }
     }
 
@@ -148,10 +148,10 @@ class OpenedTrainingInvitations extends Component {
             const athleteInfo = this.props.user.groups.filter(group => group.name === 'Atleta');
             const athleteId = athleteInfo[0].id;
 
-            let checked = false;
+            let checked = true;
             const athletesFiltered = athletes.filter(athlete => athlete.id === athleteId);
 
-            if (athletesFiltered && athletesFiltered > 0)
+            if (athletesFiltered && athletesFiltered.length > 0)
                 checked = athletesFiltered[0].available;
 
             this.setState({
