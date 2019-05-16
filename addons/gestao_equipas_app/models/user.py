@@ -51,6 +51,14 @@ class User(models.Model):
         return list
 
     @api.multi
+    def remove_token(self, device):
+        for token in self.tokens:
+            if (token.device == device):
+                token.unlink()
+                return True
+        return False
+
+    @api.multi
     def send_notification(self, title, msg):
         url = 'https://exp.host/--/api/v2/push/send'
         headers = {'Content-Type': 'application/json'}

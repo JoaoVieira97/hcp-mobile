@@ -18,7 +18,11 @@ import {
     DrawerItems
 } from 'react-navigation';
 import { Ionicons, FontAwesome, Entypo } from '@expo/vector-icons';
-import { LinearGradient } from 'expo';
+import { 
+    LinearGradient,
+    Constants
+} from 'expo';
+import store from '../../redux/store';
 
 import {colors} from "../../styles/index.style";
 
@@ -116,8 +120,26 @@ const WIDTH = Dimensions.get('window').width;
 const CustomDrawerContentComponent = (props) => {
 
     async function _logout() {
+
+        let device = Constants.deviceName
+
+        const params = {
+            kwargs: {
+                context: store.getState().odoo.odoo.context,
+            },
+            model: 'res.users',
+            method: 'remove_token',
+            args: [store.getState().user.id, device]
+        };
+
+        await store.getState().odoo.odoo.rpc_call(
+            '/web/dataset/call_kw',
+            params
+        );
+
         await AsyncStorage.clear();
         props.navigation.navigate('Authentication');
+
     }
 
     return (
