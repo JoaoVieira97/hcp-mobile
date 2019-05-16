@@ -7,6 +7,8 @@ import {Ionicons} from "@expo/vector-icons";
 import CustomText from "../CustomText";
 import {Avatar, ListItem} from "react-native-elements";
 import {colors} from "../../styles/index.style";
+import Loader from "../screens/Loader";
+import AthleteInjuriesHeader from "./AthleteInjuriesHeader";
 
 
 class AthleteInjuriesTypes extends Component {
@@ -68,12 +70,27 @@ class AthleteInjuriesTypes extends Component {
 
     async componentDidMount() {
 
-        await this.fetchAthleteInjuriesNumber();
+        await this.setState({isLoading: true});
+
+        await this.fetchAthleteInjuries();
 
         this.setState({isLoading: false});
+
+        this.subscriptions = [
+
+            this.props.navigation.addListener('willFocus', async () => {
+
+                await this.fetchAthleteInjuries();
+            })
+        ];
     }
 
-    async fetchAthleteInjuriesNumber () {
+    componentWillUnmount() {
+
+        this.subscriptions.forEach(sub => sub.remove());
+    }
+
+    async fetchAthleteInjuries () {
 
         const params = {
             fields: [
@@ -81,7 +98,9 @@ class AthleteInjuriesTypes extends Component {
                 'ocorreu_num',
                 'treino', 'jogo', 'outro',
                 'create_date', 'data_ocorrencia',
-                'state'
+                'state',
+                'tipo_lesao',
+                'data_conclusao'
             ],
             domain: [['atleta', 'in', [this.state.athleteId]]]
         };
@@ -93,17 +112,49 @@ class AthleteInjuriesTypes extends Component {
             let inDiagnosis = [], inTreatment = [], treated = [];
 
             response.data.forEach(item => {
+
+                const startDateAux = item.data_ocorrencia;
+                let startDate;
+                if(startDateAux)
+                    startDate = startDateAux.slice(8,10) + '/' +
+                             startDateAux.slice(5,7) + '/' +
+                             startDateAux.slice(0,4);
+                else
+                    startDate = 'não definido';
+
+                const endDateAux = item.data_conclusao;
+                let endDate;
+                if(endDateAux)
+                    endDate = endDateAux.slice(8,10) + '/' +
+                        endDateAux.slice(5,7) + '/' +
+                        endDateAux.slice(0,4);
+                else
+                    endDate = 'não definido';
+
+
+                const injury = {
+                    id: item.id,
+                    state: item.state,
+                    occurredIn: item.ocorreu_num,
+                    occurredInDate: startDate,
+                    finishDate: endDate,
+                    training: item.treino, //array or false
+                    game: item.jogo, //array or false
+                    other: item.outro, //... or false
+                    injuryType: item.tipo_lesao
+                };
+
                 if(item.state === 'diagnostico') {
                     inDiagnosisCounter += 1;
-                    inDiagnosis.push(item);
+                    inDiagnosis.push(injury);
                 }
                 else if(item.state === 'tratamento') {
                     inTreatmentCounter += 1;
-                    inTreatment.push(item);
+                    inTreatment.push(injury);
                 }
                 else {
                     treatedCounter += 1;
-                    treated.push(item);
+                    treated.push(injury);
                 }
             });
 
@@ -128,7 +179,7 @@ class AthleteInjuriesTypes extends Component {
             },
             async () => {
 
-                await this.fetchAthleteInjuriesNumber();
+                await this.fetchAthleteInjuries();
 
                 this.setState({
                     isRefreshing: false
@@ -156,13 +207,13 @@ class AthleteInjuriesTypes extends Component {
                         <Ionicons name={item.icon} size={27}/>
                     </View>
                 }
-                badge={{
+                badge={item.value === 0 ? null : {
                     value: item.value,
                     badgeStyle: {
                         backgroundColor: colors.gradient1
                     }
                 }}
-                chevron={true}
+                chevron={item.value > 0}
                 disabled={item.value === 0}
                 onPress={() => {
 
@@ -181,14 +232,30 @@ class AthleteInjuriesTypes extends Component {
                         type = 'Tratadas';
                     }
 
-                    this.props.navigation.navigate(
-                        'ChildInjuriesScreen',
-                        {
-                            athleteId: this.state.athleteId,
-                            type: type,
-                            injuries: injuriesList
-                        }
-                    );
+                    if(this.props.navigation.state.routeName === 'AthleteInjuriesTypesScreen') {
+
+                        this.props.navigation.navigate(
+                            'AthleteInjuriesScreen',
+                            {
+                                athleteId: this.state.athleteId,
+                                athleteName: this.state.athleteName,
+                                athleteImage: this.state.athleteImage,
+                                type: type,
+                                injuries: injuriesList
+                            }
+                        );
+                    }
+                    else
+                        this.props.navigation.navigate(
+                            'ChildInjuriesScreen',
+                            {
+                                athleteId: this.state.athleteId,
+                                athleteName: this.state.athleteName,
+                                athleteImage: this.state.athleteImage,
+                                type: type,
+                                injuries: injuriesList
+                            }
+                        );
                 }}
             />
         );
@@ -216,35 +283,13 @@ class AthleteInjuriesTypes extends Component {
             onPress: 'PendingTrainings'
         }];
 
-        let childImage;
-        if(this.state.athleteImage !== false) {
-            childImage = (
-                <Avatar
-                    size={65}
-                    rounded
-                    source={{uri: `data:image/png;base64,${this.state.athleteImage}`}}
-                />
-            );
-        }
-        else{
-            childImage = (
-                <Avatar
-                    size={65}
-                    rounded
-                    source={require('../../../assets/user-account.png')}
-                />
-            )
-        }
-
         return (
             <View style={styles.container}>
-                <View style={styles.athleteContainer}>
-                    {childImage}
-                    <CustomText
-                        style={{marginTop: 10}}
-                        type={'bold'}
-                        children={this.state.athleteName} />
-                </View>
+                <Loader isLoading={this.state.isLoading} />
+                <AthleteInjuriesHeader
+                    athleteImage={this.state.athleteImage}
+                    athleteName={this.state.athleteName}
+                />
                 <FlatList
                     keyExtractor={item => item.name}
                     data={list}
@@ -261,22 +306,6 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: colors.grayColor,
-    },
-    athleteContainer: {
-        backgroundColor: '#fff',
-        paddingVertical: 15,
-        marginBottom: 20,
-        justifyContent: 'center',
-        alignItems: 'center',
-        //shadow
-        shadowColor: "#000",
-        shadowOffset: {
-            width: 0,
-            height: 2,
-        },
-        shadowOpacity: 0.25,
-        shadowRadius: 3.84,
-        elevation: 5,
     }
 });
 

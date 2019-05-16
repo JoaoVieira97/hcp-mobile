@@ -18,6 +18,7 @@ import { SectionGrid } from 'react-native-super-grid';
 import { ListItem, CheckBox } from 'react-native-elements';
 import CustomText from "../../CustomText";
 import {colors} from "../../../styles/index.style";
+import Loader from "../../screens/Loader";
 
 class OpenedTrainingInvitations extends Component {
 
@@ -40,20 +41,11 @@ class OpenedTrainingInvitations extends Component {
                 secretaryIds: [],
                 canChangeAvailability: undefined,
             },
-            coaches: ["A carregar..."], //dando ids de treinadores do treino, para buscar o nome
-            secretaries: ["A carregar..."], //dando ids de seccionistas do treino, para buscar o nome
-            athletes: [], //dando ids de atletas do treino, para buscar o nomes, numero e disponibilidade
-            checked: undefined, //verificar checkbox
+            coaches: ["A carregar..."],
+            secretaries: ["A carregar..."],
+            athletes: [],
+            checked: false
         }
-    }
-
-    async componentDidMount() {
-
-        await this.setState({
-            training: this.props.navigation.getParam('training'),
-        });
-
-        await this.fetchData();
     }
 
     /**
@@ -85,50 +77,59 @@ class OpenedTrainingInvitations extends Component {
             </TouchableOpacity>,
     });
 
+    async componentWillMount() {
+
+        await this.setState({
+            training: this.props.navigation.getParam('training'),
+        });
+    }
+
+    async componentDidMount() {
+
+        await this.fetchData();
+        await this.setState({isLoading: false});
+    }
+
     /**
-     * Buscar todos os dados necessários sobre o treino.
+     * Fetch all needed data.
+     * @returns {Promise<void>}
      */
     async fetchData() {
 
         await this.fetchAthletes(this.state.training.invitationIds);
         await this.fetchCoaches(this.state.training.coachIds);
         await this.fetchSecretaries(this.state.training.secretaryIds);
-
-        await this.setState({
-            isLoading: false,
-            isRefreshing: false
-        });
     }
 
     /**
-     * Buscar os atletas que foram convocados, bem como a sua disponibilidade.
+     * Fetch athletes data. Order by squad number.
      * @param ids
+     * @returns {Promise<void>}
      */
     async fetchAthletes(ids) {
 
         const params = {
-            domain: [['id','=',ids],],
             fields: [
+                'id',
                 'atleta',
                 'disponivel',
                 'numero'
             ],
-            order: 'numero ASC',
+            domain: [['id', 'in', ids]],
+            order: 'numero ASC'
         };
 
         const response = await this.props.odoo.search_read('ges.linha_convocatoria', params);
-
         if(response.success && response.data.length > 0) {
 
             const data = response.data;
-            const ids = this.state.training.athleteIds;//data.map(athlete => {return athlete.atleta[0]});
-
+            const ids = this.state.training.athleteIds;
             let athletes = [];
             const athletesImages = await this.fetchAthletesImages(ids);
 
             data.forEach(item => {
 
-                const image = athletesImages.find(imageItem =>
+                const athleteImageEchelon = athletesImages.find(imageItem =>
                     item.atleta[0] === imageItem.id
                 );
 
@@ -137,28 +138,33 @@ class OpenedTrainingInvitations extends Component {
                     name: item.atleta[1],
                     squad_number: item.numero,
                     available: item.disponivel,
-                    image: image ? image.image : false,
+                    image: athleteImageEchelon ? athleteImageEchelon.image : false,
+                    echelon: athleteImageEchelon ? athleteImageEchelon.escalao[1] : 'erro'
                 };
 
                 athletes.push(athlete);
             });
 
-            //VER ISTO DEPOIS!
             const athleteInfo = this.props.user.groups.filter(group => group.name === 'Atleta');
             const athleteId = athleteInfo[0].id;
 
-            const checked = (athletes.filter(athlete => athlete.id === athleteId))[0].available;
+            let checked = false;
+            const athletesFiltered = athletes.filter(athlete => athlete.id === athleteId);
 
-            this.setState(state => ({
-                athletes: [...state.athletes, ...athletes],
-                checked: checked,
-            }));
+            if (athletesFiltered && athletesFiltered > 0)
+                checked = athletesFiltered[0].available;
+
+            this.setState({
+                athletes: athletes,
+                checked: checked
+            });
         }
     }
 
     /**
-     * Buscar as imagens dos atletas.
+     * Fetch athletes images.
      * @param ids
+     * @returns {Promise<Array|*>}
      */
     async fetchAthletesImages(ids) {
 
@@ -167,11 +173,11 @@ class OpenedTrainingInvitations extends Component {
             fields: [
                 'id',
                 'image',
+                'escalao'
             ]
         };
 
         const response = await this.props.odoo.get('ges.atleta', params);
-
         if(response.success && response.data.length > 0)
             return response.data;
 
@@ -179,7 +185,9 @@ class OpenedTrainingInvitations extends Component {
     }
 
     /**
-     * Buscar os nomes dos treinadores associados ao treino.
+     * Fetch coaches names.
+     * @param ids
+     * @returns {Promise<void>}
      */
     async fetchCoaches(ids) {
 
@@ -189,7 +197,6 @@ class OpenedTrainingInvitations extends Component {
         };
 
         const response = await this.props.odoo.get('ges.treinador', params);
-
         if(response.success && response.data.length > 0) {
 
             const data = response.data;
@@ -209,6 +216,11 @@ class OpenedTrainingInvitations extends Component {
         }
     }
 
+    /**
+     * Fetch secretaries names.
+     * @param ids
+     * @returns {Promise<void>}
+     */
     async fetchSecretaries(ids) {
 
         const params = {
@@ -217,34 +229,20 @@ class OpenedTrainingInvitations extends Component {
         };
 
         const response = await this.props.odoo.get('ges.seccionista', params);
-
         if(response.success && response.data.length > 0) {
 
-            const data = response.data;
+            await this.setState({secretaries: response.data.map(item => item.name)});
 
-            let secretaryNames = [];
-            data.forEach(item => {
-                secretaryNames.push(item.name);
-            });
-
-            this.setState({
-                secretaries: secretaryNames
-            });
         } else {
             this.setState({
                 secretaries: ['Nenhum seccionista atribuído']
             });
         }
-
     }
 
     /**
-     * Registar presenças.
-     */
-
-    /**
-     * Mudar disponibilidade atual.
-     * TODO Send notifications to coaches and secretaries
+     * Change athlete availability.
+     * @returns {Promise<void>}
      */
     async changeAvailability(){
 
@@ -297,6 +295,7 @@ class OpenedTrainingInvitations extends Component {
         }
     };
 
+
     async getCoords(local){
 
         if(local){
@@ -316,146 +315,141 @@ class OpenedTrainingInvitations extends Component {
         }
     }
 
+
     /**
-     * Renderizar o item da lista presente no header.
-     * @param {Object} item
+     * Render item of first list.
+     * @param item
+     * @returns {*}
      */
     renderItemOfList = ({ item }) => {
-        let checkbox;
-        let arrow;
-        let getLocal = false;
-        let disabled = true;
 
-        if (item.name === 'Disponibilidade'){
-            checkbox = (
+        if (item.name === 'Local') {
+            return (
+                <ListItem
+                    title={item.name}
+                    subtitle={item.subtitle}
+                    leftAvatar={
+                        <View style={{width: 25}}>
+                            <Ionicons name={item.icon} size={27} />
+                        </View>
+                    }
+                    containerStyle={{
+                        backgroundColor: colors.lightRedColor,
+                        minHeight: 60,
+                    }}
+                    chevron={true}
+                    onPress={async () => this.getCoords(true)}
+                />
+            );
+        }
+        else if (item.name === 'Disponibilidade') {
+
+            const checkbox = (
                 <CheckBox
                     iconRight
                     checked={this.state.checked}
-                    onPress={() => this.changeAvailability()}
+                    onPress={async () => this.changeAvailability()}
                     size = {30}
                     containerStyle={{ marginRight: 5, padding: 0, backgroundColor: 'transparent', borderColor: 'transparent'}}
-                    //iconType='material'
-                    //checkedIcon='clear'
-                    //uncheckedIcon='add'
-                    checkedColor = {'#81c784'}
-                    uncheckedColor = {'#e57373'}
+                    checkedColor={'#81c784'}
+                    uncheckedColor={'#e57373'}
                 />
-            )
-        }
-
-        if (this.state.training.canChangeAvailability && item.name === 'Local') {
-            arrow = (
-                <View style={{width: 25}}>
-                    <Ionicons name={'ios-arrow-forward'} size={24} color={'#919391'}/>
-                </View>
             );
 
-            getLocal = true;
-            disabled = false;
+            return (
+                <ListItem
+                    title={item.name}
+                    leftAvatar={
+                        <View style={{width: 25}}>
+                            <Ionicons name={item.icon} size={27} />
+                        </View>
+                    }
+                    containerStyle={{
+                        backgroundColor: colors.lightRedColor,
+                        minHeight: 60,
+                    }}
+                    disabled={true}
+                    rightElement={checkbox}
+                />
+            );
         }
-
-        return (
-            <ListItem
-                title={item.name}
-                subtitle={item.subtitle}
-                leftAvatar={
-                    <View style={{width: 25}}>
-                        <Ionicons name={item.icon} size={27} />
-                    </View>
-                }
-                //chevron={chevron}
-                rightIcon={arrow}
-                containerStyle={{
-                    backgroundColor: '#ffe3e4',
-                    height: 60,
-                }}
-                rightElement={checkbox}
-                onPress = { () => {this.getCoords(getLocal)} }
-                disabled = {disabled}
-            />
-        )
-
+        else {
+            return (
+                <ListItem
+                    title={item.name}
+                    subtitle={item.subtitle}
+                    leftAvatar={
+                        <View style={{width: 25}}>
+                            <Ionicons name={item.icon} size={27} />
+                        </View>
+                    }
+                    containerStyle={{
+                        backgroundColor: colors.lightRedColor,
+                        minHeight: 60,
+                    }}
+                    disabled={true}
+                />
+            );
+        }
     };
 
-
-
     /**
-     * Renderizar o item dos atletas convocados.
-     * @param {Object} item
+     * Render item of athletes list.
+     * @param item
+     * @returns {*}
      */
     renderItem = ({item}) => {
 
-        let image;
-
-        if(item.image){
-            image = (
+        let userImage;
+        if (item.image)
+            userImage = (
                 <Image
                     source={{uri: `data:image/png;base64,${item.image}`}}
                     style={{width: '100%', height: '60%', opacity: 1,
                         borderTopLeftRadius: 5, borderTopRightRadius: 5 }}>
                 </Image>
-            )
-        }
-        else {
-            image = (
+            );
+        else
+            userImage = (
                 <Image
                     source={require('../../../../assets/user-account.png')}
                     style={{width: '100%', height: '60%', opacity: 0.8,
                         borderTopLeftRadius: 5, borderTopRightRadius: 5 }}>
                 </Image>
-            )
-        }
+            );
 
         return (
             <View style={[
                 styles.itemContainer,
                 {backgroundColor: item.available ? '#81c784' : '#e57373'}]}>
-                {image}
+                {userImage}
                 <View style={{flex: 1, padding: 5, justifyContent: 'center'}}>
-                    <Text style={styles.itemName}>
-                        {item.name.substring(0, 27)}
+                    <Text numberOfLines={2} ellipsizeMode='tail' style={styles.itemName}>
+                        {item.name}
                     </Text>
-                    <Text style={styles.itemCode}>#{item.squad_number}</Text>
+                    {
+                        (item.echelon !== 'erro') ?
+                            <Text numberOfLines={1} ellipsizeMode='tail' style={styles.itemCode}>
+                                #{item.squad_number} - {item.echelon}
+                            </Text>
+                            :
+                            <Text numberOfLines={1} ellipsizeMode='tail' style={styles.itemCode}>
+                                #{item.squad_number}
+                            </Text>
+                    }
                 </View>
             </View>
         );
     };
 
-   /* renderHeader = () => {
-
-        return (
-            <TouchableOpacity
-                onPress={async () => {await this.markPresences();}}
-                style={{
-                    flex: 1,
-                    alignItems: 'center',
-                    backgroundColor: 'rgba(173, 46, 83, 0.8)', //rgba(173, 46, 83, 0.8)
-                    padding: 10,
-                    marginHorizontal: 10,
-                    marginVertical: 5,
-                    borderRadius: 5
-                }}>
-                <Text style={{color: '#fff', fontWeight: '700', fontSize: 15}}>
-                    FECHAR CONVOCATÓRIA
-                </Text>
-                <Text style={{color: '#dedede', fontWeight: '400', textAlign: 'center'}}>
-                    Serão registadas as presenças dos atletas disponíveis.
-                </Text>
-            </TouchableOpacity>
-        );
-    };*/
-
     /**
-     * Função que permite atualizar o conteúdo do componente.
+     * When user refresh this screen.
      */
-    onRefresh = () => {
-        this.setState({
-            isRefreshing: true,
-            athletes: []
-        }, async () => {
+    onRefresh = async () => {
 
-            await this.fetchData();
-        });
+        await this.setState({isRefreshing: true});
+        await this.fetchData();
+        this.setState({isRefreshing: false});
     };
 
     render() {
@@ -464,37 +458,35 @@ class OpenedTrainingInvitations extends Component {
             icon: 'md-shirt',
             subtitle: this.state.training.echelon[1],
         }, {
-            name: 'Início',
+            name: 'Início e duração',
             icon: 'md-time',
-            subtitle: this.state.training.date + ' | ' + this.state.training.hours,
+            subtitle:
+                this.state.training.date + '  |  ' +
+                this.state.training.hours + '\n' +
+                this.state.training.duration + ' min',
         }, {
             name: 'Local',
             icon: 'md-pin',
-            subtitle: this.state.training.place[1],
+            subtitle: this.state.training.place ? this.state.training.place[1] : 'Nenhum local atribuído',
         }, {
             name: 'Treinadores',
             icon: 'md-people',
-            subtitle: this.state.coaches.join(', ')
+            subtitle: this.state.coaches.join(',  ')
         }, {
             name: 'Seccionistas',
             icon: 'md-clipboard',
-            subtitle: this.state.secretaries.join(', ')
+            subtitle: this.state.secretaries.join(',  ')
         }];
 
         if (this.state.training.canChangeAvailability)
             list.push({
                 name: 'Disponibilidade',
-                icon: 'md-list-box',
-                //subtitle:
+                icon: 'md-list-box'
             });
 
         return (
             <View style={{flex: 1}}>
-                { this.state.isLoading &&
-                <View style={styles.loading} opacity={0.5}>
-                    <ActivityIndicator size='large' color={colors.loadingColor} />
-                </View>
-                }
+                <Loader isLoading={this.state.isLoading}/>
                 <ScrollView
                     style={{flex: 1}}
                     nestedScrollEnabled={true}
@@ -507,17 +499,17 @@ class OpenedTrainingInvitations extends Component {
                     <View style={styles.topHeader}>
                         <FlatList
                             keyExtractor={item => item.name}
-                            extraData = {this.state.checked}
                             data={list}
+                            extraData = {this.state.checked}
                             renderItem={this.renderItemOfList}
-                            //ListHeaderComponent={this.renderHeader}
+                            ListHeaderComponent={this.renderHeader}
                         />
                     </View>
                     <SectionGrid
                         itemDimension={100}
                         spacing={10}
                         sections={[{
-                            title: 'Atletas convocados | Disponibilidade',
+                            title: 'Atletas convocados',
                             data: this.state.athletes,
                         }]}
                         style={styles.gridView}
@@ -541,7 +533,15 @@ const styles = StyleSheet.create({
         borderBottomLeftRadius: 20,
         borderBottomRightRadius: 20,
         paddingVertical: 10,
-        elevation: 5
+        // shadow
+        shadowColor: "#000",
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+        elevation: 5,
     },
     gridView: {
         marginTop: 10,
@@ -552,11 +552,20 @@ const styles = StyleSheet.create({
         borderRadius: 5,
         padding: 0,
         height: 150,
+        //shadow
+        shadowColor: "#000",
+        shadowOffset: {
+            width: 0,
+            height: 3,
+        },
+        shadowOpacity: 0.29,
+        shadowRadius: 4.65,
+        elevation: 7,
     },
     itemName: {
-        fontSize: 16,
+        fontSize: 15,
         color: '#000',
-        fontWeight: '600',
+        fontWeight: '500',
     },
     itemCode: {
         fontWeight: '600',
@@ -577,17 +586,6 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: '600',
         color: '#ad2e53',
-    },
-    loading: {
-        position: 'absolute',
-        left: 0,
-        right: 0,
-        top: 0,
-        bottom: 0,
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: "#ffffff",
-        zIndex: 101
     }
 });
 

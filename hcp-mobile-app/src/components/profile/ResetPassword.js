@@ -249,7 +249,7 @@ class ResetPassword extends Component {
                                     secureTextEntry={true}
                                     theme={{ colors: {
                                             ...DefaultTheme.colors,
-                                            primary: colors.blueText,
+                                            primary: colors.blueColor,
                                         }}}
                                     style={styles.input}
                                 />
@@ -267,7 +267,7 @@ class ResetPassword extends Component {
                                     error={this.state.newPasswordError}
                                     theme={{ colors: {
                                             ...DefaultTheme.colors,
-                                            primary: colors.blueText,
+                                            primary: colors.blueColor,
                                         }}}
                                     style={styles.input}
                                 />
@@ -292,7 +292,7 @@ class ResetPassword extends Component {
                                     secureTextEntry={true}
                                     theme={{ colors: {
                                             ...DefaultTheme.colors,
-                                            primary: colors.blueText,
+                                            primary: colors.blueColor,
                                         }}}
                                     style={styles.input}
                                 />

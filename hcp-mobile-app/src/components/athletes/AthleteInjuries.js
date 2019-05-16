@@ -1,13 +1,14 @@
-import React, { Component } from 'react';
+import React, {Component} from 'react';
 
-import {FlatList, TouchableOpacity, View} from 'react-native';
+import {FlatList, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 
-import { connect } from 'react-redux';
+import {connect} from 'react-redux';
 import {Ionicons} from "@expo/vector-icons";
 import {colors} from "../../styles/index.style";
-import {ListItem} from "react-native-elements";
+import {Avatar, ListItem} from "react-native-elements";
 import CustomText from "../CustomText";
 import _ from 'lodash';
+import AthleteInjuriesHeader from "./AthleteInjuriesHeader";
 
 
 class AthleteInjuries extends Component {
@@ -19,6 +20,8 @@ class AthleteInjuries extends Component {
             injuries: [],
             type: "",
             athleteId: "",
+            athleteName: "",
+            athleteImage: false,
             isRefreshing: false,
         }
     }
@@ -39,15 +42,16 @@ class AthleteInjuries extends Component {
             />,
         headerLeft:
             <TouchableOpacity style={{
-                width:42,
-                height:42,
-                alignItems:'center',
-                justifyContent:'center',
-                marginLeft: 10}} onPress = {() => navigation.goBack()}>
+                width: 42,
+                height: 42,
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginLeft: 10
+            }} onPress={() => navigation.goBack()}>
                 <Ionicons
                     name="md-arrow-back"
                     size={28}
-                    color={'#ffffff'} />
+                    color={'#ffffff'}/>
             </TouchableOpacity>
     });
 
@@ -57,11 +61,75 @@ class AthleteInjuries extends Component {
             injuries: this.props.navigation.getParam('injuries'),
             type: this.props.navigation.getParam('type'),
             athleteId: this.props.navigation.getParam('athleteId'),
+            athleteName: this.props.navigation.getParam('athleteName'),
+            athleteImage: this.props.navigation.getParam('athleteImage'),
         });
     }
 
-    async componentDidMount() {
+    /**
+     * Fetch athlete injuries by type.
+     * @param type
+     * @returns {Promise<void>}
+     */
+    async fetchInjuriesByType(type) {
 
+        const params = {
+            fields: [
+                'id',
+                'ocorreu_num',
+                'treino', 'jogo', 'outro',
+                'create_date', 'data_ocorrencia',
+                'state',
+                'tipo_lesao',
+                'data_conclusao'
+            ],
+            domain: [
+                ['atleta', 'in', [this.state.athleteId]],
+                ['state', '=', type]
+            ]
+        };
+
+        const response = await this.props.odoo.search_read('ges.lesao', params);
+        if(response.success && response.data.length > 0) {
+
+            let injuries = [];
+            response.data.forEach(item => {
+
+                const startDateAux = item.data_ocorrencia;
+                let startDate;
+                if (startDateAux)
+                    startDate = startDateAux.slice(8, 10) + '/' +
+                        startDateAux.slice(5, 7) + '/' +
+                        startDateAux.slice(0, 4);
+                else
+                    startDate = 'não definido';
+
+                const endDateAux = item.data_conclusao;
+                let endDate;
+                if (endDateAux)
+                    endDate = endDateAux.slice(8, 10) + '/' +
+                        endDateAux.slice(5, 7) + '/' +
+                        endDateAux.slice(0, 4);
+                else
+                    endDate = 'não definido';
+
+                const injury = {
+                    id: item.id,
+                    state: item.state,
+                    occurredIn: item.ocorreu_num,
+                    occurredInDate: startDate,
+                    finishDate: endDate,
+                    training: item.treino, //array or false
+                    game: item.jogo, //array or false
+                    other: item.outro, //... or false
+                    injuryType: item.tipo_lesao
+                };
+
+                injuries.push(injury);
+            });
+
+            this.setState({injuries: injuries});
+        }
     }
 
     /**
@@ -72,6 +140,15 @@ class AthleteInjuries extends Component {
 
         this.setState({isRefreshing: true});
 
+        let type;
+        if(this.state.type === 'Em diagnóstico')
+            type = 'diagnostico';
+        else if(this.state.type === 'Em tratamento')
+            type = 'tratamento';
+        else
+            type = 'tratada';
+
+        await this.fetchInjuriesByType(type);
 
         this.setState({isRefreshing: false});
     };
@@ -82,7 +159,7 @@ class AthleteInjuries extends Component {
      * @param index
      * @returns {*}
      */
-    renderItem = ({ item, index }) => {
+    renderItem = ({item, index}) => {
 
         let icon;
         if (this.state.type === 'Em diagnóstico')
@@ -94,8 +171,23 @@ class AthleteInjuries extends Component {
 
         return (
             <ListItem
-                title={'Lesão num treino'}
-                subtitle={'Registada a 10-10-2020'}
+                title={(item.occurredIn !== 'outro') ?
+                    'Lesão durante um ' + item.occurredIn :
+                    'Lesão'
+                }
+                subtitle={
+                    <View  style={{flex: 1, flexDirection: 'column'}}>
+                        <Text style={{color: colors.darkGrayColor}}>
+                            {'Ocorreu a:  ' + item.occurredInDate}
+                        </Text>
+                        <Text numberOfLines={1} ellipsizeMode='tail' style={{color: colors.darkGrayColor}}>
+                            {(item.injuryType !== false) ?
+                                'Tipo de lesão:  ' + item.injuryType[1] :
+                                'Tipo de lesão:  por definir'
+                            }
+                        </Text>
+                    </View>
+                }
                 leftAvatar={
                     <View style={{
                         alignItems: 'center',
@@ -107,22 +199,64 @@ class AthleteInjuries extends Component {
                     </View>
                 }
                 chevron={true}
+                onPress={() => {
+
+                    if(this.props.navigation.state.routeName === 'AthleteInjuriesScreen') {
+
+                        this.props.navigation.navigate(
+                            'AthleteInjuryScreen',
+                            {
+                                athleteId: this.state.athleteId,
+                                athleteName: this.state.athleteName,
+                                athleteImage: this.state.athleteImage,
+                                type: this.state.type,
+                                injury: item
+                            }
+                        );
+                    }
+                    else {
+                        this.props.navigation.navigate(
+                            'ChildInjuryScreen',
+                            {
+                                athleteId: this.state.athleteId,
+                                athleteName: this.state.athleteName,
+                                athleteImage: this.state.athleteImage,
+                                type: this.state.type,
+                                injury: item
+                            }
+                        );
+                    }
+                }}
             />
         );
     };
 
     render() {
+
         return (
-            <FlatList
-                keyExtractor={item => item.id + item.state}
-                data={this.state.injuries}
-                renderItem={this.renderItem}
-                //refreshing={this.state.isRefreshing}
-                //onRefresh={this.handleRefresh}
-            />
+            <View style={styles.container}>
+                <AthleteInjuriesHeader
+                    athleteImage={this.state.athleteImage}
+                    athleteName={this.state.athleteName}
+                />
+                <FlatList
+                    keyExtractor={item => item.id + item.state}
+                    data={this.state.injuries}
+                    renderItem={this.renderItem}
+                    refreshing={this.state.isRefreshing}
+                    onRefresh={this.handleRefresh}
+                />
+            </View>
         );
-  }
+    }
 }
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: colors.grayColor,
+    }
+});
 
 const mapStateToProps = state => ({
 

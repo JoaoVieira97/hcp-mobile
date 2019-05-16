@@ -149,11 +149,18 @@ class AthleteScreen extends Component {
                         </View>
                         <View style={styles.buttonContent}>
                             <Button
-                                disabled={true}
                                 color={'#fff'}
                                 mode="contained"
                                 contentStyle={{height: 55}}
-                                onPress={() => console.log('Pressed')}
+                                onPress={() =>
+                                    this.props.navigation.navigate('AthleteInjuriesTypesScreen',
+                                        {
+                                            athleteId: this.state.athlete.id,
+                                            athleteName: this.state.athlete.name,
+                                            athleteImage: this.state.athlete.image
+                                        }
+                                    )
+                                }
                             >
                                 Lesões
                             </Button>

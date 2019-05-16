@@ -52,6 +52,7 @@ import ChildesScreen from "../father/ChildesScreen";
 import ChildScreen from "../father/ChildScreen";
 import AthleteInjuriesTypes from "../athletes/AthleteInjuriesTypes";
 import AthleteInjuries from "../athletes/AthleteInjuries";
+import AthleteInjury from "../athletes/AthleteInjury";
 
 const styles = StyleSheet.create({
     container: {
@@ -389,7 +390,9 @@ const AthletesStackNavigator = createStackNavigator({
     EchelonsScreen: {screen: EchelonsScreen},
     AthletesScreen: {screen: AthletesScreen},
     AthleteScreen: {screen: AthleteScreen},
-    AthleteInjuriesTypesScreen: {screen: AthleteInjuriesTypes}
+    AthleteInjuriesTypesScreen: {screen: AthleteInjuriesTypes},
+    AthleteInjuriesScreen:  {screen: AthleteInjuries},
+    AthleteInjuryScreen: {screen: AthleteInjury}
 }, {
     initialRouteName: 'EchelonsScreen',
     defaultNavigationOptions: ({navigation}) => {
@@ -549,7 +552,8 @@ const ChildrenStackNavigator = createStackNavigator({
     ChildesScreen: {screen: ChildesScreen},
     ChildScreen: {screen: ChildScreen},
     ChildInjuriesTypesScreen: {screen: AthleteInjuriesTypes},
-    ChildInjuriesScreen:  {screen: AthleteInjuries}
+    ChildInjuriesScreen:  {screen: AthleteInjuries},
+    ChildInjuryScreen: {screen: AthleteInjury}
 }, {
     initialRouteName: 'ChildesScreen',
     defaultNavigationOptions: ({navigation}) => {
@@ -822,7 +826,7 @@ const CoachAndSecretaryDrawerNavigator = createDrawerNavigator({
     ChatStack: drawerNavigatorFullStacks['ChatStack']
 }, {
     ...drawerNavigatorDefaultSettings,
-    initialRouteName: 'HomeStack',
+    initialRouteName: 'AthletesStack',
     order: ['HomeStack', 'CalendarStack', 'ManagementStack', 'AthletesStack', 'ProfileStack', 'ChatStack'],
 });
 
@@ -834,7 +838,7 @@ const FatherDrawerNavigator = createDrawerNavigator({
     ChatStack: drawerNavigatorFullStacks['ChatStack']
 }, {
     ...drawerNavigatorDefaultSettings,
-    initialRouteName: 'HomeStack',
+    initialRouteName: 'ChildesStack',
     order: ['HomeStack', 'ChildesStack', 'CalendarStack', 'ProfileStack', 'ChatStack'],
 });
 

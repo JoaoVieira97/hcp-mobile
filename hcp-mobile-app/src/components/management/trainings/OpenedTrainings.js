@@ -145,8 +145,8 @@ class OpenedTrainings extends Component {
                     duration: item.duracao,
                     date: date.date,
                     hour: date.hour,
-                    athleteIds : item.atletas,
                     invitationIds: item.convocatorias,
+                    athleteIds : item.atletas,
                     coachIds: item.treinador,
                     secretaryIds: item.seccionistas,
                 };

@@ -37,19 +37,6 @@ class OpenedTraining extends React.Component {
         };
     }
 
-    componentWillMount() {
-
-        this.setState({
-            training: this.props.navigation.state.params.training
-        });
-    }
-
-    async componentDidMount() {
-
-        await this.fetchData();
-        await this.setState({isLoading: false});
-    }
-
     /**
      * Define navigations header components.
      * @param navigation
@@ -92,6 +79,19 @@ class OpenedTraining extends React.Component {
             </TouchableOpacity>
     });
 
+    async componentWillMount() {
+
+        await this.setState({
+            training: this.props.navigation.state.params.training
+        });
+    }
+
+    async componentDidMount() {
+
+        await this.fetchData();
+        await this.setState({isLoading: false});
+    }
+
     /**
      * Fetch all needed data.
      * @returns {Promise<void>}
@@ -125,7 +125,7 @@ class OpenedTraining extends React.Component {
         if(response.success && response.data.length > 0) {
 
             const data = response.data;
-            const ids = data.map(athlete => {return athlete.atleta[0]});
+            const ids = this.state.training.athleteIds;
             let athletes = [];
             const athletesImages = await this.fetchAthletesImages(ids);
 
@@ -141,7 +141,7 @@ class OpenedTraining extends React.Component {
                     squad_number: item.numero,
                     available: item.disponivel,
                     image: athleteImageEchelon ? athleteImageEchelon.image : false,
-                    echelon: athleteImageEchelon ? athleteImageEchelon.escalao[1] : 'erro'
+                    echelon: athleteImageEchelon ? athleteImageEchelon.escalao[1] : 'error'
                 };
 
                 athletes.push(athlete);
@@ -378,9 +378,16 @@ class OpenedTraining extends React.Component {
                     <Text numberOfLines={2} ellipsizeMode='tail' style={styles.itemName}>
                         {item.name}
                     </Text>
-                    <Text numberOfLines={1} ellipsizeMode='tail' style={styles.itemCode}>
-                        #{item.squad_number} - {item.echelon}
-                    </Text>
+                    {
+                        (item.echelon !== 'erro') ?
+                        <Text numberOfLines={1} ellipsizeMode='tail' style={styles.itemCode}>
+                            #{item.squad_number} - {item.echelon}
+                        </Text>
+                            :
+                        <Text numberOfLines={1} ellipsizeMode='tail' style={styles.itemCode}>
+                            #{item.squad_number}
+                        </Text>
+                    }
                 </View>
             </View>
         );
