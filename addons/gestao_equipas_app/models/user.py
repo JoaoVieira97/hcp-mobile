@@ -3,7 +3,7 @@
 from odoo import models, fields, api
 from validate_email import validate_email
 from phonenumbers import is_valid_number, parse as parse_number
-
+import requests
 
 class User(models.Model):
     _inherit = 'res.users'
@@ -49,3 +49,16 @@ class User(models.Model):
             }
             list.append(info)
         return list
+
+    @api.multi
+    def send_notification(self, title, msg):
+        url = 'https://exp.host/--/api/v2/push/send'
+        headers = {'Content-Type': 'application/json'}
+        for token in self.tokens:
+            body = {
+                'to': token.token,
+                'title': title,
+                'body': msg
+            }
+            requests.post(url, body, headers)
+        return True

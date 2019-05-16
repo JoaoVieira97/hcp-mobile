@@ -15,6 +15,8 @@ import CustomText from "../CustomText";
 import {Ionicons} from "@expo/vector-icons";
 import ConvertTime from "../ConvertTime";
 import {Avatar} from "react-native-paper";
+import { Permissions, Notifications } from 'expo';
+import { Constants } from 'expo';
 
 class HomeScreen extends React.Component {
 
@@ -53,6 +55,10 @@ class HomeScreen extends React.Component {
                 await this.setState({isLoading: false});
             })
         ];
+
+        await this.registerForPushNotificationsAsync();
+        await this.addUserToken();
+    
     }
 
     componentWillUnmount() {
@@ -433,6 +439,54 @@ class HomeScreen extends React.Component {
         );
     };
 
+    async addUserToken(){
+
+        if (this.state.token){
+            let token = this.state.token.toString()
+            let device = Constants.deviceName
+
+            const params = {
+                kwargs: {
+                    context: this.props.odoo.context,
+                },
+                model: 'res.users',
+                method: 'add_token',
+                args: [this.props.user.id, device, token]
+            };
+
+            const response = await this.props.odoo.rpc_call(
+                '/web/dataset/call_kw',
+                params
+            );
+
+            console.log(response)
+        }
+    }
+
+    async registerForPushNotificationsAsync() {
+        const { status } = await Permissions.getAsync(Permissions.NOTIFICATIONS);
+
+        let finalStatus = status;
+
+        if (status !== 'granted'){
+            const { status } = await Permissions.askAsync(Permissions.NOTIFICATIONS);
+            finalStatus = status
+        }
+
+        if (finalStatus !== 'granted'){
+            return;
+        }
+        console.log(finalStatus)
+
+        await Notifications.getExpoPushTokenAsync().then( token => {
+            this.setState({
+                token: token
+            })
+        }).catch( err => {
+            console.log('token err', err)
+        })
+    }
+
     /*
     sendNotificationJS(){
         let title = "Nova convocatória (JS)"
@@ -469,52 +523,6 @@ class HomeScreen extends React.Component {
             params
         );
         console.log("Pedido de notificação realizado")
-    }
-
-    async addUserToken(){
-        let userId = this.props.user.id.toString()
-        let token = this.state.token.toString()
-
-        console.log(userId)
-        console.log(token)
-
-        const params = {
-            kwargs: {
-                context: this.props.odoo.context,
-            },
-            model: 'ges.notificacao',
-            method: 'addUserToken',
-            args: [0, userId, token]
-        };
-
-        const response = await this.props.odoo.rpc_call(
-            '/web/dataset/call_kw',
-            params
-        );
-    }
-
-    async registerForPushNotificationsAsync() {
-        const { status } = await Permissions.getAsync(Permissions.NOTIFICATIONS);
-
-        let finalStatus = status;
-
-        if (status !== 'granted'){
-            const { status } = await Permissions.askAsync(Permissions.NOTIFICATIONS);
-            finalStatus = status
-        }
-
-        if (finalStatus !== 'granted'){
-            return;
-        }
-        console.log(finalStatus)
-
-        await Notifications.getExpoPushTokenAsync().then( token => {
-            this.setState({
-                token: token
-            })
-        }).catch( err => {
-            console.log('token err', err)
-        })
     }
     */
 
