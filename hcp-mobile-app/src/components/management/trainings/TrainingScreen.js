@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import {View, StyleSheet, FlatList} from 'react-native';
+import {View, FlatList} from 'react-native';
 import {ListItem} from 'react-native-elements';
 import {Ionicons} from "@expo/vector-icons";
 import {colors} from "../../../styles/index.style";
@@ -19,17 +19,14 @@ class TrainingScreen extends Component {
         };
     }
 
-    componentDidMount() {
+    /**
+     * Define training navigator.
+     */
+    static navigationOptions = {
+        title: 'Treinos',
+    };
 
-        /*
-        this.timer = setInterval(
-            () => {
-                this.countOpenedTrainings();
-                this.countTrainingsThatNeedToClose();
-            },
-            3000
-        );
-        */
+    componentDidMount() {
 
         this.subscriptions = [
             this.props.navigation.addListener('willFocus', async () => {
@@ -44,13 +41,6 @@ class TrainingScreen extends Component {
         //clearInterval(this.timer);
         this.subscriptions.forEach(sub => sub.remove());
     }
-
-    /**
-     * Define training navigator.
-     */
-    static navigationOptions = {
-        title: 'Treinos',
-    };
 
     /**
      * Count number of opened trainings.
@@ -106,15 +96,6 @@ class TrainingScreen extends Component {
                 closedTrainingsCounter: response.data,
             });
         }
-
-        /*
-        Alert.alert(
-                    'Erro',
-                    'Aconteceu um erro. Não foi possível contabilizar o número de treiros.',
-                    [{text: 'OK', onPress: () => console.log('OK Pressed')}],
-                    {cancelable: false},
-                );
-         */
     }
 
     /**
@@ -195,15 +176,13 @@ class TrainingScreen extends Component {
         ];
 
         return (
-            <View style={styles.container}>
-                <FlatList
-                    keyExtractor={item => item.name}
-                    data={list}
-                    renderItem={this.renderItem}
-                    refreshing={this.state.isRefreshing}
-                    onRefresh={this.handleRefresh}
-                />
-            </View>
+            <FlatList
+                keyExtractor={item => item.name}
+                data={list}
+                renderItem={this.renderItem}
+                refreshing={this.state.isRefreshing}
+                onRefresh={this.handleRefresh}
+            />
         )
     }
 }
@@ -214,165 +193,6 @@ const mapStateToProps = state => ({
     odoo: state.odoo.odoo,
 });
 
-const mapDispatchToProps = dispatch => ({
-
-});
+const mapDispatchToProps = dispatch => ({});
 
 export default connect(mapStateToProps, mapDispatchToProps)(TrainingScreen);
-
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        marginTop: 10
-    }
-});
-
-
-
-/*
-
-    async getAllTrainingsNeedToClose() {
-
-        const params = {
-            domain: [
-                ['state', '=', 'convocatorias_fechadas']],
-            fields: ['id', 'evento_ref'],
-        };
-
-        let response = await this.props.odoo.search_read('ges.evento_desportivo', params);
-        if (response.success) {
-
-            let counter = 0;
-            const size = response.data.length;
-
-            for (let i = 0; i < size; i++) {
-
-                const aux = response.data[i].evento_ref.split(',');
-
-                if(aux[0] === 'ges.treino') {
-                    counter = counter + 1;
-                }
-            }
-
-            //console.log(response.data);
-            //Alert.alert("Total", counter.toString());
-            return counter;
-        }
-
-        return 0;
-    }
-
-    async getAllTrainings() {
-
-        const params = {
-            domain: [['id', '>=', '0']],
-            fields: ['id'],
-        };
-
-        let response = await this.props.odoo.search('ges.treino', params);
-        if (response.success) {
-
-            console.log(response.data);
-        }
-    }
-
-    async getAllConvocations() {
-
-        const params = {
-            domain: [['id', '>=', '0']],
-            fields: ['id'],
-        };
-
-        let response = await this.props.odoo.search('ges.linha_convocatoria', params);
-        if (response.success) {
-
-            console.log(response.data);
-        }
-    }
-
-    async getAllPresences() {
-
-        const params = {
-            domain: [['id', '>=', '0']],
-            fields: ['id'],
-        };
-
-        let response = await this.props.odoo.search('ges.linha_presenca', params);
-        if (response.success) {
-
-            console.log(response.data);
-        }
-    }
-
-    async getEvent(id) {
-
-        const params = {
-            ids: [id],
-            fields: [],
-        };
-
-        const response = await this.props.odoo.get('ges.evento_desportivo', params);
-        if (response.success) {
-
-            console.log(response.data);
-        }
-    }
-
-    async getTraining(id) {
-
-        const params = {
-            ids: [id],
-            fields: [],
-        };
-
-        const response = await this.props.odoo.get('ges.treino', params);
-        if (response.success) {
-
-            console.log(response.data);
-        }
-    }
-
-    async getConvocation(id) {
-
-        const params = {
-            ids: [id],
-            fields: [],
-        };
-
-        const response = await this.props.odoo.get('ges.linha_convocatoria', params);
-        if (response.success) {
-
-            console.log(response.data);
-        }
-    }
-
-    async getPresence(id) {
-
-        const params = {
-            ids: [id],
-            fields: [],
-        };
-
-        const response = await this.props.odoo.get('ges.linha_presenca', params);
-        if (response.success) {
-
-            console.log(response.data);
-        }
-    }
-
-    async registerAvailabilities(convocation_ids, availability = true) {
-
-        let response = await this.props.odoo.update('ges.linha_convocatoria',
-            convocation_ids,
-            {
-                disponivel:  availability,
-            }
-        );
-
-        if (response.success) {
-
-            console.log(response.data);
-        }
-    }
- */

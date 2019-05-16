@@ -85,6 +85,8 @@ class OpenedTrainings extends Component {
         headerTitle:
             <CustomText
                 type={'bold'}
+                numberOfLines={1}
+                ellipsizeMode='tail'
                 children={'CONVOCATÓRIAS EM ABERTO'}
                 style={{
                     color: '#ffffff',
