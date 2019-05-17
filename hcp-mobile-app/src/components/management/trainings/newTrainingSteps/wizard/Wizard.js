@@ -4,11 +4,16 @@ import { View, Alert } from 'react-native';
 import Step from './Step';
 import {connect} from "react-redux";
 import {decreaseStep, increaseStep, resetTraining, setStep} from "../../../../../redux/actions/newTraining";
+import Loader from "../../../../screens/Loader";
 
 class Wizard extends PureComponent {
 
     constructor(props) {
         super(props);
+
+        this.state = {
+            isLoading: false
+        };
     }
 
     static Step = Step;
@@ -60,6 +65,8 @@ class Wizard extends PureComponent {
      */
     _onSubmit = async () => {
 
+        this.setState({isLoading: true});
+
         const startDate = this.props.newTraining.startDateTime.split('T');
         const endDate = this.props.newTraining.endDateTime.split('T');
 
@@ -89,6 +96,8 @@ class Wizard extends PureComponent {
             };
         }
 
+        await this.setState({isLoading: false});
+
         Alert.alert(
             alertMessage.title,
             alertMessage.message,
@@ -103,6 +112,7 @@ class Wizard extends PureComponent {
 
         return (
             <View style={{ flex: 1 }}>
+                <Loader isLoading={this.state.isLoading} />
                 {React.Children.map(this.props.children, (el, index) => {
                     if (index === this.props.newTraining.stepId) {
                         return React.cloneElement(el, {

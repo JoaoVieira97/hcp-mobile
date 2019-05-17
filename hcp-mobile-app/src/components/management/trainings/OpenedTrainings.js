@@ -1,61 +1,13 @@
 import React, {Component} from 'react';
-import {View, FlatList, ActivityIndicator, Text, TouchableOpacity} from 'react-native';
-import {ListItem} from 'react-native-elements';
+import {View, FlatList, ActivityIndicator, TouchableOpacity} from 'react-native';
 
 import {connect} from 'react-redux';
 import {Ionicons} from "@expo/vector-icons";
 import CustomText from "../../CustomText";
 import {colors} from "../../../styles/index.style";
 import ConvertTime from "../../ConvertTime";
+import ManagementListItem from "../ManagementListItem";
 
-class TrainingItem extends React.PureComponent {
-
-    render() {
-
-        return (
-            <ListItem
-                title={(
-                    <View style={{flex: 1, flexDirection: 'row'}}>
-                        <Text style={{fontSize: 16, fontWeight: '700'}}>
-                            {'Treino ' + this.props.training.echelon[1] + ' | '}
-                        </Text>
-                        <Text style={{fontSize: 16, fontWeight: '400'}}>
-                            {this.props.training.date}
-                        </Text>
-                    </View>
-                )}
-                subtitle={(
-                    <View  style={{flex: 1, flexDirection: 'column'}}>
-                        <Text style={{color: colors.darkGrayColor}}>
-                            {'Início: ' + this.props.training.hour}
-                        </Text>
-                        <Text style={{color: colors.darkGrayColor}}>
-                            {'Duração: ' + this.props.training.duration + ' min'}
-                        </Text>
-                        <Text numberOfLines={1} ellipsizeMode='tail' style={{color: colors.darkGrayColor}}>
-                            {
-                                this.props.training.local ?
-                                'Local: ' + this.props.training.local[1] :
-                                'Nenhum local atribuído'
-                            }
-                        </Text>
-                    </View>
-                )}
-                leftAvatar={(<Ionicons name={'md-hourglass'} size={28} />)}
-                chevron
-                containerStyle={{
-                    backgroundColor: this.props.index % 2 === 0 ? colors.lightGrayColor : '#fff'
-                }}
-                onPress={() => {
-                    this.props.navigation.navigate(
-                        'OpenedTraining',
-                        {training: this.props.training, removeTraining: (id) => this.props.removeTraining(id)}
-                    );
-                }}
-            />
-        )
-    }
-}
 
 class OpenedTrainings extends Component {
 
@@ -66,14 +18,8 @@ class OpenedTrainings extends Component {
             isLoading: true,
             isRefreshing: false,
             trainingsList: [],
+            isFetching: false,
         };
-    }
-
-    async componentDidMount() {
-
-        // fetch all trainings, max 20
-        await this.fetchTrainings(20, true);
-        await this.setState({isLoading: false});
     }
 
     /**
@@ -107,6 +53,13 @@ class OpenedTrainings extends Component {
             </TouchableOpacity>
     });
 
+    async componentDidMount() {
+
+        // fetch all trainings, max 20
+        await this.fetchTrainings(20, false);
+        await this.setState({isLoading: false});
+    }
+
     /**
      * Fetch all opened trainings. Maximum of limit items.
      * @param limit
@@ -115,50 +68,57 @@ class OpenedTrainings extends Component {
      */
     async fetchTrainings(limit=20, clear=false) {
 
-        if(clear) {
-            await this.setState({trainingsList: []});
-        }
+        if(!this.state.isFetching) {
 
-        const idsFetched = this.state.trainingsList.map(training => {return training.id});
-        const params = {
-            domain: [
-                ['id', 'not in', idsFetched],
-                ['state', '=', 'aberto']
-            ],
-            fields: ['id', 'atletas', 'display_start', 'local', 'escalao', 'duracao', 'convocatorias','treinador', 'seccionistas'],
-            limit: limit,
-            order: 'display_start DESC'
-        };
+            this.setState({isFetching: true});
 
-        const response = await this.props.odoo.search_read('ges.treino', params);
-        if (response.success && response.data.length > 0) {
+            if(clear) {
+                await this.setState({trainingsList: []});
+            }
 
-            let trainings = [];
-            const convertTime = new ConvertTime();
-            response.data.forEach(item => {
+            const idsFetched = this.state.trainingsList.map(training => {return training.id});
+            const params = {
+                domain: [
+                    ['id', 'not in', idsFetched],
+                    ['state', '=', 'aberto']
+                ],
+                fields: ['id', 'atletas', 'display_start', 'local', 'escalao', 'duracao', 'convocatorias','treinador', 'seccionistas'],
+                limit: limit,
+                order: 'display_start DESC'
+            };
 
-                convertTime.setDate(item.display_start);
-                const date = convertTime.getTimeObject();
+            const response = await this.props.odoo.search_read('ges.treino', params);
+            if (response.success && response.data.length > 0) {
 
-                const training = {
-                    id: item.id,
-                    local: item.local,
-                    echelon: item.escalao,
-                    duration: item.duracao,
-                    date: date.date,
-                    hour: date.hour,
-                    invitationIds: item.convocatorias,
-                    athleteIds : item.atletas,
-                    coachIds: item.treinador,
-                    secretaryIds: item.seccionistas,
-                };
+                let trainings = [];
+                const convertTime = new ConvertTime();
+                response.data.forEach(item => {
 
-                trainings.push(training);
-            });
+                    convertTime.setDate(item.display_start);
+                    const date = convertTime.getTimeObject();
 
-            this.setState(state => ({
-                trainingsList: [...state.trainingsList, ...trainings]
-            }));
+                    const training = {
+                        id: item.id,
+                        local: item.local,
+                        echelon: item.escalao,
+                        duration: item.duracao,
+                        date: date.date,
+                        hour: date.hour,
+                        invitationIds: item.convocatorias,
+                        athleteIds : item.atletas,
+                        coachIds: item.treinador,
+                        secretaryIds: item.seccionistas,
+                    };
+
+                    trainings.push(training);
+                });
+
+                this.setState(state => ({
+                    trainingsList: [...state.trainingsList, ...trainings]
+                }));
+            }
+
+            this.setState({isFetching: false});
         }
     }
 
@@ -226,12 +186,20 @@ class OpenedTrainings extends Component {
      * @returns {*}
      */
     renderItem = ({ item, index }) => (
-        <TrainingItem
-            key={item.id + item.escalao}
-            training={item}
+        <ManagementListItem
+            item={item}
             index={index}
-            removeTraining={(id) => this.removeTraining(id)}
-            navigation={this.props.navigation} />
+            titleType={'Treino '}
+            navigateToFunction={() => {
+
+                this.props.navigation.navigate(
+                    'OpenedTraining',
+                    {
+                        training: item,
+                        removeTraining: (id) => this.removeTraining(id)
+                    }
+                );
+            }} />
     );
 
     render() {

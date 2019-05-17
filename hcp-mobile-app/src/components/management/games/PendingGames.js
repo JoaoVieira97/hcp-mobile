@@ -1,5 +1,7 @@
 import React, { Component } from 'react';
+
 import {ActivityIndicator, FlatList, TouchableOpacity, View} from 'react-native';
+
 import { connect } from 'react-redux';
 import CustomText from "../../CustomText";
 import {Ionicons} from "@expo/vector-icons";
@@ -8,8 +10,8 @@ import {colors} from "../../../styles/index.style";
 import ManagementListItem from "../ManagementListItem";
 
 
-class OpenedGames extends Component {
 
+class PendingGames extends Component {
     constructor(props) {
         super(props);
 
@@ -32,7 +34,7 @@ class OpenedGames extends Component {
                 type={'bold'}
                 numberOfLines={1}
                 ellipsizeMode='tail'
-                children={'CONVOCATÓRIAS EM ABERTO'}
+                children={'CONVOCATÓRIAS FECHADAS'}
                 style={{
                     color: '#ffffff',
                     fontSize: 16
@@ -81,9 +83,9 @@ class OpenedGames extends Component {
             const params = {
                 domain: [
                     ['id', 'not in', idsFetched],
-                    ['state', '=', 'aberto']
+                    ['state', '=', 'convocatorias_fechadas']
                 ],
-                fields: ['id', 'atletas', 'display_start', 'local', 'escalao', 'duracao', 'convocatorias', 'treinador', 'seccionistas'],
+                fields: ['id', 'state', 'atletas', 'display_start', 'local', 'escalao', 'duracao', 'convocatorias', 'treinador', 'seccionistas'],
                 limit: limit,
                 order: 'display_start DESC'
             };
@@ -121,16 +123,6 @@ class OpenedGames extends Component {
 
             this.setState({isFetching: false});
         }
-    }
-
-    /**
-     * Remove game from current list when user change game state.
-     * @param gameId
-     */
-    removeGame(gameId) {
-
-        const gamesListAux = this.state.gamesList.filter(item => item.id !== gameId);
-        this.setState({gamesList: gamesListAux});
     }
 
     /**
@@ -193,6 +185,7 @@ class OpenedGames extends Component {
             titleType={'Jogo '}
             navigateToFunction={() => {
 
+                /*
                 this.props.navigation.navigate(
                     'OpenedGame',
                     {
@@ -200,6 +193,7 @@ class OpenedGames extends Component {
                         removeGame: (id) => this.removeGame(id)
                     }
                 );
+                 */
             }} />
     );
 
@@ -226,4 +220,4 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => ({});
 
-export default connect(mapStateToProps, mapDispatchToProps)(OpenedGames);
+export default connect(mapStateToProps, mapDispatchToProps)(PendingGames);

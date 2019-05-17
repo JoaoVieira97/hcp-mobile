@@ -1,59 +1,13 @@
 import React, {Component} from 'react';
-import {View, FlatList, ActivityIndicator, Text, TouchableOpacity} from 'react-native';
-import {ListItem} from 'react-native-elements';
+import {View, FlatList, ActivityIndicator, TouchableOpacity} from 'react-native';
 
 import {connect} from 'react-redux';
 import {Ionicons} from "@expo/vector-icons";
 import CustomText from "../../CustomText";
 import {colors} from "../../../styles/index.style";
+import ManagementListItem from "../ManagementListItem";
+import ConvertTime from "../../ConvertTime";
 
-class TrainingItem extends React.PureComponent {
-
-    render() {
-
-        const date_hour = this.props.training.display_start.split(' ');
-        const date =
-            date_hour[0].slice(8,10) + '/' +
-            date_hour[0].slice(5,7) + '/' +
-            date_hour[0].slice(0,4);
-
-        return (
-            <ListItem
-                title={(
-                    <View style={{flex: 1, flexDirection: 'row'}}>
-                        <Text style={{fontSize: 16, fontWeight: '700'}}>
-                            {'Treino ' + this.props.training.escalao[1] + ' | '}
-                        </Text>
-                        <Text style={{fontSize: 16, fontWeight: '400'}}>
-                            {date}
-                        </Text>
-                    </View>
-                )}
-                subtitle={(
-                    <View  style={{flex: 1, flexDirection: 'column'}}>
-                        <Text style={{color: colors.darkGrayColor}}>
-                            {
-                                'Início às ' + date_hour[1].slice(0, -3) + 'h' +
-                                ' com duração de ' + this.props.training.duracao + ' min'
-                            }
-                        </Text>
-                        <Text numberOfLines={1} ellipsizeMode='tail' style={{color: colors.darkGrayColor}}>
-                            {
-                                this.props.training.local ?
-                                    this.props.training.local[1] : 'Nenhum local atribuído'
-                            }
-                        </Text>
-                    </View>
-                )}
-                leftAvatar={(<Ionicons name={'md-hourglass'} size={28} />)}
-                chevron
-                containerStyle={{
-                    backgroundColor: this.props.index % 2 === 0 ? colors.lightGrayColor : '#fff'
-                }}
-            />
-        )
-    }
-}
 
 class PendingTrainings extends Component {
 
@@ -64,6 +18,7 @@ class PendingTrainings extends Component {
             isLoading: true,
             isRefreshing: false,
             trainingsList: [],
+            isFetching: false
         };
     }
 
@@ -111,27 +66,57 @@ class PendingTrainings extends Component {
      */
     async fetchTrainings(limit=20, clear=false) {
 
-        if(clear) {
-            await this.setState({trainingsList: []});
-        }
+        if(!this.state.isFetching) {
 
-        const idsFetched = this.state.trainingsList.map(training => {return training.id});
-        const params = {
-            domain: [
-                ['id', 'not in', idsFetched],
-                ['state', '=', 'convocatorias_fechadas']
-            ],
-            fields: ['id', 'display_start', 'local', 'escalao', 'duracao'],
-            limit: limit,
-            order: 'display_start DESC'
-        };
+            this.setState({isFetching: true});
 
-        const response = await this.props.odoo.search_read('ges.treino', params);
-        if (response.success && response.data.length > 0) {
+            if(clear) {
+                await this.setState({trainingsList: []});
+            }
 
-            await this.setState(state => ({
-                trainingsList: [...state.trainingsList, ...response.data]
-            }));
+            const idsFetched = this.state.trainingsList.map(training => {return training.id});
+            const params = {
+                domain: [
+                    ['id', 'not in', idsFetched],
+                    ['state', '=', 'convocatorias_fechadas']
+                ],
+                fields: ['id', 'atletas', 'display_start', 'local', 'escalao', 'duracao', 'convocatorias','treinador', 'seccionistas'],
+                limit: limit,
+                order: 'display_start DESC'
+            };
+
+            const response = await this.props.odoo.search_read('ges.treino', params);
+            if (response.success && response.data.length > 0) {
+
+                let trainings = [];
+                const convertTime = new ConvertTime();
+                response.data.forEach(item => {
+
+                    convertTime.setDate(item.display_start);
+                    const date = convertTime.getTimeObject();
+
+                    const training = {
+                        id: item.id,
+                        local: item.local,
+                        echelon: item.escalao,
+                        duration: item.duracao,
+                        date: date.date,
+                        hour: date.hour,
+                        invitationIds: item.convocatorias,
+                        athleteIds : item.atletas,
+                        coachIds: item.treinador,
+                        secretaryIds: item.seccionistas,
+                    };
+
+                    trainings.push(training);
+                });
+
+                this.setState(state => ({
+                    trainingsList: [...state.trainingsList, ...trainings]
+                }));
+            }
+
+            this.setState({isFetching: false});
         }
     }
 
@@ -189,7 +174,22 @@ class PendingTrainings extends Component {
      * @returns {*}
      */
     renderItem = ({ item, index }) => (
-        <TrainingItem key={item.id + item.escalao} training={item} index={index} navigation={this.props.navigation} />
+        <ManagementListItem
+            item={item}
+            index={index}
+            titleType={'Treino '}
+            navigateToFunction={() => {
+
+                /*
+                this.props.navigation.navigate(
+                    'OpenedTraining',
+                    {
+                        training: item,
+                        removeTraining: (id) => this.removeTraining(id)
+                    }
+                );
+                 */
+            }} />
     );
 
     render() {
@@ -203,7 +203,7 @@ class PendingTrainings extends Component {
                 onRefresh={this.handleRefresh}
                 onEndReached={this.handleMoreData}
                 onEndReachedThreshold={0.1}
-                ListFooterComponent={this.renderFooter}
+                ListFooterComponent={this.renderFooter.bind(this)}
             />
         );
     }

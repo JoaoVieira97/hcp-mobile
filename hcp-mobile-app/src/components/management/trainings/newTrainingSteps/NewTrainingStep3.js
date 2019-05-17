@@ -29,6 +29,7 @@ class NewTrainingStep3 extends Component {
         // Add new step to redux store
         if(this.props.newTraining.isStepReady.length === 2) {
             await this.props.addStepReady();
+            this.props.setStepReady(true);
         }
     }
 

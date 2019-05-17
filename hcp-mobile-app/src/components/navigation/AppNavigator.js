@@ -58,6 +58,8 @@ import AthleteInjuriesTypes from "../athletes/injuries/AthleteInjuriesTypes";
 import AthleteInjuries from "../athletes/injuries/AthleteInjuries";
 import AthleteInjury from "../athletes/injuries/AthleteInjury";
 import OpenedGames from "../management/games/OpenedGames";
+import OpenedGame from "../management/games/OpenedGame";
+import PendingGames from "../management/games/PendingGames";
 
 const styles = StyleSheet.create({
     container: {
@@ -367,6 +369,8 @@ const ManagementStackNavigator = createStackNavigator({
     EditOpenedTraining: {screen: EditOpenedTraining},
     PendingTrainings: {screen: PendingTrainings},
     OpenedGames: {screen: OpenedGames},
+    OpenedGame: {screen: OpenedGame},
+    PendingGames: {screen: PendingGames}
 }, {
     initialRouteName: 'ManagementNavigator',
     defaultNavigationOptions: ({navigation}) => {
@@ -852,7 +856,7 @@ const CoachAndSecretaryDrawerNavigator = createDrawerNavigator({
     ChatStack: drawerNavigatorFullStacks['ChatStack']
 }, {
     ...drawerNavigatorDefaultSettings,
-    initialRouteName: 'ManagementStack',
+    initialRouteName: 'HomeStack',
     order: ['HomeStack', 'CalendarStack', 'ManagementStack', 'AthletesStack', 'ProfileStack', 'ChatStack'],
 });
 

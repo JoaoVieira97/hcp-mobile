@@ -14,6 +14,7 @@ import {
     setStartDateTime, setStepReady
 } from "../../../../redux/actions/newTraining";
 import Loader from "../../../screens/Loader";
+import ConvertTime from "../../../ConvertTime";
 
 
 class NewTrainingStep1 extends Component {
@@ -78,17 +79,24 @@ class NewTrainingStep1 extends Component {
 
     /**
      * Formats date as "YYYY-MM-DD | HH:MMh".
-     * @param dateString
+     * @param date
      * @returns {string}
      */
-    parsingDate = (dateString) => {
+    parsingDate = (date) => {
 
-        if(dateString !== "Selecione o horário de ínicio" && dateString !== "Selecione o horário de fim") {
-            const dateTimeArray = dateString.split('T');
-            return dateTimeArray[0] + ' | ' + dateTimeArray[1].slice(0,5) + 'h';
+        if(date !== "Selecione o horário de ínicio" && date !== "Selecione o horário de fim") {
+
+            const auxDateArray = (date.slice(0,19)).split('T');
+            const auxDate = auxDateArray[0] + ' ' + auxDateArray[1];
+
+            const convertTime = new ConvertTime();
+            convertTime.setDate(auxDate);
+            const dateObject = convertTime.getTimeObject();
+
+            return dateObject.date + ' | ' + dateObject.hour;
         }
 
-        return dateString;
+        return date;
     };
 
     _showDateTimeStartPicker = () => this.setState({isDateTimeStartPickerVisible: true});

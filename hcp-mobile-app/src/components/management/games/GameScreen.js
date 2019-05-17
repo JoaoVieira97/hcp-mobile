@@ -164,7 +164,7 @@ class GameScreen extends Component {
             subtitle: 'Editar presenças e atrasos | ' +
                 'Concluir ou eliminar jogos',
             value: this.state.closedGamesCounter,
-            //onPress: 'PendingTrainings'
+            onPress: 'PendingGames'
         },
         ];
 
