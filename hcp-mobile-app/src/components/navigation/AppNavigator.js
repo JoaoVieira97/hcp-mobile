@@ -180,8 +180,58 @@ const CustomDrawerContentComponent = (props) => {
     )
 };
 
+// ---------------------------------------------------------------------
+// HEADER SETTINGS
+// ---------------------------------------------------------------------
+
+const linearGradientHeader = () => {
+    return (
+        <LinearGradient
+            colors={[colors.gradient1, colors.gradient2]}
+            style={{ flex: 1 }}
+            start={[0, 0]}
+            end={[0.8, 0]}
+        />
+    );
+};
+
+const openDrawerButton = (color, navigation) => {
+    return (
+        <TouchableOpacity style={{
+            width: 50,
+            height: '100%',
+            alignItems: 'center',
+            justifyContent: 'center',
+            paddingLeft: 10}} onPress = {() => navigation.openDrawer()}>
+            <Ionicons
+                name="md-menu"
+                size={28}
+                color={color}/>
+        </TouchableOpacity>
+    );
+};
+
+const headerTitle = (color, title) => {
+    return (
+        <CustomText
+            type={'bold'}
+            numberOfLines={1}
+            ellipsizeMode='tail'
+            children={title}
+            style={{
+                color: color,
+                fontSize: 16
+            }}
+        />
+    );
+};
 
 
+
+
+// ---------------------------------------------------------------------
+// STACKS
+// ---------------------------------------------------------------------
 
 // HOME STACK
 const HomeStackNavigator = createStackNavigator({
@@ -196,31 +246,8 @@ const HomeStackNavigator = createStackNavigator({
                 shadowOpacity: 0, // remove shadow on iOS
                 backgroundColor: colors.grayColor
             },
-            headerTitle: (
-                <CustomText
-                    type={'bold'}
-                    numberOfLines={1}
-                    ellipsizeMode='tail'
-                    children={'INÍCIO'}
-                    style={{
-                        color: colors.redColor,
-                        fontSize: 16
-                    }}
-                />
-            ),
-            headerLeft: (
-                <TouchableOpacity style={{
-                    width:42,
-                    height:42,
-                    alignItems:'center',
-                    justifyContent:'center',
-                    marginLeft: 10}} onPress = {() => navigation.openDrawer()}>
-                    <Ionicons
-                        name="md-menu"
-                        size={30}
-                        color={colors.redColor}/>
-                </TouchableOpacity>
-            )
+            headerTitle: headerTitle(colors.redColor,'INÍCIO'),
+            headerLeft: openDrawerButton(colors.redColor, navigation)
         }
     }
 });
@@ -233,40 +260,9 @@ const CalendarStackNavigator = createStackNavigator({
     initialRouteName: 'CalendarScreen',
     defaultNavigationOptions: ({navigation}) => {
         return {
-            headerTitle:
-                <CustomText
-                    type={'bold'}
-                    numberOfLines={1}
-                    ellipsizeMode='tail'
-                    children={'CALENDÁRIO'}
-                    style={{
-                        color: '#ffffff',
-                        
-                        fontSize: 16
-                    }}
-                />,
-            headerBackground: (
-                <LinearGradient
-                    colors={[colors.gradient1, colors.gradient2]}
-                    style={{ flex: 1 }}
-                    start={[0, 0]}
-                    end={[0.8, 0]}
-                />
-            ),
-
-            headerLeft: (
-                <TouchableOpacity style={{
-                    width:42,
-                    height:42,
-                    alignItems:'center',
-                    justifyContent:'center',
-                    marginLeft: 10}} onPress = {() => navigation.openDrawer()}>
-                    <Ionicons
-                        name="md-menu"
-                        size={30}
-                        color={'#ffffff'}/>
-                </TouchableOpacity>
-            )
+            headerTitle: headerTitle('#fff', 'CALENDÁRIO'),
+            headerBackground: linearGradientHeader(),
+            headerLeft: openDrawerButton('#fff', navigation)
         }
     }
 });
@@ -302,39 +298,9 @@ const InvitationsStackNavigator = createStackNavigator({
     initialRouteName: 'InvitationsNavigator',
     defaultNavigationOptions: ({navigation}) => {
         return {
-            headerTitle:
-                <CustomText
-                    type={'bold'}
-                    numberOfLines={1}
-                    ellipsizeMode='tail'
-                    children={'CONVOCATÓRIAS'}
-                    style={{
-                        color: '#ffffff',
-                        fontSize: 16
-                    }}
-                />,
-            headerBackground: (
-                <LinearGradient
-                    colors={[colors.gradient1, colors.gradient2]}
-                    style={{ flex: 1 }}
-                    start={[0, 0]}
-                    end={[0.8, 0]}
-                />
-            ),
-
-            headerLeft: (
-                <TouchableOpacity style={{
-                    width:42,
-                    height:42,
-                    alignItems:'center',
-                    justifyContent:'center',
-                    marginLeft: 10}} onPress = {() => navigation.openDrawer()}>
-                    <Ionicons
-                        name="md-menu"
-                        size={30}
-                        color={'#ffffff'}/>
-                </TouchableOpacity>
-            )
+            headerTitle: headerTitle('#fff', 'CONVOCATÓRIAS'),
+            headerBackground: linearGradientHeader(),
+            headerLeft: openDrawerButton('#fff', navigation)
         }
     }
 });
@@ -375,39 +341,9 @@ const ManagementStackNavigator = createStackNavigator({
     initialRouteName: 'ManagementNavigator',
     defaultNavigationOptions: ({navigation}) => {
         return {
-            headerTitle:
-                <CustomText
-                    type={'bold'}
-                    numberOfLines={1}
-                    ellipsizeMode='tail'
-                    children={'GESTÃO'}
-                    style={{
-                        color: '#ffffff',
-                        fontSize: 16
-                    }}
-                />,
-            headerBackground: (
-                <LinearGradient
-                    colors={[colors.gradient1, colors.gradient2]}
-                    style={{ flex: 1 }}
-                    start={[0, 0]}
-                    end={[0.8, 0]}
-                />
-            ),
-
-            headerLeft: (
-                <TouchableOpacity style={{
-                    width:42,
-                    height:42,
-                    alignItems:'center',
-                    justifyContent:'center',
-                    marginLeft: 10}} onPress = {() => navigation.openDrawer()}>
-                    <Ionicons
-                        name="md-menu"
-                        size={30}
-                        color={'#ffffff'}/>
-                </TouchableOpacity>
-            )
+            headerTitle: headerTitle('#fff', 'GESTÃO'),
+            headerBackground: linearGradientHeader(),
+            headerLeft: openDrawerButton('#fff', navigation)
         }
     }
 });
@@ -424,44 +360,9 @@ const AthletesStackNavigator = createStackNavigator({
     initialRouteName: 'EchelonsScreen',
     defaultNavigationOptions: ({navigation}) => {
         return {
-            headerStyle: {
-                //elevation: 0, // remove shadow on Android
-                //shadowOpacity: 0, // remove shadow on iOS
-                backgroundColor: colors.grayColor
-            },
-            headerTitle:
-                <CustomText
-                    type={'bold'}
-                    numberOfLines={1}
-                    ellipsizeMode='tail'
-                    children={'ATLETAS'}
-                    style={{
-                        color: '#ffffff',
-                        fontSize: 16
-                    }}
-                />,
-            headerBackground: (
-                <LinearGradient
-                    colors={[colors.gradient1, colors.gradient2]}
-                    style={{ flex: 1 }}
-                    start={[0, 0]}
-                    end={[0.8, 0]}
-                />
-            ),
-
-            headerLeft: (
-                <TouchableOpacity style={{
-                    width:42,
-                    height:42,
-                    alignItems:'center',
-                    justifyContent:'center',
-                    marginLeft: 10}} onPress = {() => navigation.openDrawer()}>
-                    <Ionicons
-                        name="md-menu"
-                        size={30}
-                        color={'#ffffff'}/>
-                </TouchableOpacity>
-            )
+            headerTitle: headerTitle('#fff', 'ATLETAS'),
+            headerBackground: linearGradientHeader(),
+            headerLeft: openDrawerButton('#fff', navigation)
         }
     }
 });
@@ -477,47 +378,9 @@ const ProfileStackNavigator = createStackNavigator({
     initialRouteName: 'ProfileScreen',
     defaultNavigationOptions: ({navigation}) => {
         return {
-            headerStyle: {
-                //elevation: 0, // remove shadow on Android
-                //shadowOpacity: 0, // remove shadow on iOS
-                backgroundColor: colors.grayColor
-            },
-            headerTitle: (
-                <CustomText
-                    type={'bold'}
-                    numberOfLines={1}
-                    ellipsizeMode='tail'
-                    children={'PERFIL'}
-                    style={{
-                        color: '#fff',
-                        fontSize: 16
-                    }}
-                />
-            ),
-            headerTitleStyle: {
-                color: '#ffffff',
-            },
-            headerBackground: (
-                <LinearGradient
-                    colors={[colors.gradient1, colors.gradient2]}
-                    style={{ flex: 1 }}
-                    start={[0, 0]}
-                    end={[0.8, 0]}
-                />
-            ),
-            headerLeft: (
-                <TouchableOpacity style={{
-                    width:42,
-                    height:42,
-                    alignItems:'center',
-                    justifyContent:'center',
-                    marginLeft: 10}} onPress = {() => navigation.openDrawer()}>
-                    <Ionicons
-                        name="md-menu"
-                        size={30}
-                        color={'#ffffff'}/>
-                </TouchableOpacity>
-            )
+            headerTitle: headerTitle('#fff', 'PERFIL'),
+            headerBackground: linearGradientHeader(),
+            headerLeft: openDrawerButton('#fff', navigation)
         }
     }
 });
@@ -533,46 +396,9 @@ const ChatStackNavigator = createStackNavigator({
     initialRouteName: 'ChannelsScreen',
     defaultNavigationOptions: ({navigation}) => {
         return {
-            headerStyle: {
-                //elevation: 0, // remove shadow on Android
-                //shadowOpacity: 0, // remove shadow on iOS
-                backgroundColor: colors.gradient2
-            },
-            headerTitle:
-                <CustomText
-                    numberOfLines={1}
-                    ellipsizeMode='tail'
-                    type={'bold'}
-                    children={'CHAT'}
-                    style={{
-                        color: '#ffffff',
-                        fontSize: 16
-                    }}
-                />,
-            headerTitleStyle: {
-                color: '#ffffff',
-            },
-            headerBackground: (
-                <LinearGradient
-                    colors={[colors.gradient1, colors.gradient2]}
-                    style={{ flex: 1 }}
-                    start={[0, 0]}
-                    end={[0.8, 0]}
-                />
-            ),
-            headerLeft: (
-                <TouchableOpacity style={{
-                    width:42,
-                    height:42,
-                    alignItems:'center',
-                    justifyContent:'center',
-                    marginLeft: 10}} onPress = {() => navigation.openDrawer()}>
-                    <Ionicons
-                        name="md-menu"
-                        size={30}
-                        color={'#ffffff'}/>
-                </TouchableOpacity>
-            )
+            headerTitle: headerTitle('#fff', 'CHAT'),
+            headerBackground: linearGradientHeader(),
+            headerLeft: openDrawerButton('#fff', navigation)
         }
     }
 });
@@ -588,46 +414,9 @@ const ChildrenStackNavigator = createStackNavigator({
     initialRouteName: 'ChildesScreen',
     defaultNavigationOptions: ({navigation}) => {
         return {
-            headerStyle: {
-                //elevation: 0, // remove shadow on Android
-                //shadowOpacity: 0, // remove shadow on iOS
-                backgroundColor: colors.gradient2
-            },
-            headerTitle:
-                <CustomText
-                    type={'bold'}
-                    numberOfLines={1}
-                    ellipsizeMode='tail'
-                    children={'FILHOS'}
-                    style={{
-                        color: '#ffffff',
-                        fontSize: 16
-                    }}
-                />,
-            headerTitleStyle: {
-                color: '#ffffff',
-            },
-            headerBackground: (
-                <LinearGradient
-                    colors={[colors.gradient1, colors.gradient2]}
-                    style={{ flex: 1 }}
-                    start={[0, 0]}
-                    end={[0.8, 0]}
-                />
-            ),
-            headerLeft: (
-                <TouchableOpacity style={{
-                    width:42,
-                    height:42,
-                    alignItems:'center',
-                    justifyContent:'center',
-                    marginLeft: 10}} onPress = {() => navigation.openDrawer()}>
-                    <Ionicons
-                        name="md-menu"
-                        size={30}
-                        color={'#ffffff'}/>
-                </TouchableOpacity>
-            )
+            headerTitle: headerTitle('#fff', 'FILHOS'),
+            headerBackground: linearGradientHeader(),
+            headerLeft: openDrawerButton('#fff', navigation)
         }
     }
 });
@@ -637,164 +426,107 @@ const ChildrenStackNavigator = createStackNavigator({
 // ---------------------------------------------------------------------
 // DRAWER NAVIGATOR SETTINGS
 // ---------------------------------------------------------------------
+
+const drawerTitle = (title) => {
+    return (
+        <View style={{marginVertical: 15}}>
+            <CustomText
+                type={'bold'}
+                children={title}
+                style={{
+                    fontSize: 16
+                }}
+            />
+        </View>
+    );
+};
+
 const drawerNavigatorFullStacks = {
     HomeStack: {
         screen: HomeStackNavigator,
         navigationOptions: ({
-            drawerLabel:
-                <View style={{marginVertical: 15}}>
-                    <CustomText
-                        type={'bold'}
-                        children={'Início'}
-                        style={{
-                            fontSize: 16
-                        }}
-                    />
-                </View>,
+            drawerLabel: drawerTitle('Início'),
             drawerIcon: <Entypo
                 name="home"
                 size={25}
-                color={'#000000'}
+                color={'#000'}
             />
         })
     },
     CalendarStack: {
         screen: CalendarStackNavigator,
         navigationOptions: ({
-            drawerLabel:
-                <View style={{marginVertical: 15}}>
-                    <CustomText
-                        type={'bold'}
-                        children={'Calendário'}
-                        style={{
-                            fontSize: 16
-                        }}
-                    />
-                </View>,
+            drawerLabel: drawerTitle('Calendário'),
             drawerIcon: <Ionicons
                 name="md-calendar"
                 size={28}
-                color={'#000000'}
+                color={'#000'}
             />
         })
     },
     InvitationsStack: {
         screen: InvitationsStackNavigator,
         navigationOptions: ({
-            drawerLabel:
-                <View style={{marginVertical: 15}}>
-                    <CustomText
-                        type={'bold'}
-                        children={'Convocatórias'}
-                        style={{
-                            fontSize: 16
-                        }}
-                    />
-                </View>,
+            drawerLabel: drawerTitle('Convocatórias'),
             drawerIcon: <Ionicons
                 name="md-clipboard"
                 size={28}
-                color={'#000000'}
+                color={'#000'}
             />
         })
     },
     ManagementStack: {
         screen: ManagementStackNavigator,
         navigationOptions: ({
-            drawerLabel:
-                <View style={{marginVertical: 15}}>
-                    <CustomText
-                        type={'bold'}
-                        children={'Gestão'}
-                        style={{
-                            fontSize: 16
-                        }}
-                    />
-                </View>,
+            drawerLabel: drawerTitle('Gestão'),
             drawerIcon: <Ionicons
                 name="md-clipboard"
                 size={28}
-                color={'#000000'}
+                color={'#000'}
             />
         })
     },
     AthletesStack: {
         screen: AthletesStackNavigator,
         navigationOptions: ({
-            drawerLabel:
-                <View style={{marginVertical: 15}}>
-                    <CustomText
-                        type={'bold'}
-                        children={'Atletas'}
-                        style={{
-                            fontSize: 16
-                        }}
-                    />
-                </View>,
+            drawerLabel: drawerTitle('Atletas'),
             drawerIcon: <Ionicons
                 name="md-people"
                 size={29}
-                color={'#000000'}
+                color={'#000'}
             />
         })
     },
     ProfileStack: {
         screen: ProfileStackNavigator,
         navigationOptions: ({
-            drawerLabel:
-                <View style={{marginVertical: 15}}>
-                    <CustomText
-                        type={'bold'}
-                        children={'Perfil'}
-                        style={{
-                            fontSize: 16
-                        }}
-                    />
-                </View>,
+            drawerLabel: drawerTitle('Perfil'),
             drawerIcon: <Ionicons
                 name="md-person"
                 size={27}
-                color={'#000000'}
+                color={'#000'}
             />
         })
     },
     ChatStack: {
         screen: ChatStackNavigator,
         navigationOptions: ({
-            drawerLabel:
-                <View style={{marginVertical: 15}}>
-                    <CustomText
-                        type={'bold'}
-                        children={'Chat'}
-                        style={{
-                            fontSize: 16
-                        }}
-                    />
-                </View>,
+            drawerLabel: drawerTitle('Chat'),
             drawerIcon: <Ionicons
                 name="md-chatboxes"
                 size={27}
-                color={'#000000'}
+                color={'#000'}
             />
         })
     },
     ChildesStack: {
         screen: ChildrenStackNavigator,
         navigationOptions: ({
-            drawerLabel:
-                <View style={{marginVertical: 15}}>
-                    <CustomText
-                        type={'bold'}
-                        children={'Filhos'}
-                        style={{
-                            fontSize: 16
-                        }}
-                    />
-                </View>,
+            drawerLabel: drawerTitle('Filhos'),
             drawerIcon: <FontAwesome
                 name="child"
                 size={27}
-                color={'#000000'}
+                color={'#000'}
             />
         })
     }
