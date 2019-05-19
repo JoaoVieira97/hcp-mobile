@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import {FlatList, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+import {Alert, FlatList, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import { connect } from 'react-redux';
 import CustomText from "../../CustomText";
 import {Ionicons} from "@expo/vector-icons";
@@ -76,7 +76,7 @@ class PendingTraining extends Component {
      */
     async fetchData() {
 
-        await this.fetchAthletes(this.state.training.invitationIds);
+        await this.fetchAthletes(this.state.training.availabilityIds);
         await this.fetchCoaches(this.state.training.coachIds);
         await this.fetchSecretaries(this.state.training.secretaryIds);
     }
@@ -92,60 +92,108 @@ class PendingTraining extends Component {
             fields: [
                 'id',
                 'atleta',
-                'disponivel',
-                'numero'
+                'presente',
+                'atrasado',
             ],
             domain: [['id', 'in', ids]],
-            order: 'numero ASC'
         };
 
-        const response = await this.props.odoo.search_read('ges.linha_convocatoria', params);
+        const response = await this.props.odoo.search_read('ges.linha_presenca', params);
         if(response.success && response.data.length > 0) {
 
             const data = response.data;
-            const ids = this.state.training.athleteIds;
+            const athletesIds = data.map(item => item.atleta[0]);
+            const athletesInfo = await this.fetchAthletesInfo(athletesIds);
+
             let athletes = [];
-            const athletesImages = await this.fetchAthletesImages(ids);
+            // orderBy squadNumber
+            if(data.length === athletesInfo.length) {
+                athletesInfo.forEach(item => {
 
-            data.forEach(item => {
+                    const athleteInfo = data.find(athleteItem =>
+                        athleteItem.atleta[0] === item.id
+                    );
 
-                const athleteImageEchelon = athletesImages.find(imageItem =>
-                    item.atleta[0] === imageItem.id
-                );
+                    // color
+                    let displayColor;
+                    if (athleteInfo.presente && athleteInfo.atrasado)
+                        displayColor = 'yellow';
+                    else if (athleteInfo.presente)
+                        displayColor = 'green';
+                    else
+                        displayColor = 'red';
 
-                const athlete = {
-                    id: item.atleta[0],
-                    name: item.atleta[1],
-                    squad_number: item.numero,
-                    available: item.disponivel,
-                    image: athleteImageEchelon ? athleteImageEchelon.image : false,
-                    echelon: athleteImageEchelon ? athleteImageEchelon.escalao[1] : 'error'
-                };
+                    const athlete = {
+                        presenceId: athleteInfo.id,
+                        id: athleteInfo.atleta[0],
+                        name: athleteInfo.atleta[1],
+                        squad_number: item.numerocamisola,
+                        present: athleteInfo.presente,
+                        late: athleteInfo.atrasado,
+                        image: item.image,
+                        echelon: item.escalao[1],
+                        displayColor: displayColor
+                    };
 
-                athletes.push(athlete);
-            });
+                    athletes.push(athlete);
+                });
+            }
+            // orderBy name
+            else {
+                data.forEach(item => {
+
+                    const athleteInfo = athletesInfo.find(imageItem =>
+                        item.atleta[0] === imageItem.id
+                    );
+
+                    // color
+                    let displayColor;
+                    if (item.presente && item.atrasado)
+                        displayColor = 'yellow';
+                    else if (item.presente)
+                        displayColor = 'green';
+                    else
+                        displayColor = 'red';
+
+                    const athlete = {
+                        presenceId: item.id,
+                        id: item.atleta[0],
+                        name: item.atleta[1],
+                        squad_number: athleteInfo ? athleteInfo.numerocamisola : 0,
+                        present: item.presente,
+                        late: item.atrasado,
+                        image: athleteInfo ? athleteInfo.image : false,
+                        echelon: athleteInfo ? athleteInfo.escalao[1] : 'error',
+                        displayColor: displayColor
+                    };
+
+                    athletes.push(athlete);
+                });
+            }
 
             this.setState({athletes: athletes});
         }
     }
 
     /**
-     * Fetch athletes images.
+     * Fetch athletes information.
      * @param ids
      * @returns {Promise<Array|*>}
      */
-    async fetchAthletesImages(ids) {
+    async fetchAthletesInfo(ids) {
 
         const params = {
-            ids: ids,
             fields: [
                 'id',
                 'image',
-                'escalao'
-            ]
+                'escalao',
+                'numerocamisola'
+            ],
+            domain: [['id', 'in', ids]],
+            order: 'numerocamisola ASC'
         };
 
-        const response = await this.props.odoo.get('ges.atleta', params);
+        const response = await this.props.odoo.search_read('ges.atleta', params);
         if(response.success && response.data.length > 0)
             return response.data;
 
@@ -206,6 +254,149 @@ class PendingTraining extends Component {
                 secretaries: ['Nenhum seccionista atribuído']
             });
         }
+    }
+
+    /**
+     * Close training alert.
+     * @returns {Promise<void>}
+     */
+    closeTraining() {
+
+        Alert.alert(
+            'Confirmação',
+            'Pretende fechar este treino?',
+            [
+                {text: 'Cancelar', style: 'cancel'},
+                {
+                    text: 'Confirmar',
+                    onPress: async () => this._closeTraining()
+                },
+            ],
+            {cancelable: true},
+        );
+    }
+
+    /**
+     * Close invitations.
+     * @returns {Promise<void>}
+     * @private
+     */
+    async _closeTraining() {
+
+        await this.setState({isLoading: true});
+
+        const params = {
+            kwargs: {
+                context: this.props.odoo.context,
+            },
+            model: 'ges.treino',
+            method: 'fechar_evento',
+            args: [this.state.training.id]
+        };
+
+        const response = await this.props.odoo.rpc_call('/web/dataset/call_kw', params);
+        if (response.success) {
+
+            // remove training from list
+            this.props.navigation.state.params.removeTraining(this.state.training.id);
+
+            await this.setState({isLoading: false, animation: true});
+
+            this.animation.play();
+            setTimeout(() => {this.props.navigation.goBack()}, 1100);
+
+        } else {
+
+            await this.setState({isLoading: false});
+
+            Alert.alert(
+                'Erro',
+                'Não foi possível fechar o período de convocatórias para este treino.' +
+                ' Por favor, tente mais tarde.',
+                [{text: 'Confirmar', style: 'cancel'}],
+                {cancelable: true},
+            );
+        }
+    }
+
+    /**
+     * Change athlete availability.
+     * @param athletePresenceId
+     */
+    async changeAthletePresence(athletePresenceId) {
+
+        let value = false;
+        const athletes = this.state.athletes.map(item => {
+            let itemAux = item;
+            if(item.presenceId === athletePresenceId) {
+                // athlete presence
+                itemAux.present = !item.present;
+
+                // color
+                if (itemAux.present && itemAux.late)
+                    itemAux.displayColor = 'yellow';
+                else if (itemAux.present)
+                    itemAux.displayColor = 'green';
+                else
+                    itemAux.displayColor = 'red';
+
+                // aux value
+                value = itemAux.present;
+            }
+
+            return itemAux;
+        });
+
+
+        const response = await this.props.odoo.update('ges.linha_presenca', [athletePresenceId], {presente: value});
+        if (response.success) {
+
+            this.setState({athletes: athletes});
+
+            return {success: true, athletes: athletes};
+        }
+
+        return {success: false, athletes: this.state.athletes};
+    }
+
+    /**
+     * Change athlete availability.
+     * @param athletePresenceId
+     */
+    async changeLateAthlete(athletePresenceId) {
+
+        let value = false;
+        const athletes = this.state.athletes.map(item => {
+            let itemAux = item;
+            if(item.presenceId === athletePresenceId) {
+                // athlete presence
+                itemAux.late = !item.late;
+
+                // color
+                if (itemAux.present && itemAux.late)
+                    itemAux.displayColor = 'yellow';
+                else if (itemAux.present)
+                    itemAux.displayColor = 'green';
+                else
+                    itemAux.displayColor = 'red';
+
+                // aux value
+                value = itemAux.late;
+            }
+
+            return itemAux;
+        });
+
+
+        const response = await this.props.odoo.update('ges.linha_presenca', [athletePresenceId], {atrasado: value});
+        if (response.success) {
+
+            this.setState({athletes: athletes});
+
+            return {success: true, athletes: athletes.filter(item => item.present)};
+        }
+
+        return {success: false, athletes: this.state.athletes.filter(item => item.present)};
     }
 
     /**
@@ -299,18 +490,23 @@ class PendingTraining extends Component {
                         <View style={{zIndex: 500}}>
                             <TouchableOpacity
                                 style={styles.topButton}
-                                //onPress={() => this.markPresences()}
+                                onPress={() => this.closeTraining()}
                             >
                                 <Text style={{color: '#fff', fontWeight: '700', fontSize: 15}}>
                                     {'FECHAR TREINO'}
                                 </Text>
                                 <Text style={{color: '#dedede', fontWeight: '400', textAlign: 'center'}}>
-                                    {'O treino será fechado com as presenças definidas.'}
+                                    {'O treino será fechado com as presenças e os atrasos definidos.'}
                                 </Text>
                             </TouchableOpacity>
                             <View style={styles.registerContainer}>
                                 <TouchableOpacity
-                                    //onPress={() => this.markPresences()}
+                                    onPress={() => {
+                                        this.props.navigation.navigate('ChangeAthletesPresences', {
+                                            athletes: this.state.athletes,
+                                            presenceFunction: async (id) => await this.changeAthletePresence(id)
+                                        });
+                                    }}
                                     style={styles.registerButton}>
                                     <Text style={{color: '#fff', fontWeight: '700', fontSize: 15}}>
                                         {'REGISTAR'}
@@ -320,7 +516,12 @@ class PendingTraining extends Component {
                                     </Text>
                                 </TouchableOpacity>
                                 <TouchableOpacity
-                                    //onPress={() => this.markPresences()}
+                                    onPress={() => {
+                                        this.props.navigation.navigate('ChangeLateAthletes', {
+                                            athletes: this.state.athletes.filter(item => item.present),
+                                            lateFunction: async (id) => await this.changeLateAthlete(id)
+                                        });
+                                    }}
                                     style={styles.registerButton}>
                                     <Text style={{color: '#fff', fontWeight: '700', fontSize: 15}}>
                                         {'REGISTAR'}

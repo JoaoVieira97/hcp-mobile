@@ -132,13 +132,20 @@ class OpenedTrainingInvitations extends Component {
                     item.atleta[0] === imageItem.id
                 );
 
+                let displayColor;
+                if (item.disponivel)
+                    displayColor = 'green';
+                else
+                    displayColor = 'red';
+
                 const athlete = {
                     id: item.atleta[0],
                     name: item.atleta[1],
                     squad_number: item.numero,
                     available: item.disponivel,
                     image: athleteImageEchelon ? athleteImageEchelon.image : false,
-                    echelon: athleteImageEchelon ? athleteImageEchelon.escalao[1] : 'erro'
+                    echelon: athleteImageEchelon ? athleteImageEchelon.escalao[1] : 'erro',
+                    displayColor: displayColor
                 };
 
                 athletes.push(athlete);

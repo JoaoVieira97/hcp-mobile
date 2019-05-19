@@ -61,6 +61,10 @@ import OpenedGames from "../management/games/OpenedGames";
 import OpenedGame from "../management/games/OpenedGame";
 import PendingGames from "../management/games/PendingGames";
 import PendingTraining from "../management/trainings/PendingTraining";
+import ChangeAthletesAvailabilities from "../management/ChangeAthletesAvailabilities";
+import ClosedTrainings from "../management/trainings/ClosedTrainings";
+import ChangeAthletesPresences from "../management/ChangeAthletesPresences";
+import ChangeLateAthletes from "../management/ChangeLateAthletes";
 
 const styles = StyleSheet.create({
     container: {
@@ -338,7 +342,11 @@ const ManagementStackNavigator = createStackNavigator({
     PendingTraining: {screen: PendingTraining},
     OpenedGames: {screen: OpenedGames},
     OpenedGame: {screen: OpenedGame},
-    PendingGames: {screen: PendingGames}
+    PendingGames: {screen: PendingGames},
+    ClosedTrainings: {screen: ClosedTrainings},
+    ChangeAthletesAvailabilities: {screen: ChangeAthletesAvailabilities},
+    ChangeAthletesPresences: {screen: ChangeAthletesPresences},
+    ChangeLateAthletes: {screen: ChangeLateAthletes}
 }, {
     initialRouteName: 'ManagementNavigator',
     defaultNavigationOptions: ({navigation}) => {

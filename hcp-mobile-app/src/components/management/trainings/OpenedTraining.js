@@ -136,13 +136,20 @@ class OpenedTraining extends React.Component {
                     item.atleta[0] === imageItem.id
                 );
 
+                let displayColor;
+                if (item.disponivel)
+                    displayColor = 'green';
+                else
+                    displayColor = 'red';
+
                 const athlete = {
                     id: item.atleta[0],
                     name: item.atleta[1],
                     squad_number: item.numero,
                     available: item.disponivel,
                     image: athleteImageEchelon ? athleteImageEchelon.image : false,
-                    echelon: athleteImageEchelon ? athleteImageEchelon.escalao[1] : 'error'
+                    echelon: athleteImageEchelon ? athleteImageEchelon.escalao[1] : 'error',
+                    displayColor: displayColor
                 };
 
                 athletes.push(athlete);
@@ -295,6 +302,44 @@ class OpenedTraining extends React.Component {
     }
 
     /**
+     * Change athlete availability.
+     * @param athleteId
+     */
+    async changeAthleteAvailability(athleteId) {
+
+        const params = {
+            kwargs: {
+                context: this.props.odoo.context,
+            },
+            model: 'ges.evento_desportivo',
+            method: 'atleta_alterar_disponibilidade',
+            args: [
+                this.state.training.eventId,
+                athleteId
+            ],
+        };
+
+        const response = await this.props.odoo.rpc_call('/web/dataset/call_kw', params);
+        if (response.success) {
+
+            const athletes = this.state.athletes.map(item => {
+                let itemAux = item;
+                if(item.id === athleteId) {
+                    itemAux.available = !item.available;
+                }
+
+                return itemAux;
+            });
+
+            this.setState({athletes: athletes});
+
+            return {success: true, athletes: athletes};
+        }
+
+        return {success: false, athletes: this.state.athletes};
+    }
+
+    /**
      * Render item of first list.
      * @param item
      * @returns {*}
@@ -395,7 +440,12 @@ class OpenedTraining extends React.Component {
                                 </Text>
                             </TouchableOpacity>
                             <TouchableOpacity
-                                //onPress={() => this.markPresences()}
+                                onPress={() => {
+                                    this.props.navigation.navigate('ChangeAthletesAvailabilities', {
+                                        athletes: this.state.athletes,
+                                        availabilityFunction: async (id) => await this.changeAthleteAvailability(id)
+                                    });
+                                }}
                                 style={styles.topButton}
                             >
                                 <Text style={{color: '#fff', fontWeight: '700', fontSize: 15}}>

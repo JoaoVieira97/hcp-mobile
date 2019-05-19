@@ -18,4 +18,9 @@ export const colors = {
     // TRAINING and GAME COLORS
     gameColor: '#ef9c88',
     trainingColor: '#30c9c9',
+
+    // AVAILABILITY
+    availableColor: '#81c784',
+    notAvailableColor: '#e57373',
+    warningColor: '#ffce52'
 };

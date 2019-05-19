@@ -1,15 +1,15 @@
-import React, {Component} from 'react';
-import {View, FlatList, ActivityIndicator, TouchableOpacity} from 'react-native';
+import React, { Component } from 'react';
 
-import {connect} from 'react-redux';
-import {Ionicons} from "@expo/vector-icons";
+import { connect } from 'react-redux';
 import CustomText from "../../CustomText";
-import {colors} from "../../../styles/index.style";
+import {ActivityIndicator, FlatList, TouchableOpacity, View} from "react-native";
+import {Ionicons} from "@expo/vector-icons";
 import ConvertTime from "../../ConvertTime";
+import {colors} from "../../../styles/index.style";
 import ManagementListItem from "../ManagementListItem";
 
 
-class OpenedTrainings extends Component {
+class ClosedTrainings extends Component {
 
     constructor(props) {
         super(props);
@@ -18,8 +18,15 @@ class OpenedTrainings extends Component {
             isLoading: true,
             isRefreshing: false,
             trainingsList: [],
-            isFetching: false,
+            isFetching: false
         };
+    }
+
+    async componentDidMount() {
+
+        // fetch all trainings, max 20
+        await this.fetchTrainings(20, true);
+        await this.setState({isLoading: false});
     }
 
     /**
@@ -31,9 +38,7 @@ class OpenedTrainings extends Component {
         headerTitle:
             <CustomText
                 type={'bold'}
-                numberOfLines={1}
-                ellipsizeMode='tail'
-                children={'CONVOCATÓRIAS EM ABERTO'}
+                children={'TREINOS FECHADOS'}
                 style={{
                     color: '#ffffff',
                     fontSize: 16
@@ -50,18 +55,11 @@ class OpenedTrainings extends Component {
                     name="md-arrow-back"
                     size={28}
                     color={'#ffffff'} />
-            </TouchableOpacity>
+            </TouchableOpacity>,
     });
 
-    async componentDidMount() {
-
-        // fetch all trainings, max 20
-        await this.fetchTrainings(20, false);
-        await this.setState({isLoading: false});
-    }
-
     /**
-     * Fetch all opened trainings. Maximum of limit items.
+     * Fetch all pending trainings. Maximum of limit items.
      * @param limit
      * @param clear
      * @returns {Promise<void>}
@@ -80,14 +78,9 @@ class OpenedTrainings extends Component {
             const params = {
                 domain: [
                     ['id', 'not in', idsFetched],
-                    ['state', '=', 'aberto']
+                    ['state', '=', 'fechado']
                 ],
-                fields: [
-                    'id', 'atletas', 'display_start',
-                    'local', 'escalao', 'duracao',
-                    'convocatorias', 'treinador', 'seccionistas',
-                    'evento_desportivo'
-                ],
+                fields: ['id', 'atletas', 'display_start', 'local', 'escalao', 'duracao', 'convocatorias','treinador', 'seccionistas'],
                 limit: limit,
                 order: 'display_start DESC'
             };
@@ -113,7 +106,6 @@ class OpenedTrainings extends Component {
                         athleteIds : item.atletas,
                         coachIds: item.treinador,
                         secretaryIds: item.seccionistas,
-                        eventId: item.evento_desportivo[0]
                     };
 
                     trainings.push(training);
@@ -126,16 +118,6 @@ class OpenedTrainings extends Component {
 
             this.setState({isFetching: false});
         }
-    }
-
-    /**
-     * Remove training from current list when user change training state.
-     * @param trainingId
-     */
-    removeTraining(trainingId) {
-
-        const trainingsListAux = this.state.trainingsList.filter(item => item.id !== trainingId);
-        this.setState({trainingsList: trainingsListAux});
     }
 
     /**
@@ -198,17 +180,20 @@ class OpenedTrainings extends Component {
             titleType={'Treino '}
             navigateToFunction={() => {
 
+                /*
                 this.props.navigation.navigate(
-                    'OpenedTraining',
+                    'PendingTraining',
                     {
                         training: item,
-                        removeTraining: (id) => this.removeTraining(id)
+                        //removeTraining: (id) => this.removeTraining(id)
                     }
                 );
+                 */
             }} />
     );
 
     render() {
+
         return (
             <FlatList
                 keyExtractor={item => item.id.toString()}
@@ -224,8 +209,6 @@ class OpenedTrainings extends Component {
     }
 }
 
-
-
 const mapStateToProps = state => ({
 
     odoo: state.odoo.odoo,
@@ -233,4 +216,4 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => ({});
 
-export default connect(mapStateToProps, mapDispatchToProps)(OpenedTrainings);
+export default connect(mapStateToProps, mapDispatchToProps)(ClosedTrainings);

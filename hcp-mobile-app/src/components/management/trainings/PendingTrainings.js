@@ -80,7 +80,12 @@ class PendingTrainings extends Component {
                     ['id', 'not in', idsFetched],
                     ['state', '=', 'convocatorias_fechadas']
                 ],
-                fields: ['id', 'atletas', 'display_start', 'local', 'escalao', 'duracao', 'convocatorias','treinador', 'seccionistas'],
+                fields: [
+                    'id', 'atletas', 'display_start', 'local',
+                    'escalao', 'duracao',
+                    'convocatorias', 'presencas',
+                    'treinador', 'seccionistas'
+                ],
                 limit: limit,
                 order: 'display_start DESC'
             };
@@ -103,6 +108,7 @@ class PendingTrainings extends Component {
                         date: date.date,
                         hour: date.hour,
                         invitationIds: item.convocatorias,
+                        availabilityIds: item.presencas,
                         athleteIds : item.atletas,
                         coachIds: item.treinador,
                         secretaryIds: item.seccionistas,
@@ -118,6 +124,16 @@ class PendingTrainings extends Component {
 
             this.setState({isFetching: false});
         }
+    }
+
+    /**
+     * Remove training from current list when user change training state.
+     * @param trainingId
+     */
+    removeTraining(trainingId) {
+
+        const trainingsListAux = this.state.trainingsList.filter(item => item.id !== trainingId);
+        this.setState({trainingsList: trainingsListAux});
     }
 
     /**
@@ -184,7 +200,7 @@ class PendingTrainings extends Component {
                     'PendingTraining',
                     {
                         training: item,
-                        //removeTraining: (id) => this.removeTraining(id)
+                        removeTraining: (id) => this.removeTraining(id)
                     }
                 );
             }} />

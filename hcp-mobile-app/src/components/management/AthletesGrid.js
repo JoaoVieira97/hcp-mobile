@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import {Image, StyleSheet, Text, View} from 'react-native';
 import {SectionGrid} from "react-native-super-grid";
+import {colors} from "../../styles/index.style";
 
 
 
@@ -35,10 +36,16 @@ export default class AthletesGrid extends Component {
                 </Image>
             );
 
+        let displayColor;
+        if (item.displayColor === 'green')
+            displayColor = colors.availableColor;
+        else if (item.displayColor === 'red')
+            displayColor = colors.notAvailableColor;
+        else
+            displayColor = colors.warningColor;
+
         return (
-            <View style={[
-                styles.itemContainer,
-                {backgroundColor: item.available ? '#81c784' : '#e57373'}]}>
+            <View style={[styles.itemContainer, {backgroundColor: displayColor}]}>
                 {userImage}
                 <View style={{flex: 1, padding: 5, justifyContent: 'center'}}>
                     <Text numberOfLines={2} ellipsizeMode='tail' style={styles.itemName}>
