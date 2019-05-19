@@ -16,6 +16,7 @@ import CustomText from "../CustomText";
 import * as Animatable from "react-native-animatable";
 import Loader from "../screens/Loader";
 import ResetPassword from "./ResetPassword";
+import moment from 'moment';
 
 class ProfileScreen extends Component {
 
@@ -67,17 +68,24 @@ class ProfileScreen extends Component {
         if (response.success && response.data.length > 0) {
 
             let birthday = 'Não definida';
+            let athleteAge = '';
+            const currDate = moment();
+
             if(response.data[0].birthdate) {
                 birthday =
                     response.data[0].birthdate.slice(8,10) + '/' +
                     response.data[0].birthdate.slice(5,7) + '/' +
                     response.data[0].birthdate.slice(0,4);
+
+                const athleteBirthAux = moment(response.data[0].birthdate);
+                athleteAge = currDate.diff(athleteBirthAux, 'years');
             }
 
             this.setState({
                 image: this.props.user.image,
                 birthday: birthday,
                 email: response.data[0].email,
+                age: athleteAge
             });
         }
     };
@@ -395,7 +403,11 @@ class ProfileScreen extends Component {
                             <View style={{marginTop: 15}}>
                                 <CustomText type={'bold'} style={styles.contentTitle}>DATA DE NASCIMENTO</CustomText>
                                 <CustomText type={'normal'} style={styles.contentValue}>
-                                    {this.state.birthday}
+                                    {
+                                        this.state.birthday !== 'Não definida' ?
+                                        this.state.birthday + '  ( ' + this.state.age + ' anos )' :
+                                        this.state.birthday
+                                    }
                                 </CustomText>
                             </View>
                         </View>

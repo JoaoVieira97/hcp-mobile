@@ -180,15 +180,13 @@ class PendingTrainings extends Component {
             titleType={'Treino '}
             navigateToFunction={() => {
 
-                /*
                 this.props.navigation.navigate(
-                    'OpenedTraining',
+                    'PendingTraining',
                     {
                         training: item,
-                        removeTraining: (id) => this.removeTraining(id)
+                        //removeTraining: (id) => this.removeTraining(id)
                     }
                 );
-                 */
             }} />
     );
 

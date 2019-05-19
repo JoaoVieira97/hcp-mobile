@@ -1,27 +1,17 @@
-import React from 'react';
-
-import {
-    View,
-    Text,
-    StyleSheet,
-    ScrollView,
-    RefreshControl,
-    FlatList,
-    TouchableOpacity,
-    Alert
-} from 'react-native';
-import {connect} from 'react-redux';
-import {Ionicons} from "@expo/vector-icons";
-import { ListItem } from 'react-native-elements';
+import React, { Component } from 'react';
+import {FlatList, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+import { connect } from 'react-redux';
 import CustomText from "../../CustomText";
-import { DangerZone } from 'expo';
-const { Lottie } = DangerZone;
+import {Ionicons} from "@expo/vector-icons";
+import {ListItem} from "react-native-elements";
 import {colors} from "../../../styles/index.style";
 import Loader from "../../screens/Loader";
 import AthletesGrid from "../AthletesGrid";
+import {DangerZone} from "expo";
 import * as Animatable from "react-native-animatable";
+const { Lottie } = DangerZone;
 
-class OpenedTraining extends React.Component {
+class PendingTraining extends Component {
 
     constructor(props) {
         super(props);
@@ -34,14 +24,14 @@ class OpenedTraining extends React.Component {
             coaches: ['A carregar...'],
             secretaries: ['A carregar...'],
             athletes: [],
-            showMore: false,
+            showMore: false
         };
     }
 
     /**
      * Define navigations header components.
      * @param navigation
-     * @returns {{headerRight: *, headerLeft: *, headerTitle: *}}
+     * @returns {{headerLeft: *, headerTitle: *}}
      */
     static navigationOptions = ({navigation}) => ({
         headerTitle:
@@ -63,19 +53,6 @@ class OpenedTraining extends React.Component {
                 <Ionicons
                     name="md-arrow-back"
                     size={28}
-                    color={'#ffffff'} />
-            </TouchableOpacity>,
-        headerRight:
-            <TouchableOpacity style={{
-                width:42,
-                height:42,
-                alignItems:'center',
-                justifyContent:'center',
-                marginRight: 10}} onPress = {() => {navigation.navigate('EditOpenedTraining')}
-            }>
-                <Ionicons
-                    name="md-create"
-                    size={25}
                     color={'#ffffff'} />
             </TouchableOpacity>
     });
@@ -232,69 +209,6 @@ class OpenedTraining extends React.Component {
     }
 
     /**
-     * Close invitations alert.
-     * @returns {Promise<void>}
-     */
-    markPresences() {
-
-        Alert.alert(
-            'Confirmação',
-            'Pretende fechar o período de convocatórias para este treino?',
-            [
-                {text: 'Cancelar', style: 'cancel'},
-                {
-                    text: 'Confirmar',
-                    onPress: async () => this._markPresences()
-                },
-            ],
-            {cancelable: true},
-        );
-    }
-
-    /**
-     * Close invitations.
-     * @returns {Promise<void>}
-     * @private
-     */
-    async _markPresences() {
-
-        await this.setState({isLoading: true});
-
-        const params = {
-            kwargs: {
-                context: this.props.odoo.context,
-            },
-            model: 'ges.treino',
-            method: 'marcar_presencas',
-            args: [this.state.training.id]
-        };
-
-        const response = await this.props.odoo.rpc_call('/web/dataset/call_kw', params);
-        if (response.success) {
-
-            // remove training from list
-            this.props.navigation.state.params.removeTraining(this.state.training.id);
-
-            await this.setState({isLoading: false, animation: true});
-
-            this.animation.play();
-            setTimeout(() => {this.props.navigation.goBack()}, 1100);
-
-        } else {
-
-            await this.setState({isLoading: false});
-
-            Alert.alert(
-                'Erro',
-                'Não foi possível fechar o período de convocatórias para este treino.' +
-                        ' Por favor, tente mais tarde.',
-                [{text: 'Confirmar', style: 'cancel'}],
-                {cancelable: true},
-            );
-        }
-    }
-
-    /**
      * Render item of first list.
      * @param item
      * @returns {*}
@@ -358,19 +272,19 @@ class OpenedTraining extends React.Component {
             <View style={{flex: 1}}>
                 <Loader isLoading={this.state.isLoading}/>
                 { this.state.animation &&
-                    <View style={styles.loading} opacity={0.8}>
-                        <Lottie
-                            ref={animation => {
-                                this.animation = animation;
-                            }}
-                            loop={false}
-                            style={{
-                                width: 200,
-                                height: 200,
-                            }}
-                            source={require('../../../../assets/animations/success')}
-                        />
-                    </View>
+                <View style={styles.loading} opacity={0.8}>
+                    <Lottie
+                        ref={animation => {
+                            this.animation = animation;
+                        }}
+                        loop={false}
+                        style={{
+                            width: 200,
+                            height: 200,
+                        }}
+                        source={require('../../../../assets/animations/success')}
+                    />
+                </View>
                 }
                 <ScrollView
                     style={{flex: 1}}
@@ -384,55 +298,66 @@ class OpenedTraining extends React.Component {
                     <View style={styles.topHeader}>
                         <View style={{zIndex: 500}}>
                             <TouchableOpacity
-                                onPress={() => this.markPresences()}
                                 style={styles.topButton}
-                            >
-                                <Text style={{color: '#fff', fontWeight: '700', fontSize: 15}}>
-                                    {'FECHAR CONVOCATÓRIA'}
-                                </Text>
-                                <Text style={{color: '#dedede', fontWeight: '400', textAlign: 'center'}}>
-                                    {'Serão registadas as presenças dos atletas disponíveis.'}
-                                </Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity
                                 //onPress={() => this.markPresences()}
-                                style={styles.topButton}
                             >
                                 <Text style={{color: '#fff', fontWeight: '700', fontSize: 15}}>
-                                    {'EDITAR DISPONIBILIDADES'}
+                                    {'FECHAR TREINO'}
                                 </Text>
                                 <Text style={{color: '#dedede', fontWeight: '400', textAlign: 'center'}}>
-                                    {'Alterar a disponibilidade dos atletas convocados.'}
+                                    {'O treino será fechado com as presenças definidas.'}
                                 </Text>
                             </TouchableOpacity>
+                            <View style={styles.registerContainer}>
+                                <TouchableOpacity
+                                    //onPress={() => this.markPresences()}
+                                    style={styles.registerButton}>
+                                    <Text style={{color: '#fff', fontWeight: '700', fontSize: 15}}>
+                                        {'REGISTAR'}
+                                    </Text>
+                                    <Text style={{color: '#fff', fontWeight: '700', fontSize: 15}}>
+                                        {'PRESENÇAS'}
+                                    </Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                    //onPress={() => this.markPresences()}
+                                    style={styles.registerButton}>
+                                    <Text style={{color: '#fff', fontWeight: '700', fontSize: 15}}>
+                                        {'REGISTAR'}
+                                    </Text>
+                                    <Text style={{color: '#fff', fontWeight: '700', fontSize: 15}}>
+                                        {'ATRASOS'}
+                                    </Text>
+                                </TouchableOpacity>
+                            </View>
                         </View>
                         <View style={{zIndex: 499}}>
                             {
                                 this.state.showMore ?
-                                    <Animatable.View animation={"fadeInDown"}>
-                                        <FlatList
-                                            keyExtractor={item => item.name}
-                                            data={list}
-                                            renderItem={this.renderItemOfList}
-                                        />
-                                    </Animatable.View> :
-                                    <TouchableOpacity
-                                        onPress={() => {this.setState({showMore: true})}}
-                                        style={{justifyContent: 'center', alignItems: 'center', marginTop: 15}}
-                                    >
-                                        <Text style={{color: colors.darkGrayColor, fontWeight: '700', fontSize: 13}}>
-                                            {'Ver informações do evento'}
-                                        </Text>
-                                        <Ionicons
-                                            name="ios-arrow-down"
-                                            size={28}
-                                            color={colors.darkGrayColor} />
-                                    </TouchableOpacity>
+                                <Animatable.View animation={"fadeInDown"}>
+                                    <FlatList
+                                        keyExtractor={item => item.name}
+                                        data={list}
+                                        renderItem={this.renderItemOfList}
+                                    />
+                                </Animatable.View> :
+                                <TouchableOpacity
+                                    onPress={() => {this.setState({showMore: true})}}
+                                    style={{justifyContent: 'center', alignItems: 'center', marginTop: 15}}
+                                >
+                                    <Text style={{color: colors.darkGrayColor, fontWeight: '700', fontSize: 13}}>
+                                        {'Ver informações do evento'}
+                                    </Text>
+                                    <Ionicons
+                                        name="ios-arrow-down"
+                                        size={28}
+                                        color={colors.darkGrayColor} />
+                                </TouchableOpacity>
                             }
                         </View>
                     </View>
                     <AthletesGrid
-                        title={'Atletas convocados'}
+                        title={'Atletas presentes/atrasados'}
                         athletes={this.state.athletes}
                     />
                 </ScrollView>
@@ -467,6 +392,23 @@ const styles = StyleSheet.create({
         marginVertical: 5,
         borderRadius: 5
     },
+    registerContainer: {
+        flex: 1,
+        flexDirection: 'row',
+        justifyContent: 'center',
+        paddingLeft: 15,
+        paddingRight: 15
+    },
+    registerButton: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: 'rgba(173, 46, 83, 0.8)',
+        padding: 10,
+        width: '50%',
+        marginHorizontal: 5,
+        marginVertical: 5,
+        borderRadius: 5
+    },
     loading: {
         position: 'absolute',
         left: 0,
@@ -482,9 +424,9 @@ const styles = StyleSheet.create({
 
 const mapStateToProps = state => ({
 
-    odoo: state.odoo.odoo,
+    odoo: state.odoo.odoo
 });
 
 const mapDispatchToProps = dispatch => ({});
 
-export default connect(mapStateToProps, mapDispatchToProps)(OpenedTraining);
+export default connect(mapStateToProps, mapDispatchToProps)(PendingTraining);

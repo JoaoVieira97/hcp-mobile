@@ -4,6 +4,7 @@ import Authentication from './Authentication';
 import {View} from "react-native-animatable";
 import {Alert, AsyncStorage, Image, StyleSheet, ActivityIndicator, Dimensions} from "react-native";
 import {colors} from "../../styles/index.style";
+import CustomText from "../CustomText";
 
 
 export default class AuthenticationLoading extends React.Component {
@@ -57,7 +58,17 @@ export default class AuthenticationLoading extends React.Component {
             <View style={styles.container}>
                 <Image style={styles.img} source={require('../../../assets/logo.png')} />
                 <View style={styles.activityContainer}>
-                    <ActivityIndicator size={'large'} color={colors.loadingColor}/>
+                    <ActivityIndicator
+                        size={25}
+                        color={colors.blueColor}
+                    />
+                </View>
+                <View style={styles.activityContainer}>
+                    <CustomText
+                        type={'bold'}
+                        children={'A CARREGAR...'}
+                        style={styles.activityTitle}
+                    />
                 </View>
             </View>
         );
@@ -81,5 +92,10 @@ const styles = StyleSheet.create({
     activityContainer: {
         marginTop: 20,
         alignItems: 'center',
-    }
+    },
+    activityTitle: {
+        color: colors.blueColor,
+        fontSize: 10,
+        letterSpacing: 3
+    },
 });

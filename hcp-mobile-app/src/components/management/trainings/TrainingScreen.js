@@ -15,6 +15,7 @@ class TrainingScreen extends Component {
         this.state = {
             openedTrainingsCounter: 0,
             closedTrainingsCounter: 0,
+            finishedTrainingsCounter: 0,
             isRefreshing: false
         };
     }
@@ -32,6 +33,7 @@ class TrainingScreen extends Component {
             this.props.navigation.addListener('willFocus', async () => {
                 await this.countOpenedTrainings();
                 await this.countTrainingsThatNeedToClose();
+                await this.countFinishedTrainings();
             })
         ];
     }
@@ -99,6 +101,36 @@ class TrainingScreen extends Component {
     }
 
     /**
+     * Count number of finished trainings.
+     * @returns {Promise<void>}
+     */
+    async countFinishedTrainings() {
+
+        const params = {
+            kwargs: {
+                context: this.props.odoo.context,
+            },
+            model: 'ges.treino',
+            method: 'search_count',
+            args: [
+                [['state', '=', 'fechado']],
+            ]
+        };
+
+        const response = await this.props.odoo.rpc_call(
+            '/web/dataset/call_kw',
+            params
+        );
+
+        if (response.success) {
+
+            await this.setState({
+                finishedTrainingsCounter: response.data,
+            });
+        }
+    }
+
+    /**
      * Refresh screen.
      */
     handleRefresh = () => {
@@ -108,6 +140,7 @@ class TrainingScreen extends Component {
             async () => {
                 await this.countOpenedTrainings();
                 await this.countTrainingsThatNeedToClose();
+                await this.countFinishedTrainings();
 
                 this.setState({
                     isRefreshing: false
@@ -163,16 +196,22 @@ class TrainingScreen extends Component {
                 subtitle: 'Editar dados | ' +
                     'Controlar a disponibilidade dos atletas | ' +
                     'Fechar o período de convocatórias',
-                value: this.state.openedTrainingsCounter,
+                value: this.state.openedTrainingsCounter > 100 ? '+99' : this.state.openedTrainingsCounter,
                 onPress: 'OpenedTrainings'
             }, {
                 name: 'Convocatórias fechadas',
                 icon: 'md-log-out',
                 subtitle: 'Editar presenças e atrasos | ' +
                     'Concluir ou eliminar treinos',
-                value: this.state.closedTrainingsCounter,
+                value: this.state.closedTrainingsCounter > 100 ? '+99' : this.state.closedTrainingsCounter,
                 onPress: 'PendingTrainings'
-            },
+            }, {
+            name: 'Treinos fechados',
+            icon: 'md-done-all',
+            subtitle: 'Treinos que já foram terminados',
+            value: this.state.finishedTrainingsCounter > 100 ? '+99' : this.state.finishedTrainingsCounter,
+            onPress: false
+        },
         ];
 
         return (

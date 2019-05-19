@@ -39,10 +39,13 @@ class AthletesScreen extends Component {
      * @param navigation
      */
     static navigationOptions = ({navigation}) => ({
-        headerTitle: //'Atletas',
+        headerTitle:
             <CustomText
                 type={'bold'}
-                children={_.upperCase(navigation.state.params.echelon.denomination)}
+                children={ navigation.state.params.echelon.denomination === 'Iniciação' ?
+                    'INICIAÇÃO' :
+                    _.upperCase(navigation.state.params.echelon.denomination)
+                }
                 style={{
                     color: '#ffffff',
                     fontSize: 16
@@ -196,13 +199,13 @@ class AthletesScreen extends Component {
                 {atualPosition}
             </CustomText>
         )
-    }
+    };
 
     renderItem =  ({item}) => {
         return (
             <ListItem
                 title={item.name}
-                subtitle={item.echelon}
+                subtitle={item.age}
                 leftElement={this.renderPosition(item)}
                 leftAvatar={this.leftAvatar(item.image, item.squadNumber.toString())}
                 chevron={true}
