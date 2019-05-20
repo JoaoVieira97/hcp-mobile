@@ -276,7 +276,12 @@ class OpenedTrainingInvitations extends Component {
             const athletes = this.state.athletes;
             const athleteIndex = athletes.findIndex(athlete => athlete.id === athleteId);
 
-            if(athleteIndex >= 0) athletes[athleteIndex].available = !this.state.checked;
+            if(athleteIndex >= 0) {
+                athletes[athleteIndex].available = !this.state.checked;
+
+                if(athletes[athleteIndex].displayColor === 'green') athletes[athleteIndex].displayColor = 'red';
+                else athletes[athleteIndex].displayColor = 'green';
+            }
 
             this.setState(state => ({
                 athletes: athletes,
