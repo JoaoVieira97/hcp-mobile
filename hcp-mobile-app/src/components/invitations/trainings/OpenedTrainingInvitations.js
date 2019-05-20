@@ -250,10 +250,42 @@ class OpenedTrainingInvitations extends Component {
      * Change athlete availability.
      * @returns {Promise<void>}
      */
+
+/*
+    async changeAthleteAvailability(athleteId) {
+
+
+        if (response.success) {
+
+            const athletes = this.state.athletes.map(item => {
+                let itemAux = item;
+                if(item.id === athleteId) {
+                    itemAux.available = !item.available;
+                }
+
+                // color
+                if (itemAux.available)
+                    itemAux.displayColor = 'green';
+                else
+                    itemAux.displayColor = 'red';
+
+                return itemAux;
+            });
+
+            this.setState({athletes: athletes});
+
+            return {success: true, athletes: athletes};
+        }
+
+        return {success: false, athletes: this.state.athletes};
+    }
+
+*/
     async changeAvailability(){
 
         this.setState({isLoading: true,});
 
+        /*
         const params = {
             kwargs: {
                 context: this.props.odoo.context,
@@ -266,29 +298,53 @@ class OpenedTrainingInvitations extends Component {
         const response = await this.props.odoo.rpc_call(
             '/web/dataset/call_kw',
             params
-        );
+        );*/
 
-        if (response.success) {
+        const athleteInfo = this.props.user.groups.filter(group => group.name === 'Atleta');
 
-            const athleteInfo = this.props.user.groups.filter(group => group.name === 'Atleta');
+        if(athleteInfo){
             const athleteId = athleteInfo[0].id;
 
-            const athletes = this.state.athletes;
-            const athleteIndex = athletes.findIndex(athlete => athlete.id === athleteId);
+            const params = {
+                kwargs: {
+                    context: this.props.odoo.context,
+                },
+                model: 'ges.evento_desportivo',
+                method: 'atleta_alterar_disponibilidade',
+                args: [
+                    this.state.training.eventId,
+                    athleteId
+                ],
+            };
 
-            if(athleteIndex >= 0) {
-                athletes[athleteIndex].available = !this.state.checked;
+            const response = await this.props.odoo.rpc_call('/web/dataset/call_kw', params);
 
-                if(athletes[athleteIndex].displayColor === 'green') athletes[athleteIndex].displayColor = 'red';
-                else athletes[athleteIndex].displayColor = 'green';
+            console.log(response);
+            console.log("ATLETA: "+athleteId);
+            console.log("ID: "+ this.props.user.id);
+            if (response.success) {
+
+                //const athleteInfo = this.props.user.groups.filter(group => group.name === 'Atleta');
+                //const athleteId = athleteInfo[0].id;
+
+                const athletes = this.state.athletes;
+                const athleteIndex = athletes.findIndex(athlete => athlete.id === athleteId);
+
+                if(athleteIndex >= 0) {
+                    athletes[athleteIndex].available = !this.state.checked;
+
+                    if(athletes[athleteIndex].displayColor === 'green') athletes[athleteIndex].displayColor = 'red';
+                    else athletes[athleteIndex].displayColor = 'green';
+                }
+
+                this.setState(state => ({
+                    athletes: athletes,
+                    isLoading: false,
+                    checked: !this.state.checked,
+                }));
             }
-
-            this.setState(state => ({
-                athletes: athletes,
-                isLoading: false,
-                checked: !this.state.checked,
-            }));
         }
+
         else {
 
             this.setState({

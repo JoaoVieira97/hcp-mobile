@@ -114,7 +114,7 @@ class TrainingInvitations extends Component {
                     ['id', 'not in', idsFetched],
                     ['atletas', 'in', athleteId]
                 ],
-                fields: ['id', 'atletas', 'display_start', 'local', 'escalao', 'duracao', 'convocatorias','treinador', 'seccionistas'],
+                fields: ['id', 'evento_desportivo', 'atletas', 'display_start', 'local', 'escalao', 'duracao', 'convocatorias','treinador', 'seccionistas'],
                 limit: limit,
                 order: 'display_start DESC',
             };
@@ -133,6 +133,7 @@ class TrainingInvitations extends Component {
 
                     const training = {
                         id: item.id,
+                        eventId: item.evento_desportivo[0],
                         place: item.local,
                         echelon: item.escalao,
                         duration: item.duracao,
