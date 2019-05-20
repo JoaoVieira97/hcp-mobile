@@ -26,4 +26,12 @@ class T(models.Model):
         for user in user_ids:
             self.env['res.users'].browse(user).send_notification(title='Novo evento', msg='Foste convocado para um novo treino')
 
+        for atleta in atletas:
+            pais = []
+            for pai in atleta.pais:
+                pais.append(pai.user_id.id)
+            print(pais)
+            for pai in pais:
+                self.env['res.users'].browse(pai).send_notification(title='Novo evento', msg=atleta.user_id.name + ' foi convocado para um novo treino')
+
         return res
