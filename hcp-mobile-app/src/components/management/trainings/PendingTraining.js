@@ -534,6 +534,7 @@ class PendingTraining extends Component {
                                     onPress={() => {
                                         this.props.navigation.navigate('RegisterInjury', {
                                             eventId: this.state.training.id,
+                                            eventDate: this.state.training.date,
                                             athletes: this.state.athletes.map(a => {
                                                 return { name: a.name, id: a.id };
                                             }),

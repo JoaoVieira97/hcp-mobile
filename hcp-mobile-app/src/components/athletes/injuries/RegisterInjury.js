@@ -63,14 +63,16 @@ class RegisterInjury extends Component {
 
         await this.setState({
             eventId: this.props.navigation.state.params.eventId,
+            eventDate: this.props.navigation.state.params.eventDate,
             eventType: this.props.navigation.state.params.eventType,
             athletes: this.props.navigation.state.params.athletes,
             isLoading: false
         });
 
         //console.log(this.props.navigation.state.params.eventId);
+        //console.log(this.props.navigation.state.params.eventDate);
+        //console.log(this.props.navigation.state.params.eventType);
         //console.log(this.props.navigation.state.params.athletes);
-        //console.log(this.props.navigation.state.params.eventType)
     }
 
     /**
@@ -93,6 +95,7 @@ class RegisterInjury extends Component {
             atleta: this.state.athlete,
             ocorreu_num: this.state.eventType,
             observacoes_ocor: this.state.text,
+            data_ocorrencia: this.state.eventDate,
             state: 'diagnostico'
         };
 
