@@ -2,7 +2,7 @@
 
 from odoo import models, fields, api
 
-class L(models.Model):
+class Lesao(models.Model):
     _inherit = 'ges.lesao'
 
     @api.model
