@@ -24,14 +24,14 @@ class T(models.Model):
 
         # print(str(user_ids))
         for user in user_ids:
-            self.env['res.users'].browse(user).send_notification(title='Novo evento', msg='Foste convocado para um novo treino')
+            self.env['res.users'].browse(user).send_notification(title='Nova convocatória', msg='Foste convocado para um novo treino')
 
         for atleta in atletas:
             pais = []
             for pai in atleta.pais:
                 pais.append(pai.user_id.id)
-            print(pais)
+            # print(pais)
             for pai in pais:
-                self.env['res.users'].browse(pai).send_notification(title='Novo evento', msg=atleta.user_id.name + ' foi convocado para um novo treino')
+                self.env['res.users'].browse(pai).send_notification(title='Nova convocatória', msg=atleta.user_id.name + ' foi convocado para um novo treino')
 
         return res
