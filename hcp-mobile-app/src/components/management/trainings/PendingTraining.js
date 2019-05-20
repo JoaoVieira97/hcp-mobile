@@ -530,6 +530,24 @@ class PendingTraining extends Component {
                                         {'ATRASOS'}
                                     </Text>
                                 </TouchableOpacity>
+                                <TouchableOpacity
+                                    onPress={() => {
+                                        this.props.navigation.navigate('RegisterInjury', {
+                                            eventId: this.state.training.id,
+                                            athletes: this.state.athletes.map(a => {
+                                                return { name: a.name, id: a.id };
+                                            }),
+                                            eventType: 'treino'
+                                        });
+                                    }}
+                                    style={styles.registerButton}>
+                                    <Text style={{color: '#fff', fontWeight: '700', fontSize: 15}}>
+                                        {'REGISTAR'}
+                                    </Text>
+                                    <Text style={{color: '#fff', fontWeight: '700', fontSize: 15}}>
+                                        {'LESÃO'}
+                                    </Text>
+                                </TouchableOpacity>
                             </View>
                         </View>
                         <View style={{zIndex: 499}}>
@@ -605,7 +623,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         backgroundColor: 'rgba(173, 46, 83, 0.8)',
         padding: 10,
-        width: '50%',
+        width: '33%',
         marginHorizontal: 5,
         marginVertical: 5,
         borderRadius: 5

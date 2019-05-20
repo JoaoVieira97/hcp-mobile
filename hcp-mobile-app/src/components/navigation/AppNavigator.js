@@ -65,6 +65,7 @@ import ChangeAthletesAvailabilities from "../management/ChangeAthletesAvailabili
 import ClosedTrainings from "../management/trainings/ClosedTrainings";
 import ChangeAthletesPresences from "../management/ChangeAthletesPresences";
 import ChangeLateAthletes from "../management/ChangeLateAthletes";
+import RegisterInjury from "../athletes/injuries/RegisterInjury";
 
 const styles = StyleSheet.create({
     container: {
@@ -346,7 +347,8 @@ const ManagementStackNavigator = createStackNavigator({
     ClosedTrainings: {screen: ClosedTrainings},
     ChangeAthletesAvailabilities: {screen: ChangeAthletesAvailabilities},
     ChangeAthletesPresences: {screen: ChangeAthletesPresences},
-    ChangeLateAthletes: {screen: ChangeLateAthletes}
+    ChangeLateAthletes: {screen: ChangeLateAthletes},
+    RegisterInjury: {screen: RegisterInjury}
 }, {
     initialRouteName: 'ManagementNavigator',
     defaultNavigationOptions: ({navigation}) => {
