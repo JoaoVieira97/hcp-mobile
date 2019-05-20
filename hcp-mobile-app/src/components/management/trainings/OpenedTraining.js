@@ -328,6 +328,12 @@ class OpenedTraining extends React.Component {
                     itemAux.available = !item.available;
                 }
 
+                // color
+                if (itemAux.available)
+                    itemAux.displayColor = 'green';
+                else
+                    itemAux.displayColor = 'red';
+
                 return itemAux;
             });
 
