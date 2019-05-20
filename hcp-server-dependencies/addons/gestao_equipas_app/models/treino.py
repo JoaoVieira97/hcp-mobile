@@ -2,7 +2,7 @@
 
 from odoo import models, fields, api
 
-class T(models.Model):
+class Treino(models.Model):
     _inherit = 'ges.treino'
 
     @api.model
