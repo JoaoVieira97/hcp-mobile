@@ -19,7 +19,7 @@ import {colors} from "../../../styles/index.style";
 import Loader from "../../screens/Loader";
 import AthletesGrid from "../../management/AthletesGrid";
 
-class OpenedTrainingInvitations extends Component {
+class OpenedGameInvitations  extends Component {
 
     constructor(props) {
         super(props);
@@ -27,7 +27,7 @@ class OpenedTrainingInvitations extends Component {
         this.state = {
             isLoading: true,
             isRefreshing: false,
-            training: {
+            game: {
                 id: undefined,
                 eventId: undefined,
                 place: [],
@@ -35,6 +35,8 @@ class OpenedTrainingInvitations extends Component {
                 duration: undefined,
                 date: undefined,
                 hours: undefined,
+                opponent: undefined,
+                competition: undefined,
                 athleteIds : [],
                 invitationIds: [],
                 coachIds: [],
@@ -57,7 +59,7 @@ class OpenedTrainingInvitations extends Component {
         headerTitle: //'Treino',
             <CustomText
                 type={'bold'}
-                children={'TREINO'}
+                children={'JOGO'}
                 style={{
                     color: '#ffffff',
                     fontSize: 16
@@ -80,7 +82,7 @@ class OpenedTrainingInvitations extends Component {
     async componentWillMount() {
 
         await this.setState({
-            training: this.props.navigation.getParam('training'),
+            game: this.props.navigation.getParam('game'),
         });
     }
 
@@ -96,9 +98,9 @@ class OpenedTrainingInvitations extends Component {
      */
     async fetchData() {
 
-        await this.fetchAthletes(this.state.training.invitationIds);
-        await this.fetchCoaches(this.state.training.coachIds);
-        await this.fetchSecretaries(this.state.training.secretaryIds);
+        await this.fetchAthletes(this.state.game.invitationIds);
+        await this.fetchCoaches(this.state.game.coachIds);
+        await this.fetchSecretaries(this.state.game.secretaryIds);
     }
 
     /**
@@ -123,7 +125,7 @@ class OpenedTrainingInvitations extends Component {
         if(response.success && response.data.length > 0) {
 
             const data = response.data;
-            const ids = this.state.training.athleteIds;
+            const ids = this.state.game.athleteIds;
             let athletes = [];
             const athletesImages = await this.fetchAthletesImages(ids);
 
@@ -252,36 +254,36 @@ class OpenedTrainingInvitations extends Component {
      * @returns {Promise<void>}
      */
 
-/*
-    async changeAthleteAvailability(athleteId) {
+    /*
+        async changeAthleteAvailability(athleteId) {
 
 
-        if (response.success) {
+            if (response.success) {
 
-            const athletes = this.state.athletes.map(item => {
-                let itemAux = item;
-                if(item.id === athleteId) {
-                    itemAux.available = !item.available;
-                }
+                const athletes = this.state.athletes.map(item => {
+                    let itemAux = item;
+                    if(item.id === athleteId) {
+                        itemAux.available = !item.available;
+                    }
 
-                // color
-                if (itemAux.available)
-                    itemAux.displayColor = 'green';
-                else
-                    itemAux.displayColor = 'red';
+                    // color
+                    if (itemAux.available)
+                        itemAux.displayColor = 'green';
+                    else
+                        itemAux.displayColor = 'red';
 
-                return itemAux;
-            });
+                    return itemAux;
+                });
 
-            this.setState({athletes: athletes});
+                this.setState({athletes: athletes});
 
-            return {success: true, athletes: athletes};
+                return {success: true, athletes: athletes};
+            }
+
+            return {success: false, athletes: this.state.athletes};
         }
 
-        return {success: false, athletes: this.state.athletes};
-    }
-
-*/
+    */
     async changeAvailability(){
 
         this.setState({isLoading: true,});
@@ -293,7 +295,7 @@ class OpenedTrainingInvitations extends Component {
             },
             model: 'ges.treino',
             method: 'alterar_disponibilidade',
-            args: [this.state.training.id],
+            args: [this.state.game.id],
         };
 
         const response = await this.props.odoo.rpc_call(
@@ -313,7 +315,7 @@ class OpenedTrainingInvitations extends Component {
                 model: 'ges.evento_desportivo',
                 method: 'atleta_alterar_disponibilidade',
                 args: [
-                    this.state.training.eventId,
+                    this.state.game.eventId,
                     athleteId
                 ],
             };
@@ -369,14 +371,14 @@ class OpenedTrainingInvitations extends Component {
         if(local){
 
             const item = {
-                id: this.state.training.id,
-                type: 1,
-                title: 'Treino ' + this.state.training.echelon[1],
-                time: 'Início: ' + this.state.training.hours,
-                description: 'Duração: ' + this.state.training.duration + ' min',
-                local: this.state.training.place[0],
-                date: this.state.training.date,
-                localName: this.state.training.place[1],
+                id: this.state.game.id,
+                type: 0,
+                title: 'Jogo ' + this.state.game.echelon[1],
+                time: 'Início: ' + this.state.game.hours,
+                description: 'Duração: ' + this.state.game.duration + ' min',
+                local: this.state.game.place[0],
+                date: this.state.game.date,
+                localName: this.state.game.place[1],
             };
 
             this.props.navigation.navigate('EventScreen',{item : item});
@@ -473,20 +475,24 @@ class OpenedTrainingInvitations extends Component {
 
     render() {
         const list = [{
-            name: 'Escalão',
+            name: 'Competição',
+            icon: 'md-trophy',
+            subtitle: this.state.game.competition,
+        },{
+            name: 'Escalão | Adversário',
             icon: 'md-shirt',
-            subtitle: this.state.training.echelon[1],
+            subtitle: this.state.game.echelon[1] + ' | ' + this.state.game.opponent,
         }, {
             name: 'Início e duração',
             icon: 'md-time',
             subtitle:
-                this.state.training.date + '  |  ' +
-                this.state.training.hours + '\n' +
-                this.state.training.duration + ' min',
+                this.state.game.date + '  |  ' +
+                this.state.game.hours + '\n' +
+                this.state.game.duration + ' min',
         }, {
             name: 'Local',
             icon: 'md-pin',
-            subtitle: this.state.training.place ? this.state.training.place[1] : 'Nenhum local atribuído',
+            subtitle: this.state.game.place ? this.state.game.place[1] : 'Nenhum local atribuído',
         }, {
             name: 'Treinadores',
             icon: 'md-people',
@@ -497,7 +503,7 @@ class OpenedTrainingInvitations extends Component {
             subtitle: this.state.secretaries.join(',  ')
         }];
 
-        if (this.state.training.canChangeAvailability)
+        if (this.state.game.canChangeAvailability)
             list.push({
                 name: 'Disponibilidade',
                 icon: 'md-list-box'
@@ -561,4 +567,4 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => ({});
 
-export default connect(mapStateToProps, mapDispatchToProps)(OpenedTrainingInvitations);
+export default connect(mapStateToProps, mapDispatchToProps)(OpenedGameInvitations );

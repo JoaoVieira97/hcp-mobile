@@ -66,6 +66,7 @@ import ClosedTrainings from "../management/trainings/ClosedTrainings";
 import ChangeAthletesPresences from "../management/ChangeAthletesPresences";
 import ChangeLateAthletes from "../management/ChangeLateAthletes";
 import RegisterInjury from "../athletes/injuries/RegisterInjury";
+import OpenedGameInvitations from "../invitations/games/OpenedGameInvitations";
 
 const styles = StyleSheet.create({
     container: {
@@ -299,6 +300,7 @@ const InvitationsNavigator = createMaterialTopTabNavigator({
 const InvitationsStackNavigator = createStackNavigator({
     InvitationsNavigator: {screen: InvitationsNavigator},
     OpenedTrainingInvitations: {screen: OpenedTrainingInvitations},
+    OpenedGameInvitations: {screen: OpenedGameInvitations},
     EventScreen: {screen: EventScreen},
 }, {
     initialRouteName: 'InvitationsNavigator',

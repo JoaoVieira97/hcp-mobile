@@ -131,6 +131,22 @@ class TrainingInvitations extends Component {
 
                     let canChangeAvailability = moment(convertTime.getDate()).isAfter(this.state.date);
 
+                    /*
+                        diff = difference in ms between actual date and game's date
+                        oneDay = one day in ms
+                        gameDayMidNight = gameDay + '00:00:00' -> To verify Hoje or Amanha
+                     */
+                    let diff = moment(convertTime.getDate()).diff(moment(this.state.date));
+                    let oneDay = 24 * 60 * 60 * 1000;
+                    let gameDayMidNight = (convertTime.getDate().split('T'))[0] + 'T00:00:00';
+
+                    if(diff >=0){
+                        if(diff < oneDay) {
+                            if(moment(this.state.date).isAfter(gameDayMidNight )) date.date = 'Hoje';
+                            else date.date = 'Amanhã';
+                        }
+                    }
+
                     const training = {
                         id: item.id,
                         eventId: item.evento_desportivo[0],

@@ -35,26 +35,15 @@ class GameItem extends React.PureComponent {
                 subtitle={(
                     <View  style={{flex: 1, flexDirection: 'column'}}>
                         <View style={{flex: 1, flexDirection: 'row'}}>
-                            <Text style={{fontWeight: '700', color: colorText}}>
-                                {'Competição: '}
-                            </Text>
-                            <Text style={{fontWeight: '400', color: colorText}}>
-                                {game.competition[1]}
-                            </Text>
-                        </View>
-                        <View style={{flex: 1, flexDirection: 'row'}}>
-                            <Text style={{fontWeight: '700', color: colorText}}>
+                            <Text style={{fontWeight: '700', color: colors.darkGrayColor}}>
                                 {'Adversário: '}
                             </Text>
-                            <Text style={{fontWeight: '400', color: colorText}}>
-                                {game.opponent[1]}
+                            <Text style={{fontWeight: '400', color: colors.darkGrayColor}}>
+                                {game.opponent}
                             </Text>
                         </View>
                         <Text style={{color: colors.darkGrayColor}}>
                             {'Início: ' + game.hours}
-                        </Text>
-                        <Text style={{color: colors.darkGrayColor}}>
-                            {'Duração: ' + game.duration + ' min'}
                         </Text>
                         <Text numberOfLines={1} ellipsizeMode='tail' style={{color: colors.darkGrayColor}}>
                             {
@@ -130,7 +119,7 @@ class GameInvitations extends Component {
                     ['id', 'not in', idsFetched],
                     ['atletas', 'in', athleteId]
                 ],
-                fields: ['id', 'atletas', 'display_start',
+                fields: ['id', 'evento_desportivo' ,'atletas', 'display_start',
                         'local', 'escalao', 'duracao',
                         'convocatorias','treinador', 'seccionistas',
                         'equipa_adversaria', 'competicao'],
@@ -141,9 +130,6 @@ class GameInvitations extends Component {
 
             const response = await this.props.odoo.search_read('ges.jogo', params);
 
-            //console.log("\n\n------------------------\n\n");
-            //console.log(response);
-            //console.log("\n\n------------------------\n\n");
             if (response.success && response.data.length > 0) {
 
                 let games = [];
@@ -152,18 +138,34 @@ class GameInvitations extends Component {
 
                     convertTime.setDate(item.display_start);
                     const date = convertTime.getTimeObject();
-
                     let canChangeAvailability = moment(convertTime.getDate()).isAfter(this.state.date);
+
+                    /*
+                        diff = difference in ms between actual date and game's date
+                        oneDay = one day in ms
+                        gameDayMidNight = gameDay + '00:00:00' -> To verify Hoje or Amanha
+                     */
+                    let diff = moment(convertTime.getDate()).diff(moment(this.state.date));
+                    let oneDay = 24 * 60 * 60 * 1000;
+                    let gameDayMidNight = (convertTime.getDate().split('T'))[0] + 'T00:00:00';
+
+                    if(diff >=0){
+                        if(diff < oneDay) {
+                             if(moment(this.state.date).isAfter(gameDayMidNight )) date.date = 'Hoje';
+                             else date.date = 'Amanhã';
+                        }
+                    }
 
                     const game = {
                         id: item.id,
+                        eventId: item.evento_desportivo[0],
                         place: item.local,
                         echelon: item.escalao,
                         duration: item.duracao,
                         date: date.date,
                         hours: date.hour,
-                        opponent: item.equipa_adversaria,
-                        competition: item.competicao,
+                        opponent: item.equipa_adversaria ? item.equipa_adversaria[1] : 'Não definido',
+                        competition: item.competicao ? (item.competicao[1].split('('))[0] : 'Não definida',
                         athleteIds: item.atletas,
                         invitationIds: item.convocatorias,
                         coachIds: item.treinador,
@@ -171,14 +173,6 @@ class GameInvitations extends Component {
                         canChangeAvailability: canChangeAvailability,
                     };
 
-                    //console.log("ATLETAS: " + game.athleteIds.length);
-                    //console.log("CONVOCATORIAS: " + game.invitationIds.length);
-
-                    //console.log("\n\n------------------------\n\n");
-                    //console.log(game.invitationIds);
-                    //console.log("\n\n------------------------\n\n");
-
-                    console.log(game.competition);
                     games.push(game);
                 });
 
