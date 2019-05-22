@@ -3,30 +3,33 @@ import {connect} from 'react-redux';
 import CustomText from "../../CustomText";
 import {Ionicons, AntDesign} from "@expo/vector-icons";
 import {
-    Alert, 
+    Alert,
     Picker,
     View,
     Text,
     StyleSheet,
     TouchableOpacity,
-    TextInput
+    TextInput, KeyboardAvoidingView
 } from 'react-native';
 import 'moment/locale/pt'
-import {Card} from "react-native-paper";
+import {Card, Button} from "react-native-paper";
 import * as Animatable from "react-native-animatable";
-import Loader from "../../screens/Loader";
+
+
 
 class RegisterInjury extends Component {
 
     constructor(props) {
         super(props);
         this.state = {
-            eventId: {},
-            eventType: {},
+            isLoading: false,
+            isDisabled: true,
+
+            athleteId: -1,
+            eventId: undefined,
+            eventType: undefined,
             athletes: [],
-            athlete: {},
-            isLoading: true,
-            text: '',
+            text: ''
         }
     }
 
@@ -68,78 +71,113 @@ class RegisterInjury extends Component {
             athletes: this.props.navigation.state.params.athletes,
             isLoading: false
         });
-
-        //console.log(this.props.navigation.state.params.eventId);
-        //console.log(this.props.navigation.state.params.eventDate);
-        //console.log(this.props.navigation.state.params.eventType);
-        //console.log(this.props.navigation.state.params.athletes);
     }
 
     /**
      * Handler for athlete.
-     * @param athlete
+     * @param athleteId
      * @private
      */
-    _handleAthletePicked = (athlete) => {
-        this.setState({
-            athlete: athlete
-        })
+    _handleAthletePicked = async (athleteId) => {
+
+        if(athleteId !== -1)
+            await this.setState({athleteId: athleteId});
+
+        if(this.state.athleteId !== -1 && this.state.text !== '')
+            this.setState({isDisabled: false});
+        else
+            this.setState({isDisabled: true});
     };
 
+    /**
+     * Handler for observations text.
+     * @param text
+     * @private
+     */
+    _handleOnChangeText = async (text) => {
+
+        await this.setState({text: text});
+
+        if(this.state.athleteId !== -1 && this.state.text !== '')
+            this.setState({isDisabled: false});
+        else
+            this.setState({isDisabled: true});
+    };
+
+    /**
+     * Create a new injury.
+     * @returns {Promise<void>}
+     */
     saveInjury = async () => {
-        
-        //console.log(this.state.athlete)
-        //console.log(this.state.text)
 
-        var params = {
-            atleta: this.state.athlete,
-            ocorreu_num: this.state.eventType,
-            observacoes_ocor: this.state.text,
-            data_ocorrencia: this.state.eventDate,
-            state: 'diagnostico'
-        };
+        if (this.state.athleteId !== -1 && this.state.text !== '') {
 
-        (this.state.eventType == 'treino') ?
-            params.treino = this.state.eventId :
-            params.jogo = this.state.eventId
+            await this.setState({isLoading: true});
 
-        console.log(params)
-        
-        response = await this.props.odoo.create('ges.lesao', params);
-    
-        if (response.success){
+            let params = {
+                atleta: this.state.athleteId,
+                ocorreu_num: this.state.eventType,
+                observacoes_ocor: this.state.text,
+                data_ocorrencia: this.state.eventDate,
+                state: 'diagnostico'
+            };
 
-            Alert.alert('Sucesso', 'Lesão registada')
-            this.props.navigation.goBack();
+            // check event type
+            if (this.state.eventType === 'treino')
+                params.treino = this.state.eventId;
+            else
+                params.jogo = this.state.eventId;
 
-        } else{
+            // create
+            const response = await this.props.odoo.create('ges.lesao', params);
+            await this.setState({isLoading: false});
+            if (response.success){
 
-            Alert.alert('Erro', 'Ocorreu um erro. Tente de novo.')
-            
+                Alert.alert('Sucesso', 'A lesão foi registada com sucesso.',
+                    [
+                        {text: 'OK', onPress: () => this.props.navigation.goBack()}
+                    ],
+                    {cancelable: false},
+                );
+            }
+            else {
+                Alert.alert('Erro', 'Ocorreu um erro ao tentar registar a lesão. ' +
+                    'Por favor, tente mais tarde.',
+                    [
+                        {text: 'OK', onPress: () => this.props.navigation.goBack()}
+                    ],
+                    {cancelable: false},
+                );
+            }
         }
-    }
-    
+        else {
+            Alert.alert('Erro', 'Por favor, preencha todos os campos.');
+        }
+    };
+
     render() {
 
-        const list_athletes = this.state.athletes.map((data) => {
-            return (
-                <Picker.Item label={data.name} value={data.id} key={data.id} />
-            );
-        });
+        const pickerText= (
+            <Picker.Item label={"Selecione um atleta"} value={-1} key={-1} />
+        );
+        const athletesListAux = this.state.athletes.map((data) => (
+            <Picker.Item label={data.name} value={data.id} key={data.id} />
+        ));
+        const athletesList = [pickerText, ...athletesListAux];
 
         return (
-            <View style={styles.container}>
-                {
-                    !this.state.isLoading &&
-                    <Animatable.View animation={"fadeIn"}>
+            <KeyboardAvoidingView style={styles.container} behavior={'position'} >
+                <Animatable.View animation={"fadeIn"}>
+                    <View style={{width: '100%'}} >
                         <Card elevation={6}>
                             <Card.Title
-                                title="Registar lesão de atleta"
-                                subtitle="Defina todos os campos em baixo."
-                                left={(props) => <AntDesign name="filetext1" size={20} color={'#000'} {...props}/>}
+                                title={"Registar lesão"}
+                                left={(props) =>
+                                    <AntDesign name="filetext1" size={20} color={'#000'} {...props}/>
+                                }
                             />
                             <Card.Content>
-                                <View style={{marginTop: 30}}>
+                                <View style={{marginTop: 15}}>
                                     <Text style={{fontSize: 18, fontWeight: '400'}}>Atleta</Text>
                                     <View style={{
                                         borderRadius: 5,
@@ -147,46 +185,48 @@ class RegisterInjury extends Component {
                                         justifyContent: 'center'
                                     }}>
                                         <Picker
-                                            selectedValue={this.state.athlete}
+                                            selectedValue={
+                                                this.state.athleteId ?
+                                                    this.state.athleteId :
+                                                    -1
+                                            }
                                             onValueChange={this._handleAthletePicked}>
-                                            {list_athletes}
+                                            {athletesList}
                                         </Picker>
                                     </View>
                                 </View>
                                 <View style={{marginTop: 30}}>
                                     <Text style={{fontSize: 18, fontWeight: '400'}}>Observações</Text>
-                                    <View style={{
-                                        borderRadius: 5,
-                                        backgroundColor: '#f2f2f2',
-                                        justifyContent: 'center'
-                                    }}>
+                                    <View style={styles.textAreaContainer} >
                                         <TextInput
-                                            style={{height: 100}}
-                                            placeholder="Escreva as observações"
-                                            onChangeText={(text) => this.setState({text})}
-                                            editable={true}
+                                            style={styles.textArea}
+                                            placeholder={
+                                                "Introduza algumas observaçõe sobre a lesão..."
+                                            }
+                                            numberOfLines={7}
                                             multiline={true}
+                                            onChangeText={text => this._handleOnChangeText(text)}
                                         />
                                     </View>
                                 </View>
                             </Card.Content>
                         </Card>
-                    </Animatable.View>
-                }
-                <Loader isLoading={this.state.isLoading}/>
-                <View style={{
-                        flex: 1,
-                        justifyContent: 'flex-end',
-                }}>
-                    <TouchableOpacity
-                        onPress={this.saveInjury}
-                        style={styles.saveButton}>
-                        <Text style={{color: '#fff', fontWeight: '700', fontSize: 15}}>
-                            {'GUARDAR'}
-                        </Text>
-                    </TouchableOpacity>
-                </View>
-            </View>
+                    </View>
+                    <View style={{width: '100%'}} >
+                        <Button
+                            color={'rgba(173, 46, 83, 0.8)'}
+                            mode="contained"
+                            contentStyle={styles.saveButtonInside}
+                            style={styles.saveButtonOutside}
+                            onPress={this.saveInjury.bind(this)}
+                            loading={this.state.isLoading}
+                            disabled={this.state.isDisabled}
+                        >
+                            GUARDAR
+                        </Button>
+                    </View>
+                </Animatable.View>
+            </KeyboardAvoidingView>
         );
     }
 
@@ -195,18 +235,28 @@ class RegisterInjury extends Component {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        padding: 20
+        padding: 20,
     },
-    saveButton: {
-        backgroundColor: 'rgba(173, 46, 83, 0.8)',
-        padding: 10,
-        width: '100%',
+    textAreaContainer: {
         borderRadius: 5,
-        alignItems: 'center'
+        backgroundColor: '#f2f2f2',
+        padding: 5
+    },
+    textArea: {
+        height: 150,
+        justifyContent: "flex-start",
+        textAlignVertical: 'top'
+    },
+    saveButtonInside: {
+        height: 50,
+    },
+    saveButtonOutside: {
+        marginTop: 20
     }
 });
 
 const mapStateToProps = state => ({
+
     odoo: state.odoo.odoo,
     user: state.user,
 });

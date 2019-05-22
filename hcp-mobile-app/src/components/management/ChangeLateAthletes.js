@@ -6,6 +6,7 @@ import {Ionicons} from "@expo/vector-icons";
 import {Avatar, Badge, CheckBox, ListItem} from "react-native-elements";
 import {colors} from "../../styles/index.style";
 import {Snackbar} from "react-native-paper";
+import Loader from "../screens/Loader";
 
 
 
@@ -18,6 +19,7 @@ export default class ChangeLateAthletes extends Component {
             athletes: [],
             stateChanged: false,
             snackIsVisible: false,
+            isLoading: false
         };
     }
 
@@ -64,6 +66,8 @@ export default class ChangeLateAthletes extends Component {
      */
     async changeLateAthlete(athletePresenceId) {
 
+        this.setState({isLoading: true});
+
         // call component function
         const response = await this.props.navigation.state.params.lateFunction(athletePresenceId);
         if(response.success) {
@@ -77,6 +81,8 @@ export default class ChangeLateAthletes extends Component {
         } else {
             this.setState({snackIsVisible: true});
         }
+
+        this.setState({isLoading: false});
     }
 
     /**
@@ -157,6 +163,7 @@ export default class ChangeLateAthletes extends Component {
     render() {
         return (
             <View>
+                <Loader isLoading={this.state.isLoading}/>
                 <FlatList
                     keyExtractor={item => item.id + item.name}
                     data={this.state.athletes}

@@ -501,6 +501,7 @@ class PendingTraining extends Component {
                             </TouchableOpacity>
                             <View style={styles.registerContainer}>
                                 <TouchableOpacity
+                                    disabled={this.state.athletes && this.state.athletes.length === 0}
                                     onPress={() => {
                                         this.props.navigation.navigate('ChangeAthletesPresences', {
                                             athletes: this.state.athletes,
@@ -516,6 +517,7 @@ class PendingTraining extends Component {
                                     </Text>
                                 </TouchableOpacity>
                                 <TouchableOpacity
+                                    disabled={this.state.athletes && this.state.athletes.length === 0}
                                     onPress={() => {
                                         this.props.navigation.navigate('ChangeLateAthletes', {
                                             athletes: this.state.athletes.filter(item => item.present),
@@ -531,13 +533,12 @@ class PendingTraining extends Component {
                                     </Text>
                                 </TouchableOpacity>
                                 <TouchableOpacity
+                                    disabled={this.state.athletes && this.state.athletes.length === 0}
                                     onPress={() => {
                                         this.props.navigation.navigate('RegisterInjury', {
                                             eventId: this.state.training.id,
                                             eventDate: this.state.training.date,
-                                            athletes: this.state.athletes.map(a => {
-                                                return { name: a.name, id: a.id };
-                                            }),
+                                            athletes: this.state.athletes.filter(a => a.present),
                                             eventType: 'treino'
                                         });
                                     }}
