@@ -446,28 +446,6 @@ class ProfileScreen extends Component {
                                         Lesões
                                     </Button>
                                 </View>
-                                <View style={styles.buttonContent}>
-                                    <Button
-                                        disabled={true}
-                                        color={'#fff'}
-                                        mode="contained"
-                                        contentStyle={{height: 55}}
-                                        onPress={() => console.log('Pressed')}
-                                    >
-                                        Estatísticas
-                                    </Button>
-                                </View>
-                                <View style={styles.buttonContent}>
-                                    <Button
-                                        disabled={true}
-                                        color={'#fff'}
-                                        mode="contained"
-                                        contentStyle={{height: 55}}
-                                        onPress={() => console.log('Pressed')}
-                                    >
-                                        Dados antropométricos
-                                    </Button>
-                                </View>
                             </View>
                         }
                     </ScrollView>
