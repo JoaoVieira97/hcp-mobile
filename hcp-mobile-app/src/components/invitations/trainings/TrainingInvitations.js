@@ -15,10 +15,10 @@ class TrainingItem extends React.PureComponent {
 
         const training = this.props.training;
 
-        const colorText = !training.canChangeAvailability ? '#919391' : '#0d0d0d' ;
-        const colorBackground = !training.canChangeAvailability ? colors.lightGrayColor : '#fff';
-        const iconName = !training.canChangeAvailability ?  'md-done-all' : 'md-hourglass';
-        const iconSize = !training.canChangeAvailability ?  22 : 28;
+        const colorText = training.isOver ? '#919391' : '#0d0d0d' ;
+        const colorBackground = training.isOver ? colors.lightGrayColor : '#fff';
+        const iconName = training.isOver ?  'md-done-all' : 'md-hourglass';
+        const iconSize = training.isOver ?  22 : 28;
 
         return (
             <ListItem
@@ -114,7 +114,7 @@ class TrainingInvitations extends Component {
                     ['id', 'not in', idsFetched],
                     ['atletas', 'in', athleteId]
                 ],
-                fields: ['id', 'evento_desportivo', 'atletas', 'display_start', 'local', 'escalao', 'duracao', 'convocatorias','treinador', 'seccionistas'],
+                fields: ['id', 'evento_desportivo', 'atletas', 'display_start', 'local', 'escalao', 'duracao', 'convocatorias','treinador', 'seccionistas', 'state'],
                 limit: limit,
                 order: 'display_start DESC',
             };
@@ -129,7 +129,23 @@ class TrainingInvitations extends Component {
                     convertTime.setDate(item.display_start);
                     const date = convertTime.getTimeObject();
 
-                    let canChangeAvailability = moment(convertTime.getDate()).isAfter(this.state.date);
+                    let canChangeAvailability;
+                    let isOver;
+
+                    if(!moment(convertTime.getDate()).isAfter(this.state.date)){
+                        isOver = true;
+                        canChangeAvailability = false;
+                    }
+                    else if(item.state === 'convocatorias_fechadas' ||
+                        item.state === 'fechado'){
+
+                        isOver = false;
+                        canChangeAvailability = false;
+                    }
+                    else {
+                        isOver = false;
+                        canChangeAvailability = true;
+                    }
 
                     /*
                         diff = difference in ms between actual date and game's date
@@ -145,6 +161,9 @@ class TrainingInvitations extends Component {
                             if(moment(this.state.date).isAfter(gameDayMidNight )) date.date = 'Hoje';
                             else date.date = 'Amanhã';
                         }
+                        else if(diff < 2*oneDay){
+                            date.date = 'Amanhã';
+                        }
                     }
 
                     const training = {
@@ -155,10 +174,12 @@ class TrainingInvitations extends Component {
                         duration: item.duracao,
                         date: date.date,
                         hours: date.hour,
+                        state: item.state,
                         athleteIds : item.atletas,
                         invitationIds: item.convocatorias,
                         coachIds: item.treinador,
                         secretaryIds: item.seccionistas,
+                        isOver: isOver,
                         canChangeAvailability: canChangeAvailability,
                     };
 

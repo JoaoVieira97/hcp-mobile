@@ -15,10 +15,10 @@ class GameItem extends React.PureComponent {
 
         const game = this.props.game;
 
-        const colorText = !game.canChangeAvailability ? '#919391' : '#0d0d0d' ;
-        const colorBackground = !game.canChangeAvailability ? colors.lightGrayColor : '#fff';
-        const iconName = !game.canChangeAvailability ?  'md-done-all' : 'md-hourglass';
-        const iconSize = !game.canChangeAvailability ?  22 : 28;
+        const colorText = game.isOver ? '#919391' : '#0d0d0d' ;
+        const colorBackground = game.isOver ? colors.lightGrayColor : '#fff';
+        const iconName = game.isOver ?  'md-done-all' : 'md-hourglass';
+        const iconSize = game.isOver ?  22 : 28;
 
         return (
             <ListItem
@@ -122,7 +122,7 @@ class GameInvitations extends Component {
                 fields: ['id', 'evento_desportivo' ,'atletas', 'display_start',
                         'local', 'escalao', 'duracao',
                         'convocatorias','treinador', 'seccionistas',
-                        'equipa_adversaria', 'competicao'],
+                        'equipa_adversaria', 'competicao', 'state'],
                 //fields: [],
                 limit: limit,
                 order: 'display_start DESC',
@@ -138,7 +138,25 @@ class GameInvitations extends Component {
 
                     convertTime.setDate(item.display_start);
                     const date = convertTime.getTimeObject();
-                    let canChangeAvailability = moment(convertTime.getDate()).isAfter(this.state.date);
+                   // let canChangeAvailability = moment(convertTime.getDate()).isAfter(this.state.date);
+
+                    let canChangeAvailability;
+                    let isOver;
+
+                    if(!moment(convertTime.getDate()).isAfter(this.state.date)){
+                        isOver = true;
+                        canChangeAvailability = false;
+                    }
+                    else if(item.state === 'convocatorias_fechadas' ||
+                        item.state === 'fechado'){
+
+                        isOver = false;
+                        canChangeAvailability = false;
+                    }
+                    else {
+                        isOver = false;
+                        canChangeAvailability = true;
+                    }
 
                     /*
                         diff = difference in ms between actual date and game's date
@@ -154,6 +172,9 @@ class GameInvitations extends Component {
                              if(moment(this.state.date).isAfter(gameDayMidNight )) date.date = 'Hoje';
                              else date.date = 'Amanhã';
                         }
+                        else if(diff < 2*oneDay){
+                            date.date = 'Amanhã';
+                        }
                     }
 
                     const game = {
@@ -164,12 +185,14 @@ class GameInvitations extends Component {
                         duration: item.duracao,
                         date: date.date,
                         hours: date.hour,
+                        state: item.state,
                         opponent: item.equipa_adversaria ? item.equipa_adversaria[1] : 'Não definido',
                         competition: item.competicao ? (item.competicao[1].split('('))[0] : 'Não definida',
                         athleteIds: item.atletas,
                         invitationIds: item.convocatorias,
                         coachIds: item.treinador,
                         secretaryIds: item.seccionistas,
+                        isOver: isOver,
                         canChangeAvailability: canChangeAvailability,
                     };
 

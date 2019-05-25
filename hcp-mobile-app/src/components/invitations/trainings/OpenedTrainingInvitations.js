@@ -35,10 +35,12 @@ class OpenedTrainingInvitations extends Component {
                 duration: undefined,
                 date: undefined,
                 hours: undefined,
+                state: undefined,
                 athleteIds : [],
                 invitationIds: [],
                 coachIds: [],
                 secretaryIds: [],
+                isOver: undefined,
                 canChangeAvailability: undefined,
             },
             coaches: ["A carregar..."],
@@ -284,82 +286,98 @@ class OpenedTrainingInvitations extends Component {
 */
     async changeAvailability(){
 
-        this.setState({isLoading: true,});
+        if(this.state.training.canChangeAvailability){
 
-        /*
-        const params = {
-            kwargs: {
-                context: this.props.odoo.context,
-            },
-            model: 'ges.treino',
-            method: 'alterar_disponibilidade',
-            args: [this.state.training.id],
-        };
+            this.setState({isLoading: true,});
 
-        const response = await this.props.odoo.rpc_call(
-            '/web/dataset/call_kw',
-            params
-        );*/
-
-        const athleteInfo = this.props.user.groups.filter(group => group.name === 'Atleta');
-
-        if(athleteInfo){
-            const athleteId = athleteInfo[0].id;
-
+            /*
             const params = {
                 kwargs: {
                     context: this.props.odoo.context,
                 },
-                model: 'ges.evento_desportivo',
-                method: 'atleta_alterar_disponibilidade',
-                args: [
-                    this.state.training.eventId,
-                    athleteId
-                ],
+                model: 'ges.treino',
+                method: 'alterar_disponibilidade',
+                args: [this.state.training.id],
             };
 
-            const response = await this.props.odoo.rpc_call('/web/dataset/call_kw', params);
+            const response = await this.props.odoo.rpc_call(
+                '/web/dataset/call_kw',
+                params
+            );*/
 
-            console.log(response);
-            console.log("ATLETA: "+athleteId);
-            console.log("ID: "+ this.props.user.id);
-            if (response.success) {
+            const athleteInfo = this.props.user.groups.filter(group => group.name === 'Atleta');
 
-                //const athleteInfo = this.props.user.groups.filter(group => group.name === 'Atleta');
-                //const athleteId = athleteInfo[0].id;
+            if(athleteInfo){
+                const athleteId = athleteInfo[0].id;
 
-                const athletes = this.state.athletes;
-                const athleteIndex = athletes.findIndex(athlete => athlete.id === athleteId);
+                const params = {
+                    kwargs: {
+                        context: this.props.odoo.context,
+                    },
+                    model: 'ges.evento_desportivo',
+                    method: 'atleta_alterar_disponibilidade',
+                    args: [
+                        this.state.training.eventId,
+                        athleteId
+                    ],
+                };
 
-                if(athleteIndex >= 0) {
-                    athletes[athleteIndex].available = !this.state.checked;
+                const response = await this.props.odoo.rpc_call('/web/dataset/call_kw', params);
 
-                    if(athletes[athleteIndex].displayColor === 'green') athletes[athleteIndex].displayColor = 'red';
-                    else athletes[athleteIndex].displayColor = 'green';
+                console.log(response);
+                console.log("ATLETA: "+athleteId);
+                console.log("ID: "+ this.props.user.id);
+                if (response.success) {
+
+                    //const athleteInfo = this.props.user.groups.filter(group => group.name === 'Atleta');
+                    //const athleteId = athleteInfo[0].id;
+
+                    const athletes = this.state.athletes;
+                    const athleteIndex = athletes.findIndex(athlete => athlete.id === athleteId);
+
+                    if(athleteIndex >= 0) {
+                        athletes[athleteIndex].available = !this.state.checked;
+
+                        if(athletes[athleteIndex].displayColor === 'green') athletes[athleteIndex].displayColor = 'red';
+                        else athletes[athleteIndex].displayColor = 'green';
+                    }
+
+                    this.setState(state => ({
+                        athletes: athletes,
+                        isLoading: false,
+                        checked: !this.state.checked,
+                    }));
                 }
+            }
 
-                this.setState(state => ({
-                    athletes: athletes,
+            else {
+
+                this.setState({
                     isLoading: false,
-                    checked: !this.state.checked,
-                }));
+                });
+
+                Alert.alert(
+                    'Erro ao atualizar',
+                    'Ocorreu um erro ao atualizar a sua disponibilidade. Por favor, tente novamente.',
+                    [
+                        {text: 'Confirmar'}
+                    ],
+                    {cancelable: true},
+                );
             }
         }
 
-        else {
-
-            this.setState({
-                isLoading: false,
-            });
+        else{
 
             Alert.alert(
-                'Erro ao atualizar',
-                'Ocorreu um erro ao atualizar a sua disponibilidade. Por favor, tente novamente.',
+                'Não é possível alterar disponibilidade',
+                'O evento já ocorreu ou esta convocatória já foi encerrada.',
                 [
                     {text: 'Confirmar'}
                 ],
                 {cancelable: true},
             );
+
         }
     };
 
@@ -427,6 +445,7 @@ class OpenedTrainingInvitations extends Component {
             return (
                 <ListItem
                     title={item.name}
+                    subtitle={item.subtitle}
                     leftAvatar={
                         <View style={{width: 25}}>
                             <Ionicons name={item.icon} size={27} />
@@ -495,13 +514,19 @@ class OpenedTrainingInvitations extends Component {
             name: 'Seccionistas',
             icon: 'md-clipboard',
             subtitle: this.state.secretaries.join(',  ')
+        }, {
+            name: 'Disponibilidade',
+            icon: 'md-list-box',
+            subtitle: this.state.training.canChangeAvailability ?
+                    '(Pode mudar a sua disponibilidade)' :
+                    '(O evento já ocorreu ou esta convocatória já foi fechada)',
         }];
 
-        if (this.state.training.canChangeAvailability)
+        /*if (this.state.training.canChangeAvailability)
             list.push({
                 name: 'Disponibilidade',
                 icon: 'md-list-box'
-            });
+            }); */
 
         return (
             <View style={{flex: 1}}>
