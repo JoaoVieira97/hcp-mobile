@@ -48,7 +48,8 @@ class OpenedGameInvitations  extends Component {
             coaches: ["A carregar..."],
             secretaries: ["A carregar..."],
             athletes: [],
-            checked: true
+            checked: true,
+            child: {},
         }
     }
 
@@ -85,6 +86,7 @@ class OpenedGameInvitations  extends Component {
 
         await this.setState({
             game: this.props.navigation.getParam('game'),
+            child: this.props.navigation.getParam('child'),
         });
     }
 
@@ -156,8 +158,15 @@ class OpenedGameInvitations  extends Component {
                 athletes.push(athlete);
             });
 
-            const athleteInfo = this.props.user.groups.filter(group => group.name === 'Atleta');
-            const athleteId = athleteInfo[0].id;
+            let athleteId;
+
+            if(this.state.child){
+                athleteId = this.state.child.id;
+            }
+            else{
+                const athleteInfo = this.props.user.groups.filter(group => group.name === 'Atleta');
+                athleteId = athleteInfo[0].id;
+            }
 
             let checked = true;
             const athletesFiltered = athletes.filter(athlete => athlete.id === athleteId);
@@ -255,37 +264,6 @@ class OpenedGameInvitations  extends Component {
      * Change athlete availability.
      * @returns {Promise<void>}
      */
-
-    /*
-        async changeAthleteAvailability(athleteId) {
-
-
-            if (response.success) {
-
-                const athletes = this.state.athletes.map(item => {
-                    let itemAux = item;
-                    if(item.id === athleteId) {
-                        itemAux.available = !item.available;
-                    }
-
-                    // color
-                    if (itemAux.available)
-                        itemAux.displayColor = 'green';
-                    else
-                        itemAux.displayColor = 'red';
-
-                    return itemAux;
-                });
-
-                this.setState({athletes: athletes});
-
-                return {success: true, athletes: athletes};
-            }
-
-            return {success: false, athletes: this.state.athletes};
-        }
-
-    */
     async changeAvailability(){
 
         if(this.state.game.canChangeAvailability){
@@ -306,11 +284,17 @@ class OpenedGameInvitations  extends Component {
                 params
             );*/
 
-            const athleteInfo = this.props.user.groups.filter(group => group.name === 'Atleta');
+            let athleteId;
 
-            if(athleteInfo){
-                const athleteId = athleteInfo[0].id;
+            if(this.state.child){
+                athleteId = this.state.child.id;
+            }
+            else{
+                const athleteInfo = this.props.user.groups.filter(group => group.name === 'Atleta');
+                athleteId = athleteInfo[0].id;
+            }
 
+            if(athleteId){
                 const params = {
                     kwargs: {
                         context: this.props.odoo.context,
@@ -324,10 +308,6 @@ class OpenedGameInvitations  extends Component {
                 };
 
                 const response = await this.props.odoo.rpc_call('/web/dataset/call_kw', params);
-
-                console.log(response);
-                console.log("ATLETA: "+athleteId);
-                console.log("ID: "+ this.props.user.id);
                 if (response.success) {
 
                     //const athleteInfo = this.props.user.groups.filter(group => group.name === 'Atleta');
@@ -523,16 +503,10 @@ class OpenedGameInvitations  extends Component {
         },{
             name: 'Disponibilidade',
             icon: 'md-list-box',
-            subtitle: this.state.game.canChangeAvailability ?
-                '(Pode mudar a sua disponibilidade)' :
-                '(O evento já ocorreu ou esta convocatória já foi fechada)',
+            subtitle: !this.state.game.canChangeAvailability ? '(O evento já ocorreu ou esta convocatória já foi fechada)'
+                : this.state.child ? '(Pode mudar a disponibilidade de '+ this.state.child.name +')'
+                    : '(Pode mudar a sua disponibilidade )',
         }];
-
-        /*if (this.state.game.canChangeAvailability)
-            list.push({
-                name: 'Disponibilidade',
-                icon: 'md-list-box'
-            });*/
 
         return (
             <View style={{flex: 1}}>

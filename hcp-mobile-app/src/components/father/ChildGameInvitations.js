@@ -3,69 +3,12 @@ import React, {Component} from 'react';
 import {View, Text, FlatList, ActivityIndicator, TouchableOpacity} from 'react-native';
 import {Ionicons} from "@expo/vector-icons";
 import {connect} from "react-redux";
-import {ListItem} from "react-native-elements";
 import moment from 'moment';
-//import {colors} from "../../../styles/index.style";
 
 import ConvertTime  from '../ConvertTime';
-import CustomText from "./ChildTrainingInvitations";
-/*
-class GameItem extends React.PureComponent {
+import CustomText from "../CustomText";
+import GameItem  from '../invitations/games/GameItem';
 
-    render() {
-
-        const game = this.props.game;
-
-        const colorText = game.isOver ? '#919391' : '#0d0d0d' ;
-        const colorBackground = game.isOver ? colors.lightGrayColor : '#fff';
-        const iconName = game.isOver ?  'md-done-all' : 'md-hourglass';
-        const iconSize = game.isOver ?  22 : 28;
-
-        return (
-            <ListItem
-                title={(
-                    <View style={{flex: 1, flexDirection: 'row'}}>
-                        <Text style={{fontSize: 16, fontWeight: '700', color: colorText}}>
-                            {'Jogo ' + game.echelon[1] + ' | '}
-                        </Text>
-                        <Text style={{fontSize: 16, fontWeight: '400', color: colorText}}>
-                            {game.date}
-                        </Text>
-                    </View>
-                )}
-                subtitle={(
-                    <View  style={{flex: 1, flexDirection: 'column'}}>
-                        <View style={{flex: 1, flexDirection: 'row'}}>
-                            <Text style={{fontWeight: '700', color: colors.darkGrayColor}}>
-                                {'Adversário: '}
-                            </Text>
-                            <Text style={{fontWeight: '400', color: colors.darkGrayColor}}>
-                                {game.opponent}
-                            </Text>
-                        </View>
-                        <Text style={{color: colors.darkGrayColor}}>
-                            {'Início: ' + game.hours}
-                        </Text>
-                        <Text numberOfLines={1} ellipsizeMode='tail' style={{color: colors.darkGrayColor}}>
-                            {
-                                game.place ?
-                                    'Local: ' + game.place[1] :
-                                    'Nenhum local atribuído'
-                            }
-                        </Text>
-                    </View>
-                )}
-                leftAvatar={(<Ionicons name={iconName} size={iconSize} color={colorText} />)}
-                chevron
-                containerStyle={{
-                    backgroundColor: colorBackground
-                }}
-                onPress={() => { this.props.navigation.navigate('OpenedGameInvitations', {game: game})}}
-            />
-        )
-    }
-}
-*/
 class ChildGameInvitations extends Component {
 
     constructor(props) {
@@ -79,8 +22,12 @@ class ChildGameInvitations extends Component {
             child: {},
         };
     }
-/*
+
     async componentDidMount() {
+
+        await this.setState({
+            child: this.props.navigation.getParam('child'),
+        });
 
         const date = moment().format();
         await this.setState({date: date});
@@ -90,7 +37,7 @@ class ChildGameInvitations extends Component {
 
         await this.setState({isLoading: false});
     }
-*/
+
     /**
      * Define navigator name.
      */
@@ -136,10 +83,8 @@ class ChildGameInvitations extends Component {
             await this.setState({games: []});
         }
 
-        const athleteInfo = this.props.user.groups.filter(group => group.name === 'Atleta');
-        if(athleteInfo) {
-
-            const athleteId = athleteInfo[0].id;
+        const athleteId = this.state.child.id;
+        if(athleteId) {
             const idsFetched = this.state.games.map(game => {return game.id});
 
             const params = {
@@ -248,6 +193,7 @@ class ChildGameInvitations extends Component {
         <GameItem
             key={item.id + item.date}
             game={item}
+            child={this.state.child}
             index={index}
             navigation={this.props.navigation} />
     );
@@ -314,7 +260,7 @@ class ChildGameInvitations extends Component {
 
     render() {
 
-        /*
+
         return (
             <FlatList
                 keyExtractor={item => item.id + item.date}
@@ -327,12 +273,7 @@ class ChildGameInvitations extends Component {
                 refreshing={this.state.isRefreshing}
                 onRefresh={this.handleRefresh}
             />
-        );*/
-        return (
-            <View>
-                <Text> JOGO </Text>
-            </View>
-        )
+        );
     }
 }
 

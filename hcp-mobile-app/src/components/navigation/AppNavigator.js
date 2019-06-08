@@ -460,10 +460,13 @@ const ChildInvitationsStackNavigator = createStackNavigator({
 const ChildrenStackNavigator = createStackNavigator({
     ChildesScreen: {screen: ChildesScreen},
     ChildScreen: {screen: ChildScreen},
+    ChildInvitationsScreen: {screen: ChildInvitationsNavigator},
+    OpenedTrainingInvitations: {screen: OpenedTrainingInvitations},
+    OpenedGameInvitations: {screen: OpenedGameInvitations},
+    EventScreen: {screen: EventScreen},
     ChildInjuriesTypesScreen: {screen: AthleteInjuriesTypes},
     ChildInjuriesScreen:  {screen: AthleteInjuries},
     ChildInjuryScreen: {screen: AthleteInjury},
-    ChildInvitationsScreen: {screen: ChildInvitationsNavigator},
 }, {
     initialRouteName: 'ChildesScreen',
     defaultNavigationOptions: ({navigation}) => {

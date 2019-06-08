@@ -1,64 +1,11 @@
 import React, {Component} from 'react';
 
 import {View, Text, FlatList, ActivityIndicator} from 'react-native';
-import {Ionicons} from "@expo/vector-icons";
 import {connect} from "react-redux";
-import {ListItem} from "react-native-elements";
 import moment from 'moment';
-import {colors} from "../../../styles/index.style";
 
 import ConvertTime  from '../../ConvertTime';
-
-class TrainingItem extends React.PureComponent {
-
-    render() {
-
-        const training = this.props.training;
-
-        const colorText = training.isOver ? '#919391' : '#0d0d0d' ;
-        const colorBackground = training.isOver ? colors.lightGrayColor : '#fff';
-        const iconName = training.isOver ?  'md-done-all' : 'md-hourglass';
-        const iconSize = training.isOver ?  22 : 28;
-
-        return (
-            <ListItem
-                title={(
-                    <View style={{flex: 1, flexDirection: 'row'}}>
-                        <Text style={{fontSize: 16, fontWeight: '700', color: colorText}}>
-                            {'Treino ' + training.echelon[1] + ' | '}
-                        </Text>
-                        <Text style={{fontSize: 16, fontWeight: '400', color: colorText}}>
-                            {training.date}
-                        </Text>
-                    </View>
-                )}
-                subtitle={(
-                    <View  style={{flex: 1, flexDirection: 'column'}}>
-                        <Text style={{color: colors.darkGrayColor}}>
-                            {'Início: ' + training.hours}
-                        </Text>
-                        <Text style={{color: colors.darkGrayColor}}>
-                            {'Duração: ' + training.duration + ' min'}
-                        </Text>
-                        <Text numberOfLines={1} ellipsizeMode='tail' style={{color: colors.darkGrayColor}}>
-                            {
-                                training.place ?
-                                    'Local: ' + training.place[1] :
-                                    'Nenhum local atribuído'
-                            }
-                        </Text>
-                    </View>
-                )}
-                leftAvatar={(<Ionicons name={iconName} size={iconSize} color={colorText} />)}
-                chevron
-                containerStyle={{
-                    backgroundColor: colorBackground
-                }}
-                onPress={() => { this.props.navigation.navigate('OpenedTrainingInvitations', {training: training})}}
-            />
-        )
-    }
-}
+import TrainingItem from './TrainingItem';
 
 class TrainingInvitations extends Component {
 
@@ -103,6 +50,7 @@ class TrainingInvitations extends Component {
             await this.setState({trainings: []});
         }
 
+        console.log("OLEEEEEEEEEEEEE");
         const athleteInfo = this.props.user.groups.filter(group => group.name === 'Atleta');
         if(athleteInfo) {
 

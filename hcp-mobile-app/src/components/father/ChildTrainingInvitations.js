@@ -3,65 +3,12 @@ import React, {Component} from 'react';
 import {View, Text, FlatList, ActivityIndicator, TouchableOpacity} from 'react-native';
 import {Ionicons} from "@expo/vector-icons";
 import {connect} from "react-redux";
-import {ListItem} from "react-native-elements";
 import moment from 'moment';
-//import {colors} from "../../styles/index.style";
 
 import ConvertTime  from '../ConvertTime';
-import CustomText from "../athletes/injuries/AthleteInjuriesTypes";
+import CustomText from "../CustomText";
+import TrainingItem  from '../invitations/trainings/TrainingItem';
 
-/*
-class TrainingItem extends React.PureComponent {
-
-    render() {
-
-        const training = this.props.training;
-
-        const colorText = training.isOver ? '#919391' : '#0d0d0d' ;
-        const colorBackground = training.isOver ? colors.lightGrayColor : '#fff';
-        const iconName = training.isOver ?  'md-done-all' : 'md-hourglass';
-        const iconSize = training.isOver ?  22 : 28;
-
-        return (
-            <ListItem
-                title={(
-                    <View style={{flex: 1, flexDirection: 'row'}}>
-                        <Text style={{fontSize: 16, fontWeight: '700', color: colorText}}>
-                            {'Treino ' + training.echelon[1] + ' | '}
-                        </Text>
-                        <Text style={{fontSize: 16, fontWeight: '400', color: colorText}}>
-                            {training.date}
-                        </Text>
-                    </View>
-                )}
-                subtitle={(
-                    <View  style={{flex: 1, flexDirection: 'column'}}>
-                        <Text style={{color: colors.darkGrayColor}}>
-                            {'Início: ' + training.hours}
-                        </Text>
-                        <Text style={{color: colors.darkGrayColor}}>
-                            {'Duração: ' + training.duration + ' min'}
-                        </Text>
-                        <Text numberOfLines={1} ellipsizeMode='tail' style={{color: colors.darkGrayColor}}>
-                            {
-                                training.place ?
-                                    'Local: ' + training.place[1] :
-                                    'Nenhum local atribuído'
-                            }
-                        </Text>
-                    </View>
-                )}
-                leftAvatar={(<Ionicons name={iconName} size={iconSize} color={colorText} />)}
-                chevron
-                containerStyle={{
-                    backgroundColor: colorBackground
-                }}
-                onPress={() => { this.props.navigation.navigate('OpenedTrainingInvitations', {training: training})}}
-            />
-        )
-    }
-}
-*/
 
 class ChildTrainingInvitations extends Component {
 
@@ -76,8 +23,12 @@ class ChildTrainingInvitations extends Component {
             child: {},
         };
     }
-/*
+
     async componentDidMount() {
+
+        await this.setState({
+            child: this.props.navigation.getParam('child'),
+        });
 
         const date = moment().format();
         await this.setState({date: date});
@@ -87,7 +38,7 @@ class ChildTrainingInvitations extends Component {
 
         await this.setState({isLoading: false});
     }
-*/
+
     /**
      * Define navigator name.
      */
@@ -132,12 +83,10 @@ class ChildTrainingInvitations extends Component {
             await this.setState({trainings: []});
         }
 
-        const athleteInfo = this.props.user.groups.filter(group => group.name === 'Atleta');
-        if(athleteInfo) {
+        const athleteId = this.state.child.id;
+        if(athleteId) {
 
-            const athleteId = athleteInfo[0].id;
             const idsFetched = this.state.trainings.map(training => {return training.id});
-
             const params = {
                 domain: [
                     ['id', 'not in', idsFetched],
@@ -149,6 +98,7 @@ class ChildTrainingInvitations extends Component {
             };
 
             const response = await this.props.odoo.search_read('ges.treino', params);
+
             if (response.success && response.data.length > 0) {
 
                 let trainings = [];
@@ -236,6 +186,7 @@ class ChildTrainingInvitations extends Component {
         <TrainingItem
             key={item.id + item.date}
             training={item}
+            child={this.state.child}
             index={index}
             navigation={this.props.navigation} />
     );
@@ -301,8 +252,6 @@ class ChildTrainingInvitations extends Component {
     };
 
     render() {
-
-        /*
         return (
             <FlatList
                 keyExtractor={item => item.id + item.date}
@@ -315,12 +264,7 @@ class ChildTrainingInvitations extends Component {
                 refreshing={this.state.isRefreshing}
                 onRefresh={this.handleRefresh}
             />
-        );*/
-        return (
-            <View>
-                <Text> TREINO </Text>
-            </View>
-        )
+        );
     }
 }
 
