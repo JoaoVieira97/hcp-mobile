@@ -146,11 +146,10 @@ class ChildScreen extends Component {
                         </View>
                         <View style={styles.buttonContent}>
                             <Button
-                                disabled={true}
                                 color={'#fff'}
                                 mode="contained"
                                 contentStyle={{height: 55}}
-                                onPress={() => console.log('Pressed')}
+                                onPress={() => this.props.navigation.navigate('ChildInvitationsScreen', {child: child})}
                             >
                                 Convocatórias
                             </Button>

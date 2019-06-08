@@ -158,21 +158,25 @@ class GameInvitations extends Component {
                         canChangeAvailability = true;
                     }
 
-                    /*
-                        diff = difference in ms between actual date and game's date
-                        oneDay = one day in ms
-                        gameDayMidNight = gameDay + '00:00:00' -> To verify Hoje or Amanha
+                    /**
+                     diff = difference in ms between actual date and game's date
+                     oneDay = one day in ms
+                     gameDayMidNight = gameDay + '00:00:00' -> To verify Hoje or Amanha
+                     twoDaysLimit = actualDate + 2 days + '00:00:00' -> To verify Amanha
+                     (se a data do jogo nao atual ultrapassar estes 2 dias de limite, data=Amanha)
                      */
                     let diff = moment(convertTime.getDate()).diff(moment(this.state.date));
                     let oneDay = 24 * 60 * 60 * 1000;
                     let gameDayMidNight = (convertTime.getDate().split('T'))[0] + 'T00:00:00';
+                    let twoDaysLimit = (moment(this.state.date).add(2, 'days').format()
+                        .split('T'))[0] + 'T00:00:00';
 
                     if(diff >=0){
                         if(diff < oneDay) {
-                             if(moment(this.state.date).isAfter(gameDayMidNight )) date.date = 'Hoje';
-                             else date.date = 'Amanhã';
+                            if(moment(this.state.date).isAfter(gameDayMidNight)) date.date = 'Hoje';
+                            else date.date = 'Amanhã';
                         }
-                        else if(diff < 2*oneDay){
+                        else if(diff < 2*oneDay && !moment(convertTime.getDate()).isAfter(twoDaysLimit)) {
                             date.date = 'Amanhã';
                         }
                     }

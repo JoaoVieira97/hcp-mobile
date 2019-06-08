@@ -67,6 +67,8 @@ import ChangeAthletesPresences from "../management/ChangeAthletesPresences";
 import ChangeLateAthletes from "../management/ChangeLateAthletes";
 import RegisterInjury from "../athletes/injuries/RegisterInjury";
 import OpenedGameInvitations from "../invitations/games/OpenedGameInvitations";
+import ChildTrainingInvitations from "../father/ChildTrainingInvitations";
+import ChildGameInvitations from "../father/ChildGameInvitations";
 
 const styles = StyleSheet.create({
     container: {
@@ -417,13 +419,51 @@ const ChatStackNavigator = createStackNavigator({
     }
 });
 
+// CHILD INVITATIONS NAVIGATOR
+const ChildInvitationsNavigator = createMaterialTopTabNavigator({
+    ChildTrainingInvitations: { screen: ChildTrainingInvitations },
+    ChildGameInvitations: { screen: ChildGameInvitations },
+}, {
+    initialRouteName: 'ChildTrainingInvitations',
+    order: ['ChildTrainingInvitations', 'ChildGameInvitations'],
+    tabBarOptions: {
+        activeTintColor: colors.redColor,
+        inactiveTintColor: '#5f5f5f',
+        pressColor: '#551726',
+        showIcon: false,
+        style: {
+            backgroundColor: colors.lightRedColor,
+        },
+        indicatorStyle: {
+            backgroundColor: colors.redColor,
+        },
+    }
+});
+
+/*
+// CHILD INVITATIONS STACK
+const ChildInvitationsStackNavigator = createStackNavigator({
+    ChildInvitationsNavigator: {screen: ChildInvitationsNavigator},
+}, {
+    initialRouteName: 'ChildInvitationsNavigator',
+    defaultNavigationOptions: ({navigation}) => {
+        return {
+            headerTitle: headerTitle('#fff', 'CONVOCATÓRIAS'),
+            headerBackground: linearGradientHeader(),
+            headerLeft: openDrawerButton('#fff', navigation)
+        }
+    }
+});
+*/
+
 // CHILDREN STACK
 const ChildrenStackNavigator = createStackNavigator({
     ChildesScreen: {screen: ChildesScreen},
     ChildScreen: {screen: ChildScreen},
     ChildInjuriesTypesScreen: {screen: AthleteInjuriesTypes},
     ChildInjuriesScreen:  {screen: AthleteInjuries},
-    ChildInjuryScreen: {screen: AthleteInjury}
+    ChildInjuryScreen: {screen: AthleteInjury},
+    ChildInvitationsScreen: {screen: ChildInvitationsNavigator},
 }, {
     initialRouteName: 'ChildesScreen',
     defaultNavigationOptions: ({navigation}) => {

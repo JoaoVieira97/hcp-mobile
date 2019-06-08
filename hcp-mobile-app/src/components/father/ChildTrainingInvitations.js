@@ -1,14 +1,16 @@
 import React, {Component} from 'react';
 
-import {View, Text, FlatList, ActivityIndicator} from 'react-native';
+import {View, Text, FlatList, ActivityIndicator, TouchableOpacity} from 'react-native';
 import {Ionicons} from "@expo/vector-icons";
 import {connect} from "react-redux";
 import {ListItem} from "react-native-elements";
 import moment from 'moment';
-import {colors} from "../../../styles/index.style";
+//import {colors} from "../../styles/index.style";
 
-import ConvertTime  from '../../ConvertTime';
+import ConvertTime  from '../ConvertTime';
+import CustomText from "../athletes/injuries/AthleteInjuriesTypes";
 
+/*
 class TrainingItem extends React.PureComponent {
 
     render() {
@@ -59,8 +61,9 @@ class TrainingItem extends React.PureComponent {
         )
     }
 }
+*/
 
-class TrainingInvitations extends Component {
+class ChildTrainingInvitations extends Component {
 
     constructor(props) {
         super(props);
@@ -70,9 +73,10 @@ class TrainingInvitations extends Component {
             isRefreshing: false,
             trainings: [],
             date: '',
+            child: {},
         };
     }
-
+/*
     async componentDidMount() {
 
         const date = moment().format();
@@ -83,13 +87,38 @@ class TrainingInvitations extends Component {
 
         await this.setState({isLoading: false});
     }
-
+*/
     /**
      * Define navigator name.
      */
-    static navigationOptions = {
+    /*static navigationOptions = {
         title: 'Treinos',
-    };
+    };*/
+
+    static navigationOptions = ({navigation}) => ({
+        headerTitle:
+            <CustomText
+                type={'bold'}
+                children={'CONVOCATÓRIAS'}
+                style={{
+                    color: '#ffffff',
+                    fontSize: 16
+                }}
+            />,
+        headerLeft:
+            <TouchableOpacity style={{
+                width:42,
+                height:42,
+                alignItems:'center',
+                justifyContent:'center',
+                marginLeft: 10}} onPress = {() => navigation.goBack()}>
+                <Ionicons
+                    name="md-arrow-back"
+                    size={28}
+                    color={'#ffffff'} />
+            </TouchableOpacity>,
+        title: 'Treinos',
+    });
 
     /**
      * Fetch all opened trainings. Maximum of limit items.
@@ -148,17 +177,17 @@ class TrainingInvitations extends Component {
                     }
 
                     /**
-                        diff = difference in ms between actual date and game's date
-                        oneDay = one day in ms
-                        gameDayMidNight = gameDay + '00:00:00' -> To verify Hoje or Amanha
-                        twoDaysLimit = actualDate + 2 days + '00:00:00' -> To verify Amanha
-                            (se a data do jogo nao atual ultrapassar estes 2 dias de limite, data=Amanha)
+                     diff = difference in ms between actual date and game's date
+                     oneDay = one day in ms
+                     gameDayMidNight = gameDay + '00:00:00' -> To verify Hoje or Amanha
+                     twoDaysLimit = actualDate + 2 days + '00:00:00' -> To verify Amanha
+                     (se a data do jogo nao atual ultrapassar estes 2 dias de limite, data=Amanha)
                      */
                     let diff = moment(convertTime.getDate()).diff(moment(this.state.date));
                     let oneDay = 24 * 60 * 60 * 1000;
                     let gameDayMidNight = (convertTime.getDate().split('T'))[0] + 'T00:00:00';
                     let twoDaysLimit = (moment(this.state.date).add(2, 'days').format()
-                                            .split('T'))[0] + 'T00:00:00';
+                        .split('T'))[0] + 'T00:00:00';
 
                     if(diff >=0){
                         if(diff < oneDay) {
@@ -273,6 +302,7 @@ class TrainingInvitations extends Component {
 
     render() {
 
+        /*
         return (
             <FlatList
                 keyExtractor={item => item.id + item.date}
@@ -285,7 +315,12 @@ class TrainingInvitations extends Component {
                 refreshing={this.state.isRefreshing}
                 onRefresh={this.handleRefresh}
             />
-        );
+        );*/
+        return (
+            <View>
+                <Text> TREINO </Text>
+            </View>
+        )
     }
 }
 
@@ -297,5 +332,5 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => ({});
 
-export default connect(mapStateToProps, mapDispatchToProps)(TrainingInvitations);
+export default connect(mapStateToProps, mapDispatchToProps)(ChildTrainingInvitations);
 

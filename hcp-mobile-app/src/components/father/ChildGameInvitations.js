@@ -1,49 +1,55 @@
 import React, {Component} from 'react';
 
-import {View, Text, FlatList, ActivityIndicator} from 'react-native';
+import {View, Text, FlatList, ActivityIndicator, TouchableOpacity} from 'react-native';
 import {Ionicons} from "@expo/vector-icons";
 import {connect} from "react-redux";
 import {ListItem} from "react-native-elements";
 import moment from 'moment';
-import {colors} from "../../../styles/index.style";
+//import {colors} from "../../../styles/index.style";
 
-import ConvertTime  from '../../ConvertTime';
-
-class TrainingItem extends React.PureComponent {
+import ConvertTime  from '../ConvertTime';
+import CustomText from "./ChildTrainingInvitations";
+/*
+class GameItem extends React.PureComponent {
 
     render() {
 
-        const training = this.props.training;
+        const game = this.props.game;
 
-        const colorText = training.isOver ? '#919391' : '#0d0d0d' ;
-        const colorBackground = training.isOver ? colors.lightGrayColor : '#fff';
-        const iconName = training.isOver ?  'md-done-all' : 'md-hourglass';
-        const iconSize = training.isOver ?  22 : 28;
+        const colorText = game.isOver ? '#919391' : '#0d0d0d' ;
+        const colorBackground = game.isOver ? colors.lightGrayColor : '#fff';
+        const iconName = game.isOver ?  'md-done-all' : 'md-hourglass';
+        const iconSize = game.isOver ?  22 : 28;
 
         return (
             <ListItem
                 title={(
                     <View style={{flex: 1, flexDirection: 'row'}}>
                         <Text style={{fontSize: 16, fontWeight: '700', color: colorText}}>
-                            {'Treino ' + training.echelon[1] + ' | '}
+                            {'Jogo ' + game.echelon[1] + ' | '}
                         </Text>
                         <Text style={{fontSize: 16, fontWeight: '400', color: colorText}}>
-                            {training.date}
+                            {game.date}
                         </Text>
                     </View>
                 )}
                 subtitle={(
                     <View  style={{flex: 1, flexDirection: 'column'}}>
+                        <View style={{flex: 1, flexDirection: 'row'}}>
+                            <Text style={{fontWeight: '700', color: colors.darkGrayColor}}>
+                                {'Adversário: '}
+                            </Text>
+                            <Text style={{fontWeight: '400', color: colors.darkGrayColor}}>
+                                {game.opponent}
+                            </Text>
+                        </View>
                         <Text style={{color: colors.darkGrayColor}}>
-                            {'Início: ' + training.hours}
-                        </Text>
-                        <Text style={{color: colors.darkGrayColor}}>
-                            {'Duração: ' + training.duration + ' min'}
+                            {'Início: ' + game.hours}
                         </Text>
                         <Text numberOfLines={1} ellipsizeMode='tail' style={{color: colors.darkGrayColor}}>
                             {
-                                training.place ?
-                                    'Local: ' + training.place[1] :
+                                game.place ?
+                                    'Local: ' + game.place[1] :
                                     'Nenhum local atribuído'
                             }
                         </Text>
@@ -54,13 +60,13 @@ class TrainingItem extends React.PureComponent {
                 containerStyle={{
                     backgroundColor: colorBackground
                 }}
-                onPress={() => { this.props.navigation.navigate('OpenedTrainingInvitations', {training: training})}}
+                onPress={() => { this.props.navigation.navigate('OpenedGameInvitations', {game: game})}}
             />
         )
     }
 }
-
-class TrainingInvitations extends Component {
+*/
+class ChildGameInvitations extends Component {
 
     constructor(props) {
         super(props);
@@ -68,66 +74,99 @@ class TrainingInvitations extends Component {
         this.state = {
             isLoading: true,
             isRefreshing: false,
-            trainings: [],
+            games: [],
             date: '',
+            child: {},
         };
     }
-
+/*
     async componentDidMount() {
 
         const date = moment().format();
         await this.setState({date: date});
 
         // fetch data
-        await this.fetchTrainings(20);
+        await this.fetchGames(20);
 
         await this.setState({isLoading: false});
     }
-
+*/
     /**
      * Define navigator name.
      */
+    /*
     static navigationOptions = {
-        title: 'Treinos',
-    };
+        title: 'Jogos',
+    };*/
+
+    static navigationOptions = ({navigation}) => ({
+        headerTitle:
+            <CustomText
+                type={'bold'}
+                children={'CONVOCATÓRIAS'}
+                style={{
+                    color: '#ffffff',
+                    fontSize: 16
+                }}
+            />,
+        headerLeft:
+            <TouchableOpacity style={{
+                width:42,
+                height:42,
+                alignItems:'center',
+                justifyContent:'center',
+                marginLeft: 10}} onPress = {() => navigation.goBack()}>
+                <Ionicons
+                    name="md-arrow-back"
+                    size={28}
+                    color={'#ffffff'} />
+            </TouchableOpacity>,
+        title: 'Jogos',
+    });
 
     /**
-     * Fetch all opened trainings. Maximum of limit items.
+     * Fetch all opened games. Maximum of limit items.
      * @param limit
      * @param clear
      * @returns {Promise<void>}
      */
-    async fetchTrainings(limit=20, clear=false) {
+    async fetchGames(limit=20, clear=false) {
 
         if(clear) {
-            await this.setState({trainings: []});
+            await this.setState({games: []});
         }
 
         const athleteInfo = this.props.user.groups.filter(group => group.name === 'Atleta');
         if(athleteInfo) {
 
             const athleteId = athleteInfo[0].id;
-            const idsFetched = this.state.trainings.map(training => {return training.id});
+            const idsFetched = this.state.games.map(game => {return game.id});
 
             const params = {
                 domain: [
                     ['id', 'not in', idsFetched],
                     ['atletas', 'in', athleteId]
                 ],
-                fields: ['id', 'evento_desportivo', 'atletas', 'display_start', 'local', 'escalao', 'duracao', 'convocatorias','treinador', 'seccionistas', 'state'],
+                fields: ['id', 'evento_desportivo' ,'atletas', 'display_start',
+                    'local', 'escalao', 'duracao',
+                    'convocatorias','treinador', 'seccionistas',
+                    'equipa_adversaria', 'competicao', 'state'],
+                //fields: [],
                 limit: limit,
                 order: 'display_start DESC',
             };
 
-            const response = await this.props.odoo.search_read('ges.treino', params);
+            const response = await this.props.odoo.search_read('ges.jogo', params);
+
             if (response.success && response.data.length > 0) {
 
-                let trainings = [];
+                let games = [];
                 const convertTime = new ConvertTime();
-                response.data.forEach(item => {
+                response.data.forEach(async item => {
 
                     convertTime.setDate(item.display_start);
                     const date = convertTime.getTimeObject();
+                    // let canChangeAvailability = moment(convertTime.getDate()).isAfter(this.state.date);
 
                     let canChangeAvailability;
                     let isOver;
@@ -148,17 +187,17 @@ class TrainingInvitations extends Component {
                     }
 
                     /**
-                        diff = difference in ms between actual date and game's date
-                        oneDay = one day in ms
-                        gameDayMidNight = gameDay + '00:00:00' -> To verify Hoje or Amanha
-                        twoDaysLimit = actualDate + 2 days + '00:00:00' -> To verify Amanha
-                            (se a data do jogo nao atual ultrapassar estes 2 dias de limite, data=Amanha)
+                     diff = difference in ms between actual date and game's date
+                     oneDay = one day in ms
+                     gameDayMidNight = gameDay + '00:00:00' -> To verify Hoje or Amanha
+                     twoDaysLimit = actualDate + 2 days + '00:00:00' -> To verify Amanha
+                     (se a data do jogo nao atual ultrapassar estes 2 dias de limite, data=Amanha)
                      */
                     let diff = moment(convertTime.getDate()).diff(moment(this.state.date));
                     let oneDay = 24 * 60 * 60 * 1000;
                     let gameDayMidNight = (convertTime.getDate().split('T'))[0] + 'T00:00:00';
                     let twoDaysLimit = (moment(this.state.date).add(2, 'days').format()
-                                            .split('T'))[0] + 'T00:00:00';
+                        .split('T'))[0] + 'T00:00:00';
 
                     if(diff >=0){
                         if(diff < oneDay) {
@@ -170,7 +209,7 @@ class TrainingInvitations extends Component {
                         }
                     }
 
-                    const training = {
+                    const game = {
                         id: item.id,
                         eventId: item.evento_desportivo[0],
                         place: item.local,
@@ -179,7 +218,9 @@ class TrainingInvitations extends Component {
                         date: date.date,
                         hours: date.hour,
                         state: item.state,
-                        athleteIds : item.atletas,
+                        opponent: item.equipa_adversaria ? item.equipa_adversaria[1] : 'Não definido',
+                        competition: item.competicao ? (item.competicao[1].split('('))[0] : 'Não definida',
+                        athleteIds: item.atletas,
                         invitationIds: item.convocatorias,
                         coachIds: item.treinador,
                         secretaryIds: item.seccionistas,
@@ -187,11 +228,11 @@ class TrainingInvitations extends Component {
                         canChangeAvailability: canChangeAvailability,
                     };
 
-                    trainings.push(training);
+                    games.push(game);
                 });
 
                 this.setState(state => ({
-                    trainings: [...state.trainings, ...trainings]
+                    games: [...state.games, ...games]
                 }));
             }
         }
@@ -204,21 +245,21 @@ class TrainingInvitations extends Component {
      * @returns {*}
      */
     renderItem =  ({item, index}) => (
-        <TrainingItem
+        <GameItem
             key={item.id + item.date}
-            training={item}
+            game={item}
             index={index}
             navigation={this.props.navigation} />
     );
 
     /**
-     * Add more trainings if they exist.
+     * Add more games if they exist.
      * @returns {Promise<void>}
      */
     handleMoreData = async () => {
 
         this.setState({isLoading: true});
-        await this.fetchTrainings();
+        await this.fetchGames();
         this.setState({isLoading: false});
     };
 
@@ -265,18 +306,19 @@ class TrainingInvitations extends Component {
 
         this.setState({isRefreshing: true, isLoading: false});
 
-        // fetch all trainings and clear current list
-        await this.fetchTrainings(20, true);
+        // fetch all games and clear current list
+        await this.fetchGames(20, true);
 
         this.setState({isRefreshing: false});
     };
 
     render() {
 
+        /*
         return (
             <FlatList
                 keyExtractor={item => item.id + item.date}
-                data={this.state.trainings}
+                data={this.state.games}
                 renderItem={this.renderItem}
                 ItemSeparatorComponent={this.renderSeparator}
                 onEndReached={this.handleMoreData}
@@ -285,7 +327,12 @@ class TrainingInvitations extends Component {
                 refreshing={this.state.isRefreshing}
                 onRefresh={this.handleRefresh}
             />
-        );
+        );*/
+        return (
+            <View>
+                <Text> JOGO </Text>
+            </View>
+        )
     }
 }
 
@@ -297,5 +344,5 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => ({});
 
-export default connect(mapStateToProps, mapDispatchToProps)(TrainingInvitations);
+export default connect(mapStateToProps, mapDispatchToProps)(ChildGameInvitations);
 
