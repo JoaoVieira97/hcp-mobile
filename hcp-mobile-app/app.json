@@ -1,16 +1,15 @@
 {
   "expo": {
     "name": "H.C.Penafiel",
+    "version": "1.0.0",
+    "icon": "./assets/icon.png",
     "slug": "HcpMobileApp",
-    "privacy": "public",
+    "privacy": "unlisted",
     "sdkVersion": "32.0.0",
     "platforms": [
-      "ios",
       "android"
     ],
-    "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
@@ -23,10 +22,14 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.hcp.hcpapp"
+    },
+    "android": {
+      "package": "com.hcp.hcpapp"
     },
     "notification":{
-      "icon": "./src/components/img/logo-bw.png"
+      "icon": "./assets/logo-bw.png"
     }
   }
 }

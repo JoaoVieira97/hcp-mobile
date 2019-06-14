@@ -9,8 +9,11 @@ import {
 } from "../../redux/actions/user";
 import {AsyncStorage} from 'react-native';
 import Odoo from "react-native-odoo-promise-based";
-import { HOST, PORT, DATABASE } from 'react-native-dotenv';
 
+
+const HOST = 'hugo-host.ddns.net';
+const PORT = 8069;
+const DATABASE = 'hcp';
 
 export default class Authentication {
 
