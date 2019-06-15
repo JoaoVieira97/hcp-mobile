@@ -1,11 +1,12 @@
 import React, {Component} from 'react';
 
-import {View, Text, FlatList, ActivityIndicator} from 'react-native';
+import {View, FlatList, ActivityIndicator} from 'react-native';
 import {connect} from "react-redux";
 import moment from 'moment';
 
 import ConvertTime  from '../../ConvertTime';
-import GameItem from './GameItem';
+import FabButton from "../../management/FabButton";
+import EventItem from "../EventItem";
 
 
 class GameInvitations extends Component {
@@ -18,7 +19,40 @@ class GameInvitations extends Component {
             isRefreshing: false,
             games: [],
             date: '',
+            athleteID: undefined,
+            athleteIsChild: false,
+            showFab: false
         };
+    }
+
+    /**
+     * Define navigator name.
+     */
+    static navigationOptions = {
+        title: 'Jogos',
+    };
+
+    /**
+     * VERY IMPORTANT!!!
+     * @returns {Promise<void>}
+     */
+    async componentWillMount() {
+
+        // check if AthleteID is coming from father
+        // or we need to go to redux storage
+        let athleteIsChild = true;
+        let athleteID = this.props.navigation.getParam('athleteID');
+        if(athleteID === undefined) {
+
+            // get athlete id from redux
+            const athleteInfo = this.props.user.groups.filter(group => group.name === 'Atleta');
+            if (athleteInfo.length > 0) {
+                athleteIsChild = false;
+                athleteID = athleteInfo[0].id;
+            }
+        }
+
+        await this.setState({athleteID: athleteID, athleteIsChild: athleteIsChild});
     }
 
     async componentDidMount() {
@@ -33,13 +67,6 @@ class GameInvitations extends Component {
     }
 
     /**
-     * Define navigator name.
-     */
-    static navigationOptions = {
-        title: 'Jogos',
-    };
-
-    /**
      * Fetch all opened games. Maximum of limit items.
      * @param limit
      * @param clear
@@ -51,16 +78,13 @@ class GameInvitations extends Component {
             await this.setState({games: []});
         }
 
-        const athleteInfo = this.props.user.groups.filter(group => group.name === 'Atleta');
-        if(athleteInfo) {
+        if(this.state.athleteID !== undefined) {
 
-            const athleteId = athleteInfo[0].id;
             const idsFetched = this.state.games.map(game => {return game.id});
-
             const params = {
                 domain: [
                     ['id', 'not in', idsFetched],
-                    ['atletas', 'in', athleteId]
+                    ['atletas', 'in', this.state.athleteID]
                 ],
                 fields: ['id', 'evento_desportivo' ,'atletas', 'display_start',
                         'local', 'escalao', 'duracao',
@@ -158,15 +182,17 @@ class GameInvitations extends Component {
     /**
      * PureComponent used for rendering items of FlatList.
      * @param item
-     * @param index
      * @returns {*}
      */
-    renderItem =  ({item, index}) => (
-        <GameItem
-            key={item.id + item.date}
-            game={item}
-            index={index}
-            navigation={this.props.navigation} />
+    renderItem =  ({item}) => (
+        <EventItem
+            key={item.id}
+            athleteIsChild={this.state.athleteIsChild}
+            athleteID={this.state.athleteID}
+            type={'Jogo'}
+            event={item}
+            navigation={this.props.navigation}
+        />
     );
 
     /**
@@ -229,20 +255,41 @@ class GameInvitations extends Component {
         this.setState({isRefreshing: false});
     };
 
+    /**
+     * Check if we need to show the fab.
+     * @param event
+     */
+    handleScroll = (event) => {
+
+        if (event.nativeEvent.contentOffset.y > 250) {
+            this.setState({showFab: true});
+        }
+        else
+            this.setState({showFab: false});
+    };
+
     render() {
 
         return (
-            <FlatList
-                keyExtractor={item => item.id + item.date}
-                data={this.state.games}
-                renderItem={this.renderItem}
-                ItemSeparatorComponent={this.renderSeparator}
-                onEndReached={this.handleMoreData}
-                onEndReachedThreshold={0.1}
-                ListFooterComponent={this.renderFooter}
-                refreshing={this.state.isRefreshing}
-                onRefresh={this.handleRefresh}
-            />
+            <View>
+                <FlatList
+                    ref={(ref) => { this.flatListRef = ref; }}
+                    onScroll={this.handleScroll}
+                    keyExtractor={item => item.id + item.date}
+                    data={this.state.games}
+                    renderItem={this.renderItem}
+                    ItemSeparatorComponent={this.renderSeparator}
+                    onEndReached={this.handleMoreData}
+                    onEndReachedThreshold={0.1}
+                    ListFooterComponent={this.renderFooter}
+                    refreshing={this.state.isRefreshing}
+                    onRefresh={this.handleRefresh}
+                />
+                {
+                    this.state.showFab &&
+                    <FabButton flatListRef={this.flatListRef}/>
+                }
+            </View>
         );
     }
 }

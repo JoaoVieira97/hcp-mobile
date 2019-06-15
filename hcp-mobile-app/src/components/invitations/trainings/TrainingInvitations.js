@@ -1,12 +1,12 @@
 import React, {Component} from 'react';
 
-import {View, Text, FlatList, ActivityIndicator} from 'react-native';
+import {View, FlatList, ActivityIndicator} from 'react-native';
 import {connect} from "react-redux";
 import moment from 'moment';
 
 import ConvertTime  from '../../ConvertTime';
-import TrainingItem from './TrainingItem';
 import FabButton from "../../management/FabButton";
+import EventItem from "../EventItem";
 
 class TrainingInvitations extends Component {
 
@@ -18,8 +18,40 @@ class TrainingInvitations extends Component {
             isRefreshing: false,
             trainings: [],
             date: '',
+            athleteID: undefined,
+            athleteIsChild: false,
             showFab: false
         };
+    }
+
+    /**
+     * Define navigator name.
+     */
+    static navigationOptions = {
+        title: 'Treinos',
+    };
+
+    /**
+     * VERY IMPORTANT!!!
+     * @returns {Promise<void>}
+     */
+    async componentWillMount() {
+
+        // check if AthleteID is coming from father
+        // or we need to go to redux storage
+        let athleteIsChild = true;
+        let athleteID = this.props.navigation.getParam('athleteID');
+        if(athleteID === undefined) {
+
+            // get athlete id from redux
+            const athleteInfo = this.props.user.groups.filter(group => group.name === 'Atleta');
+            if (athleteInfo.length > 0) {
+                athleteIsChild = false;
+                athleteID = athleteInfo[0].id;
+            }
+        }
+
+        await this.setState({athleteID: athleteID, athleteIsChild: athleteIsChild});
     }
 
     async componentDidMount() {
@@ -34,13 +66,6 @@ class TrainingInvitations extends Component {
     }
 
     /**
-     * Define navigator name.
-     */
-    static navigationOptions = {
-        title: 'Treinos',
-    };
-
-    /**
      * Fetch all opened trainings. Maximum of limit items.
      * @param limit
      * @param clear
@@ -52,16 +77,13 @@ class TrainingInvitations extends Component {
             await this.setState({trainings: []});
         }
 
-        const athleteInfo = this.props.user.groups.filter(group => group.name === 'Atleta');
-        if(athleteInfo) {
+        if(this.state.athleteID !== undefined) {
 
-            const athleteId = athleteInfo[0].id;
             const idsFetched = this.state.trainings.map(training => {return training.id});
-
             const params = {
                 domain: [
                     ['id', 'not in', idsFetched],
-                    ['atletas', 'in', athleteId]
+                    ['atletas', 'in', this.state.athleteID]
                 ],
                 fields: ['id', 'evento_desportivo', 'atletas', 'display_start', 'local', 'escalao', 'duracao', 'convocatorias','treinador', 'seccionistas', 'state'],
                 limit: limit,
@@ -87,29 +109,27 @@ class TrainingInvitations extends Component {
                         isOver = 'finished';
                         canChangeAvailability = false;
                     }
+                    else if(item.state === 'convocatorias_fechadas') {
+                        isOver = 'closed';
+                        canChangeAvailability = false;
+                    }
                     else {
-
-                        if(item.state === 'convocatorias_fechadas') {
-                            isOver = 'closed';
-                        }
-                        else
-                            isOver = 'opened';
-
+                        isOver = 'opened';
                         canChangeAvailability = true;
                     }
 
                     /**
-                        diff = difference in ms between actual date and game's date
-                        oneDay = one day in ms
-                        gameDayMidNight = gameDay + '00:00:00' -> To verify Hoje or Amanha
-                        twoDaysLimit = actualDate + 2 days + '00:00:00' -> To verify Amanha
-                            (se a data do jogo nao atual ultrapassar estes 2 dias de limite, data=Amanha)
+                     diff = difference in ms between actual date and game's date
+                     oneDay = one day in ms
+                     gameDayMidNight = gameDay + '00:00:00' -> To verify Hoje or Amanha
+                     twoDaysLimit = actualDate + 2 days + '00:00:00' -> To verify Amanha
+                     (se a data do jogo nao atual ultrapassar estes 2 dias de limite, data=Amanha)
                      */
                     let diff = moment(convertTime.getDate()).diff(moment(this.state.date));
                     let oneDay = 24 * 60 * 60 * 1000;
                     let gameDayMidNight = (convertTime.getDate().split('T'))[0] + 'T00:00:00';
                     let twoDaysLimit = (moment(this.state.date).add(2, 'days').format()
-                                            .split('T'))[0] + 'T00:00:00';
+                        .split('T'))[0] + 'T00:00:00';
 
                     if(diff >=0){
                         if(diff < oneDay) {
@@ -151,15 +171,17 @@ class TrainingInvitations extends Component {
     /**
      * PureComponent used for rendering items of FlatList.
      * @param item
-     * @param index
      * @returns {*}
      */
-    renderItem =  ({item, index}) => (
-        <TrainingItem
-            key={item.id + item.date}
-            training={item}
-            index={index}
-            navigation={this.props.navigation} />
+    renderItem =  ({item}) => (
+        <EventItem
+            key={item.id}
+            athleteIsChild={this.state.athleteIsChild}
+            athleteID={this.state.athleteID}
+            type={'Treino'}
+            event={item}
+            navigation={this.props.navigation}
+        />
     );
 
     /**
@@ -200,13 +222,15 @@ class TrainingInvitations extends Component {
      * Renders separator line.
      * @returns {*}
      */
-    renderSeparator = () => (
-        <View style={{
-            height: 1,
-            width: '100%',
-            backgroundColor: '#ced0ce',
-        }}/>
-    );
+    renderSeparator = () => {
+        return (
+            <View style={{
+                height: 1,
+                width: '100%',
+                backgroundColor: '#ced0ce',
+            }}/>
+        )
+    };
 
     /**
      * When user refresh current screen.

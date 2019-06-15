@@ -18,10 +18,7 @@ import {
     DrawerItems
 } from 'react-navigation';
 import { Ionicons, FontAwesome, Entypo } from '@expo/vector-icons';
-import { 
-    LinearGradient,
-    Constants
-} from 'expo';
+import {Constants} from 'expo';
 import store from '../../redux/store';
 
 import {colors} from "../../styles/index.style";
@@ -51,7 +48,6 @@ import ChatDetails from "../chat/ChatDetails";
 import EchelonsScreen from "../athletes/EchelonsScreen";
 import TrainingInvitations from "../invitations/trainings/TrainingInvitations";
 import GameInvitations from "../invitations/games/GameInvitations";
-import OpenedTrainingInvitations from "../invitations/trainings/OpenedTrainingInvitations";
 import ChildesScreen from "../father/ChildesScreen";
 import ChildScreen from "../father/ChildScreen";
 import AthleteInjuriesTypes from "../athletes/injuries/AthleteInjuriesTypes";
@@ -66,10 +62,11 @@ import ClosedTrainings from "../management/trainings/ClosedTrainings";
 import ChangeAthletesPresences from "../management/ChangeAthletesPresences";
 import ChangeLateAthletes from "../management/ChangeLateAthletes";
 import RegisterInjury from "../athletes/injuries/RegisterInjury";
-import OpenedGameInvitations from "../invitations/games/OpenedGameInvitations";
-import ChildTrainingInvitations from "../father/ChildTrainingInvitations";
-import ChildGameInvitations from "../father/ChildGameInvitations";
+import OpenedInvitation from "../invitations/trainings/OpenedInvitation";
+import OtherInvitation from "../invitations/trainings/OtherInvitation";
 
+
+import {linearGradientHeader, headerTitle, openDrawerButton} from "./HeaderComponents";
 const styles = StyleSheet.create({
     container: {
         flex: 1,
@@ -126,9 +123,7 @@ const styles = StyleSheet.create({
         color: '#777777'
     },
 });
-
 const WIDTH = Dimensions.get('window').width;
-
 const CustomDrawerContentComponent = (props) => {
 
     async function _logout() {
@@ -187,52 +182,6 @@ const CustomDrawerContentComponent = (props) => {
             </TouchableOpacity>
         </View>
     )
-};
-
-// ---------------------------------------------------------------------
-// HEADER SETTINGS
-// ---------------------------------------------------------------------
-
-const linearGradientHeader = () => {
-    return (
-        <LinearGradient
-            colors={[colors.gradient1, colors.gradient2]}
-            style={{ flex: 1 }}
-            start={[0, 0]}
-            end={[0.8, 0]}
-        />
-    );
-};
-
-const openDrawerButton = (color, navigation) => {
-    return (
-        <TouchableOpacity style={{
-            width: 50,
-            height: '100%',
-            alignItems: 'center',
-            justifyContent: 'center',
-            paddingLeft: 10}} onPress = {() => navigation.openDrawer()}>
-            <Ionicons
-                name="md-menu"
-                size={28}
-                color={color}/>
-        </TouchableOpacity>
-    );
-};
-
-const headerTitle = (color, title) => {
-    return (
-        <CustomText
-            type={'bold'}
-            numberOfLines={1}
-            ellipsizeMode='tail'
-            children={title}
-            style={{
-                color: color,
-                fontSize: 16
-            }}
-        />
-    );
 };
 
 
@@ -301,9 +250,9 @@ const InvitationsNavigator = createMaterialTopTabNavigator({
 // INVITATIONS STACK
 const InvitationsStackNavigator = createStackNavigator({
     InvitationsNavigator: {screen: InvitationsNavigator},
-    OpenedTrainingInvitations: {screen: OpenedTrainingInvitations},
-    OpenedGameInvitations: {screen: OpenedGameInvitations},
-    EventScreen: {screen: EventScreen},
+    OpenedInvitation: {screen: OpenedInvitation},
+    OtherInvitation: {screen: OtherInvitation},
+    // TODO: games
 }, {
     initialRouteName: 'InvitationsNavigator',
     defaultNavigationOptions: ({navigation}) => {
@@ -419,34 +368,13 @@ const ChatStackNavigator = createStackNavigator({
     }
 });
 
-// CHILD INVITATIONS NAVIGATOR
-const ChildInvitationsNavigator = createMaterialTopTabNavigator({
-    ChildTrainingInvitations: { screen: ChildTrainingInvitations },
-    ChildGameInvitations: { screen: ChildGameInvitations },
-}, {
-    initialRouteName: 'ChildTrainingInvitations',
-    order: ['ChildTrainingInvitations', 'ChildGameInvitations'],
-    tabBarOptions: {
-        activeTintColor: colors.redColor,
-        inactiveTintColor: '#5f5f5f',
-        pressColor: '#551726',
-        showIcon: false,
-        style: {
-            backgroundColor: colors.lightRedColor,
-        },
-        indicatorStyle: {
-            backgroundColor: colors.redColor,
-        },
-    }
-});
-
 
 // CHILDREN STACK
 const ChildrenStackNavigator = createStackNavigator({
     ChildesScreen: {screen: ChildesScreen},
     ChildScreen: {screen: ChildScreen},
     ChildInvitationsScreen: {
-        screen: ChildInvitationsNavigator,
+        screen: InvitationsNavigator,
         navigationOptions: ({navigation}) => ({
             headerTitle: headerTitle('#fff', 'CONVOCATÓRIAS FILHO'),
             headerLeft:
@@ -462,9 +390,9 @@ const ChildrenStackNavigator = createStackNavigator({
                         color={'#ffffff'} />
                 </TouchableOpacity>
         })},
-    OpenedTrainingInvitations: {screen: OpenedTrainingInvitations},
-    OpenedGameInvitations: {screen: OpenedGameInvitations},
-    EventScreen: {screen: EventScreen},
+    OpenedInvitation: {screen: OpenedInvitation},
+    OtherInvitation: {screen: OtherInvitation},
+    // TODO: games
     ChildInjuriesTypesScreen: {screen: AthleteInjuriesTypes},
     ChildInjuriesScreen:  {screen: AthleteInjuries},
     ChildInjuryScreen: {screen: AthleteInjury},
@@ -633,7 +561,7 @@ const AthleteDrawerNavigator = createDrawerNavigator({
     ChatStack: drawerNavigatorFullStacks['ChatStack']
 }, {
     ...drawerNavigatorDefaultSettings,
-    initialRouteName: 'HomeStack',
+    initialRouteName: 'InvitationsStack',
     order: ['HomeStack', 'CalendarStack', 'InvitationsStack', 'ProfileStack', 'ChatStack'],
 });
 

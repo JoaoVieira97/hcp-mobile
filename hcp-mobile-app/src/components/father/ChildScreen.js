@@ -149,7 +149,9 @@ class ChildScreen extends Component {
                                 color={'#fff'}
                                 mode="contained"
                                 contentStyle={{height: 55}}
-                                onPress={() => this.props.navigation.navigate('ChildInvitationsScreen', {child: this.state.child})}
+                                onPress={() => this.props.navigation.navigate(
+                                    'ChildInvitationsScreen', {athleteID: this.state.child.id})
+                                }
                             >
                                 Convocatórias
                             </Button>
