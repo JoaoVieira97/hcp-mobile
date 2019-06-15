@@ -11,10 +11,28 @@ export default class TrainingItem extends PureComponent {
         const training = this.props.training;
         const child = this.props.child;
 
-        const colorText = training.isOver ? '#919391' : '#0d0d0d' ;
-        const colorBackground = training.isOver ? colors.lightGrayColor : '#fff';
-        const iconName = training.isOver ?  'md-done-all' : 'md-hourglass';
-        const iconSize = training.isOver ?  22 : 28;
+        let colorText, colorBackground, iconName, iconSize;
+        if(training.isOver === 'finished') {
+
+            colorText = '#919391';
+            colorBackground = colors.lightGrayColor;
+            iconName = 'md-done-all';
+            iconSize = 22;
+
+        } else if (training.isOver === 'closed') {
+
+            colorText ='#0d0d0d';
+            colorBackground = '#fff';
+            iconName = 'md-lock';
+            iconSize = 25;
+
+        } else {
+
+            colorText ='#0d0d0d';
+            colorBackground = '#fff';
+            iconName = 'md-hourglass';
+            iconSize = 25;
+        }
 
         return (
             <ListItem

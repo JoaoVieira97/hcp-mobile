@@ -440,27 +440,28 @@ const ChildInvitationsNavigator = createMaterialTopTabNavigator({
     }
 });
 
-/*
-// CHILD INVITATIONS STACK
-const ChildInvitationsStackNavigator = createStackNavigator({
-    ChildInvitationsNavigator: {screen: ChildInvitationsNavigator},
-}, {
-    initialRouteName: 'ChildInvitationsNavigator',
-    defaultNavigationOptions: ({navigation}) => {
-        return {
-            headerTitle: headerTitle('#fff', 'CONVOCATÓRIAS'),
-            headerBackground: linearGradientHeader(),
-            headerLeft: openDrawerButton('#fff', navigation)
-        }
-    }
-});
-*/
 
 // CHILDREN STACK
 const ChildrenStackNavigator = createStackNavigator({
     ChildesScreen: {screen: ChildesScreen},
     ChildScreen: {screen: ChildScreen},
-    ChildInvitationsScreen: {screen: ChildInvitationsNavigator},
+    ChildInvitationsScreen: {
+        screen: ChildInvitationsNavigator,
+        navigationOptions: ({navigation}) => ({
+            headerTitle: headerTitle('#fff', 'CONVOCATÓRIAS FILHO'),
+            headerLeft:
+                <TouchableOpacity style={{
+                    width:42,
+                    height:42,
+                    alignItems:'center',
+                    justifyContent:'center',
+                    marginLeft: 10}} onPress = {() => navigation.goBack()}>
+                    <Ionicons
+                        name="md-arrow-back"
+                        size={28}
+                        color={'#ffffff'} />
+                </TouchableOpacity>
+        })},
     OpenedTrainingInvitations: {screen: OpenedTrainingInvitations},
     OpenedGameInvitations: {screen: OpenedGameInvitations},
     EventScreen: {screen: EventScreen},

@@ -1,13 +1,12 @@
 import React, {Component} from 'react';
 
-import {View, Text, FlatList, ActivityIndicator, TouchableOpacity} from 'react-native';
-import {Ionicons} from "@expo/vector-icons";
+import {View, FlatList, ActivityIndicator} from 'react-native';
 import {connect} from "react-redux";
 import moment from 'moment';
 
 import ConvertTime  from '../ConvertTime';
-import CustomText from "../CustomText";
 import GameItem  from '../invitations/games/GameItem';
+import FabButton from "../management/FabButton";
 
 class ChildGameInvitations extends Component {
 
@@ -20,6 +19,7 @@ class ChildGameInvitations extends Component {
             games: [],
             date: '',
             child: {},
+            showFab: false
         };
     }
 
@@ -41,35 +41,9 @@ class ChildGameInvitations extends Component {
     /**
      * Define navigator name.
      */
-    /*
     static navigationOptions = {
         title: 'Jogos',
-    };*/
-
-    static navigationOptions = ({navigation}) => ({
-        headerTitle:
-            <CustomText
-                type={'bold'}
-                children={'CONVOCATÓRIAS'}
-                style={{
-                    color: '#ffffff',
-                    fontSize: 16
-                }}
-            />,
-        headerLeft:
-            <TouchableOpacity style={{
-                width:42,
-                height:42,
-                alignItems:'center',
-                justifyContent:'center',
-                marginLeft: 10}} onPress = {() => navigation.goBack()}>
-                <Ionicons
-                    name="md-arrow-back"
-                    size={28}
-                    color={'#ffffff'} />
-            </TouchableOpacity>,
-        title: 'Jogos',
-    });
+    };
 
     /**
      * Fetch all opened games. Maximum of limit items.
@@ -116,18 +90,20 @@ class ChildGameInvitations extends Component {
                     let canChangeAvailability;
                     let isOver;
 
-                    if(!moment(convertTime.getDate()).isAfter(this.state.date)){
-                        isOver = true;
-                        canChangeAvailability = false;
-                    }
-                    else if(item.state === 'convocatorias_fechadas' ||
-                        item.state === 'fechado'){
-
-                        isOver = false;
+                    if(!moment(convertTime.getDate()).isAfter(this.state.date) ||
+                        item.state === 'fechado')
+                    {
+                        isOver = 'finished';
                         canChangeAvailability = false;
                     }
                     else {
-                        isOver = false;
+
+                        if(item.state === 'convocatorias_fechadas') {
+                            isOver = 'closed';
+                        }
+                        else
+                            isOver = 'opened';
+
                         canChangeAvailability = true;
                     }
 
@@ -258,21 +234,40 @@ class ChildGameInvitations extends Component {
         this.setState({isRefreshing: false});
     };
 
+    /**
+     * Check if we need to show the fab.
+     * @param event
+     */
+    handleScroll = (event) => {
+
+        if (event.nativeEvent.contentOffset.y > 250) {
+            this.setState({showFab: true});
+        }
+        else
+            this.setState({showFab: false});
+    };
+
     render() {
-
-
         return (
-            <FlatList
-                keyExtractor={item => item.id + item.date}
-                data={this.state.games}
-                renderItem={this.renderItem}
-                ItemSeparatorComponent={this.renderSeparator}
-                onEndReached={this.handleMoreData}
-                onEndReachedThreshold={0.1}
-                ListFooterComponent={this.renderFooter}
-                refreshing={this.state.isRefreshing}
-                onRefresh={this.handleRefresh}
-            />
+            <View>
+                <FlatList
+                    ref={(ref) => { this.flatListRef = ref; }}
+                    onScroll={this.handleScroll}
+                    keyExtractor={item => item.id + item.date}
+                    data={this.state.games}
+                    renderItem={this.renderItem}
+                    ItemSeparatorComponent={this.renderSeparator}
+                    onEndReached={this.handleMoreData}
+                    onEndReachedThreshold={0.1}
+                    ListFooterComponent={this.renderFooter}
+                    refreshing={this.state.isRefreshing}
+                    onRefresh={this.handleRefresh}
+                />
+                {
+                    this.state.showFab &&
+                    <FabButton flatListRef={this.flatListRef}/>
+                }
+            </View>
         );
     }
 }

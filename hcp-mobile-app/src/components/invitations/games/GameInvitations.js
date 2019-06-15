@@ -86,18 +86,20 @@ class GameInvitations extends Component {
                     let canChangeAvailability;
                     let isOver;
 
-                    if(!moment(convertTime.getDate()).isAfter(this.state.date)){
-                        isOver = true;
-                        canChangeAvailability = false;
-                    }
-                    else if(item.state === 'convocatorias_fechadas' ||
-                        item.state === 'fechado'){
-
-                        isOver = false;
+                    if(!moment(convertTime.getDate()).isAfter(this.state.date) ||
+                        item.state === 'fechado')
+                    {
+                        isOver = 'finished';
                         canChangeAvailability = false;
                     }
                     else {
-                        isOver = false;
+
+                        if(item.state === 'convocatorias_fechadas') {
+                            isOver = 'closed';
+                        }
+                        else
+                            isOver = 'opened';
+
                         canChangeAvailability = true;
                     }
 

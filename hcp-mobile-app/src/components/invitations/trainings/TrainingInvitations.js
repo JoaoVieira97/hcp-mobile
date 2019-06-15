@@ -6,6 +6,7 @@ import moment from 'moment';
 
 import ConvertTime  from '../../ConvertTime';
 import TrainingItem from './TrainingItem';
+import FabButton from "../../management/FabButton";
 
 class TrainingInvitations extends Component {
 
@@ -17,6 +18,7 @@ class TrainingInvitations extends Component {
             isRefreshing: false,
             trainings: [],
             date: '',
+            showFab: false
         };
     }
 
@@ -50,7 +52,6 @@ class TrainingInvitations extends Component {
             await this.setState({trainings: []});
         }
 
-        console.log("OLEEEEEEEEEEEEE");
         const athleteInfo = this.props.user.groups.filter(group => group.name === 'Atleta');
         if(athleteInfo) {
 
@@ -80,18 +81,20 @@ class TrainingInvitations extends Component {
                     let canChangeAvailability;
                     let isOver;
 
-                    if(!moment(convertTime.getDate()).isAfter(this.state.date)){
-                        isOver = true;
-                        canChangeAvailability = false;
-                    }
-                    else if(item.state === 'convocatorias_fechadas' ||
-                        item.state === 'fechado'){
-
-                        isOver = false;
+                    if(!moment(convertTime.getDate()).isAfter(this.state.date) ||
+                        item.state === 'fechado')
+                    {
+                        isOver = 'finished';
                         canChangeAvailability = false;
                     }
                     else {
-                        isOver = false;
+
+                        if(item.state === 'convocatorias_fechadas') {
+                            isOver = 'closed';
+                        }
+                        else
+                            isOver = 'opened';
+
                         canChangeAvailability = true;
                     }
 
@@ -219,20 +222,41 @@ class TrainingInvitations extends Component {
         this.setState({isRefreshing: false});
     };
 
+    /**
+     * Check if we need to show the fab.
+     * @param event
+     */
+    handleScroll = (event) => {
+
+        if (event.nativeEvent.contentOffset.y > 250) {
+            this.setState({showFab: true});
+        }
+        else
+            this.setState({showFab: false});
+    };
+
     render() {
 
         return (
-            <FlatList
-                keyExtractor={item => item.id + item.date}
-                data={this.state.trainings}
-                renderItem={this.renderItem}
-                ItemSeparatorComponent={this.renderSeparator}
-                onEndReached={this.handleMoreData}
-                onEndReachedThreshold={0.1}
-                ListFooterComponent={this.renderFooter}
-                refreshing={this.state.isRefreshing}
-                onRefresh={this.handleRefresh}
-            />
+            <View>
+                <FlatList
+                    ref={(ref) => { this.flatListRef = ref; }}
+                    onScroll={this.handleScroll}
+                    keyExtractor={item => item.id + item.date}
+                    data={this.state.trainings}
+                    renderItem={this.renderItem}
+                    ItemSeparatorComponent={this.renderSeparator}
+                    onEndReached={this.handleMoreData}
+                    onEndReachedThreshold={0.1}
+                    ListFooterComponent={this.renderFooter}
+                    refreshing={this.state.isRefreshing}
+                    onRefresh={this.handleRefresh}
+                />
+                {
+                    this.state.showFab &&
+                    <FabButton flatListRef={this.flatListRef}/>
+                }
+            </View>
         );
     }
 }

@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {View, FlatList, ActivityIndicator, TouchableOpacity} from 'react-native';
+import {View, FlatList, ActivityIndicator, TouchableOpacity, StyleSheet} from 'react-native';
 
 import {connect} from 'react-redux';
 import {Ionicons} from "@expo/vector-icons";
@@ -7,6 +7,7 @@ import CustomText from "../../CustomText";
 import {colors} from "../../../styles/index.style";
 import ConvertTime from "../../ConvertTime";
 import ManagementListItem from "../ManagementListItem";
+import FabButton from "../FabButton";
 
 
 class OpenedTrainings extends Component {
@@ -19,6 +20,7 @@ class OpenedTrainings extends Component {
             isRefreshing: false,
             trainingsList: [],
             isFetching: false,
+            showFab: false
         };
     }
 
@@ -208,22 +210,42 @@ class OpenedTrainings extends Component {
             }} />
     );
 
+    /**
+     * Check if we need to show the fab.
+     * @param event
+     */
+    handleScroll = (event) => {
+
+        if (event.nativeEvent.contentOffset.y > 250) {
+            this.setState({showFab: true});
+        }
+        else
+            this.setState({showFab: false});
+    };
+
     render() {
         return (
-            <FlatList
-                keyExtractor={item => item.id.toString()}
-                data={this.state.trainingsList}
-                renderItem={this.renderItem}
-                refreshing={this.state.isRefreshing}
-                onRefresh={this.handleRefresh}
-                onEndReached={this.handleMoreData}
-                onEndReachedThreshold={0.1}
-                ListFooterComponent={this.renderFooter.bind(this)}
-            />
+            <View>
+                <FlatList
+                    ref={(ref) => { this.flatListRef = ref; }}
+                    onScroll={this.handleScroll}
+                    keyExtractor={item => item.id.toString()}
+                    data={this.state.trainingsList}
+                    renderItem={this.renderItem}
+                    refreshing={this.state.isRefreshing}
+                    onRefresh={this.handleRefresh}
+                    onEndReached={this.handleMoreData}
+                    onEndReachedThreshold={0.1}
+                    ListFooterComponent={this.renderFooter.bind(this)}
+                />
+                {
+                    this.state.showFab &&
+                    <FabButton flatListRef={this.flatListRef}/>
+                }
+            </View>
         );
     }
 }
-
 
 
 const mapStateToProps = state => ({

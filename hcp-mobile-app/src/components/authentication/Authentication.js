@@ -10,21 +10,11 @@ import {
 import {AsyncStorage} from 'react-native';
 import Odoo from "react-native-odoo-promise-based";
 
-
 const HOST = 'hugo-host.ddns.net';
 const PORT = 8069;
 const DATABASE = 'hcp';
 
 export default class Authentication {
-
-    constructor() {
-
-        console.log('------------------------------------');
-        console.log('AUTHENTICATION: ' + HOST);
-        console.log('PORT: ' + PORT);
-        console.log('DATABASE: ' + DATABASE);
-        console.log('------------------------------------');
-    }
 
     /**
      * Check if an user is already authenticated.

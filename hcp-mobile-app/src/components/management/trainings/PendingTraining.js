@@ -62,6 +62,8 @@ class PendingTraining extends Component {
         await this.setState({
             training: this.props.navigation.state.params.training
         });
+
+        console.log(this.state.training);
     }
 
     async componentDidMount() {

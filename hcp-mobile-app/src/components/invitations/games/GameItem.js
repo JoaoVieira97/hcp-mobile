@@ -11,10 +11,28 @@ export default class GameItem extends PureComponent {
         const game = this.props.game;
         const child = this.props.child;
 
-        const colorText = game.isOver ? '#919391' : '#0d0d0d' ;
-        const colorBackground = game.isOver ? colors.lightGrayColor : '#fff';
-        const iconName = game.isOver ?  'md-done-all' : 'md-hourglass';
-        const iconSize = game.isOver ?  22 : 28;
+        let colorText, colorBackground, iconName, iconSize;
+        if(game.isOver === 'finished') {
+
+            colorText = '#919391';
+            colorBackground = colors.lightGrayColor;
+            iconName = 'md-done-all';
+            iconSize = 22;
+
+        } else if (game.isOver === 'closed') {
+
+            colorText ='#0d0d0d';
+            colorBackground = '#fff';
+            iconName = 'md-lock';
+            iconSize = 25;
+
+        } else {
+
+            colorText ='#0d0d0d';
+            colorBackground = '#fff';
+            iconName = 'md-hourglass';
+            iconSize = 25;
+        }
 
         return (
             <ListItem
