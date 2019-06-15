@@ -39,7 +39,7 @@ export default class EventItem extends PureComponent {
             if (eventState === 'opened') {
                 gameScreen = 'OpenedGameInvitation';
             } else {
-                gameScreen = 'PendingGameInvitation';
+                gameScreen = 'OtherGameInvitation';
             }
 
             this.props.navigation.navigate(gameScreen, {

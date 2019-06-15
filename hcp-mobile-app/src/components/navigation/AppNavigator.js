@@ -64,6 +64,8 @@ import ChangeLateAthletes from "../management/ChangeLateAthletes";
 import RegisterInjury from "../athletes/injuries/RegisterInjury";
 import OpenedInvitation from "../invitations/trainings/OpenedInvitation";
 import OtherInvitation from "../invitations/trainings/OtherInvitation";
+import OpenedGameInvitation from "../invitations/games/OpenedGameInvitation";
+import OtherGameInvitation from "../invitations/games/OtherGameInvitation";
 
 
 import {linearGradientHeader, headerTitle, openDrawerButton} from "./HeaderComponents";
@@ -252,7 +254,8 @@ const InvitationsStackNavigator = createStackNavigator({
     InvitationsNavigator: {screen: InvitationsNavigator},
     OpenedInvitation: {screen: OpenedInvitation},
     OtherInvitation: {screen: OtherInvitation},
-    // TODO: games
+    OpenedGameInvitation: {screen: OpenedGameInvitation},
+    OtherGameInvitation: {screen: OtherGameInvitation}
 }, {
     initialRouteName: 'InvitationsNavigator',
     defaultNavigationOptions: ({navigation}) => {
@@ -392,7 +395,8 @@ const ChildrenStackNavigator = createStackNavigator({
         })},
     OpenedInvitation: {screen: OpenedInvitation},
     OtherInvitation: {screen: OtherInvitation},
-    // TODO: games
+    OpenedGameInvitation: {screen: OpenedGameInvitation},
+    OtherGameInvitation: {screen: OtherGameInvitation},
     ChildInjuriesTypesScreen: {screen: AthleteInjuriesTypes},
     ChildInjuriesScreen:  {screen: AthleteInjuries},
     ChildInjuryScreen: {screen: AthleteInjury},
@@ -561,7 +565,7 @@ const AthleteDrawerNavigator = createDrawerNavigator({
     ChatStack: drawerNavigatorFullStacks['ChatStack']
 }, {
     ...drawerNavigatorDefaultSettings,
-    initialRouteName: 'InvitationsStack',
+    initialRouteName: 'HomeStack',
     order: ['HomeStack', 'CalendarStack', 'InvitationsStack', 'ProfileStack', 'ChatStack'],
 });
 

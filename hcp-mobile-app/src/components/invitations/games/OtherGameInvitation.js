@@ -1,14 +1,15 @@
 import React, {Component} from 'react';
 import {FlatList, RefreshControl, ScrollView, StyleSheet, View, Alert} from 'react-native';
 import {connect} from 'react-redux';
-import { ListItem } from 'react-native-elements';
+import {ListItem} from 'react-native-elements';
 import {Ionicons} from "@expo/vector-icons";
 import getDirections from 'react-native-google-maps-directions';
 import {headerTitle, closeButton} from "../../navigation/HeaderComponents";
 import {colors} from "../../../styles/index.style";
 import Loader from "../../screens/Loader";
 
-class OtherInvitation extends Component {
+
+class OtherGameInvitation extends Component {
 
     constructor(props) {
 
@@ -17,8 +18,8 @@ class OtherInvitation extends Component {
             isLoading: true,
             isRefreshing: false,
 
-            // training info
-            training: undefined,
+            // game info
+            game: undefined,
             coaches: ["A carregar..."],
             secretaries: ["A carregar..."],
             athletes: [],
@@ -33,7 +34,7 @@ class OtherInvitation extends Component {
 
     static navigationOptions = ({navigation}) => ({
         headerTitle: headerTitle(
-            '#ffffff', 'TREINO'
+            '#ffffff', 'JOGO'
         ),
         headerLeft: closeButton(
             '#ffffff', navigation
@@ -43,7 +44,7 @@ class OtherInvitation extends Component {
     async componentWillMount() {
 
         await this.setState({
-            training: this.props.navigation.getParam('training'),
+            game: this.props.navigation.getParam('game'),
             athleteID: this.props.navigation.getParam('athleteID'),
             athleteIsChild: this.props.navigation.getParam('athleteIsChild'),
         });
@@ -61,9 +62,9 @@ class OtherInvitation extends Component {
      */
     async fetchData() {
 
-        await this.fetchAthleteInfo(this.state.training.invitationIds);
-        await this.fetchCoaches(this.state.training.coachIds);
-        await this.fetchSecretaries(this.state.training.secretaryIds);
+        await this.fetchAthletes(this.state.game.invitationIds);
+        await this.fetchCoaches(this.state.game.coachIds);
+        await this.fetchSecretaries(this.state.game.secretaryIds);
     }
 
     /**
@@ -71,25 +72,26 @@ class OtherInvitation extends Component {
      * @param ids
      * @returns {Promise<void>}
      */
-    async fetchAthleteInfo(ids) {
+    async fetchAthletes(ids) {
 
         const params = {
             fields: [
                 'id',
                 'atleta',
                 'disponivel',
+                'numero'
             ],
             domain: [['id', 'in', ids]],
             order: 'numero ASC'
         };
 
         const response = await this.props.odoo.search_read('ges.linha_convocatoria', params);
-        if(response.success && response.data.length > 0) {
+        if (response.success && response.data.length > 0) {
 
             const data = response.data;
-            for(let item of data) {
+            for (let item of data) {
 
-                if(item.atleta[0] === this.state.athleteID) {
+                if (item.atleta[0] === this.state.athleteID) {
                     this.setState({isAvailable: item.disponivel, athleteName: item.atleta[1]});
                     break;
                 }
@@ -110,7 +112,7 @@ class OtherInvitation extends Component {
         };
 
         const response = await this.props.odoo.get('ges.treinador', params);
-        if(response.success && response.data.length > 0) {
+        if (response.success && response.data.length > 0) {
 
             const data = response.data;
 
@@ -142,7 +144,7 @@ class OtherInvitation extends Component {
         };
 
         const response = await this.props.odoo.get('ges.seccionista', params);
-        if(response.success && response.data.length > 0) {
+        if (response.success && response.data.length > 0) {
 
             await this.setState({secretaries: response.data.map(item => item.name)});
 
@@ -161,7 +163,7 @@ class OtherInvitation extends Component {
         this.setState({isLoading: true});
 
         const params = {
-            ids: [this.state.training.place[0]],
+            ids: [this.state.game.place[0]],
             fields: ['coordenadas'],
         };
         const response = await this.props.odoo.get('ges.local', params);
@@ -169,18 +171,20 @@ class OtherInvitation extends Component {
 
             const coordinates = response.data[0].coordenadas;
 
-            if(coordinates !== false) {
+            if (coordinates !== false) {
 
                 const latitude = parseFloat(coordinates.split(", ")[0]);
                 const longitude = parseFloat(coordinates.split(", ")[1]);
 
                 this.setState({isLoading: false});
+
                 return {
                     latitude: latitude,
                     longitude: longitude
                 }
             }
         }
+
         this.setState({isLoading: false});
         return undefined;
     }
@@ -226,10 +230,9 @@ class OtherInvitation extends Component {
                     {cancelable: true},
                 );
             },
-            { enableHighAccuracy: true, timeout: 20000, maximumAge: 1000 }
+            {enableHighAccuracy: true, timeout: 20000, maximumAge: 1000}
         );
     };
-
 
     /**
      * When user refresh this screen.
@@ -246,7 +249,7 @@ class OtherInvitation extends Component {
      */
     onLocalPress = () => {
 
-        if(this.state.training.place && this.state.training.place[0]) {
+        if (this.state.game.place && this.state.game.place[0]) {
 
             this.getCoordinates().then(response => {
 
@@ -257,14 +260,15 @@ class OtherInvitation extends Component {
                         'Pretende abrir o Google Maps para visualizar o local do evento?',
                         [
                             {text: 'Cancelar', style: 'cancel',},
-                            {text: 'Sim', onPress: () => {
+                            {
+                                text: 'Sim', onPress: () => {
                                     this.openGoogleMaps(response);
-                                }},
+                                }
+                            },
                         ],
                         {cancelable: true},
                     );
-                }
-                else {
+                } else {
                     Alert.alert(
                         'Não existem coordenadas',
                         'As coordenadas deste evento ainda não foram definidas. Peça ao administrador para as adicionar.',
@@ -275,8 +279,7 @@ class OtherInvitation extends Component {
                     );
                 }
             });
-        }
-        else {
+        } else {
             Alert.alert(
                 'Local não atribuído',
                 'O local para este evento ainda não foi atribuído.',
@@ -335,25 +338,29 @@ class OtherInvitation extends Component {
 
     render() {
 
-        let list = [{
+        const list = [{
             name: 'Estado',
             icon: 'md-help-circle',
-            subtitle: this.state.training.state !== 'fechado' ? 'Convocatórias fechadas' : 'Treino fechado'
-        },{
-            name: 'Escalão',
+            subtitle: this.state.game.state !== 'fechado' ? 'Convocatórias fechadas' : 'Jogo fechado'
+        }, {
+            name: 'Competição',
+            icon: 'md-trophy',
+            subtitle: this.state.game.competition,
+        }, {
+            name: 'Escalão e Adversário',
             icon: 'md-shirt',
-            subtitle: this.state.training.echelon[1],
+            subtitle: this.state.game.echelon[1] + ' | ' + this.state.game.opponent,
         }, {
             name: 'Início e Duração',
             icon: 'md-time',
             subtitle:
-                this.state.training.date + '  às  ' +
-                this.state.training.hours + '\n' +
-                this.state.training.duration + ' min',
+                this.state.game.date + '  às  ' +
+                this.state.game.hours + '\n' +
+                this.state.game.duration + ' min',
         }, {
             name: 'Local',
             icon: 'md-pin',
-            subtitle: this.state.training.place ? this.state.training.place[1] : 'Nenhum local atribuído',
+            subtitle: this.state.game.place ? this.state.game.place[1] : 'Nenhum local atribuído',
         }, {
             name: 'Treinadores',
             icon: 'md-people',
@@ -366,14 +373,14 @@ class OtherInvitation extends Component {
             name: 'Disponibilidade',
             icon: 'md-list-box',
             subtitle: !this.state.athleteIsChild ?
-                (this.state.isAvailable ? 'Está disponível para este treino.': 'Não está disponível para este treino.') :
+                (this.state.isAvailable ? 'Está disponível para este jogo.' : 'Não está disponível para este jogo.') :
                 (this.state.isAvailable ?
-                    'O seu filho ' + this.state.athleteName + ' está disponível para este treino.':
-                    'O seu filho ' + this.state.athleteName + ' não está disponível para este treino.')
+                    'O seu filho ' + this.state.athleteName + ' está disponível para este jogo.' :
+                    'O seu filho ' + this.state.athleteName + ' não está disponível para este jogo.')
         }];
 
         return (
-            <View style={{flex: 1, backgroundColor: '#ffe3e4'}}>
+            <View style={{flex: 1}}>
                 <Loader isLoading={this.state.isLoading}/>
                 <ScrollView
                     style={{flex: 1}}
@@ -388,7 +395,7 @@ class OtherInvitation extends Component {
                         <FlatList
                             keyExtractor={item => item.name}
                             data={list}
-                            extraData = {this.state.isAvailable}
+                            extraData={this.state.isAvailable}
                             renderItem={this.renderItemOfList}
                             ListHeaderComponent={this.renderHeader}
                         />
@@ -402,7 +409,20 @@ class OtherInvitation extends Component {
 const styles = StyleSheet.create({
     topHeader: {
         flex: 1,
+        backgroundColor: '#ffe3e4',
+        borderBottomLeftRadius: 20,
+        borderBottomRightRadius: 20,
         paddingVertical: 10,
+
+        // shadow
+        shadowColor: "#000",
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+        elevation: 5,
     }
 });
 
@@ -414,4 +434,4 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => ({});
 
-export default connect(mapStateToProps, mapDispatchToProps)(OtherInvitation);
+export default connect(mapStateToProps, mapDispatchToProps)(OtherGameInvitation);

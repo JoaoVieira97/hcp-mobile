@@ -381,7 +381,7 @@ class OpenedInvitation extends Component {
                 else {
                     Alert.alert(
                         'Não existem coordenadas',
-                        'As coordenadas deste evento ainda não foram definidas. Peça ao adminsitrador para as adicionar.',
+                        'As coordenadas deste evento ainda não foram definidas. Peça ao administrador para as adicionar.',
                         [
                             {text: 'Voltar', style: 'cancel',},
                         ],
@@ -492,10 +492,10 @@ class OpenedInvitation extends Component {
             icon: 'md-shirt',
             subtitle: this.state.training.echelon[1],
         }, {
-            name: 'Início e duração',
+            name: 'Início e Duração',
             icon: 'md-time',
             subtitle:
-                this.state.training.date + '  |  ' +
+                this.state.training.date + '  às  ' +
                 this.state.training.hours + '\n' +
                 this.state.training.duration + ' min',
         }, {

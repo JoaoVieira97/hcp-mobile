@@ -1,14 +1,17 @@
 import React, {Component} from 'react';
 import {FlatList, RefreshControl, ScrollView, StyleSheet, View, Alert} from 'react-native';
 import {connect} from 'react-redux';
-import { ListItem } from 'react-native-elements';
+import { ListItem, CheckBox } from 'react-native-elements';
 import {Ionicons} from "@expo/vector-icons";
 import getDirections from 'react-native-google-maps-directions';
 import {headerTitle, closeButton} from "../../navigation/HeaderComponents";
 import {colors} from "../../../styles/index.style";
 import Loader from "../../screens/Loader";
+import AthletesGrid from "../../management/AthletesGrid";
 
-class OtherInvitation extends Component {
+
+
+class OpenedGameInvitation extends Component {
 
     constructor(props) {
 
@@ -17,8 +20,8 @@ class OtherInvitation extends Component {
             isLoading: true,
             isRefreshing: false,
 
-            // training info
-            training: undefined,
+            // game info
+            game: undefined,
             coaches: ["A carregar..."],
             secretaries: ["A carregar..."],
             athletes: [],
@@ -26,14 +29,13 @@ class OtherInvitation extends Component {
             // athlete info
             athleteID: undefined,
             athleteIsChild: false,
-            isAvailable: true,
-            athleteName: undefined,
+            isAvailable: true
         }
     }
 
     static navigationOptions = ({navigation}) => ({
         headerTitle: headerTitle(
-            '#ffffff', 'TREINO'
+            '#ffffff', 'JOGO'
         ),
         headerLeft: closeButton(
             '#ffffff', navigation
@@ -43,7 +45,7 @@ class OtherInvitation extends Component {
     async componentWillMount() {
 
         await this.setState({
-            training: this.props.navigation.getParam('training'),
+            game: this.props.navigation.getParam('game'),
             athleteID: this.props.navigation.getParam('athleteID'),
             athleteIsChild: this.props.navigation.getParam('athleteIsChild'),
         });
@@ -61,9 +63,9 @@ class OtherInvitation extends Component {
      */
     async fetchData() {
 
-        await this.fetchAthleteInfo(this.state.training.invitationIds);
-        await this.fetchCoaches(this.state.training.coachIds);
-        await this.fetchSecretaries(this.state.training.secretaryIds);
+        await this.fetchAthletes(this.state.game.invitationIds);
+        await this.fetchCoaches(this.state.game.coachIds);
+        await this.fetchSecretaries(this.state.game.secretaryIds);
     }
 
     /**
@@ -71,13 +73,14 @@ class OtherInvitation extends Component {
      * @param ids
      * @returns {Promise<void>}
      */
-    async fetchAthleteInfo(ids) {
+    async fetchAthletes(ids) {
 
         const params = {
             fields: [
                 'id',
                 'atleta',
                 'disponivel',
+                'numero'
             ],
             domain: [['id', 'in', ids]],
             order: 'numero ASC'
@@ -87,14 +90,66 @@ class OtherInvitation extends Component {
         if(response.success && response.data.length > 0) {
 
             const data = response.data;
-            for(let item of data) {
+            const ids = this.state.game.athleteIds;
+            let athletes = [];
+            const athletesInfo = await this.fetchAthletesInfo(ids);
+
+            data.forEach(item => {
+
+                const athleteInfo = athletesInfo.find(a =>
+                    item.atleta[0] === a.id
+                );
 
                 if(item.atleta[0] === this.state.athleteID) {
-                    this.setState({isAvailable: item.disponivel, athleteName: item.atleta[1]});
-                    break;
+                    this.setState({isAvailable: item.disponivel});
                 }
-            }
+
+                let displayColor;
+                if (item.disponivel)
+                    displayColor = 'green';
+                else
+                    displayColor = 'red';
+
+                const athlete = {
+                    id: item.atleta[0],
+                    name: item.atleta[1],
+                    squad_number: item.numero,
+                    available: item.disponivel,
+                    image: athleteInfo ? athleteInfo.image : false,
+                    echelon: athleteInfo ? athleteInfo.escalao[1] : 'erro',
+                    displayColor: displayColor
+                };
+
+                athletes.push(athlete);
+            });
+
+            this.setState({
+                athletes: athletes
+            });
         }
+    }
+
+    /**
+     * Fetch athletes images.
+     * @param ids
+     * @returns {Promise<Array|*>}
+     */
+    async fetchAthletesInfo(ids) {
+
+        const params = {
+            ids: ids,
+            fields: [
+                'id',
+                'image',
+                'escalao'
+            ]
+        };
+
+        const response = await this.props.odoo.get('ges.atleta', params);
+        if(response.success && response.data.length > 0)
+            return response.data;
+
+        return [];
     }
 
     /**
@@ -161,7 +216,7 @@ class OtherInvitation extends Component {
         this.setState({isLoading: true});
 
         const params = {
-            ids: [this.state.training.place[0]],
+            ids: [this.state.game.place[0]],
             fields: ['coordenadas'],
         };
         const response = await this.props.odoo.get('ges.local', params);
@@ -175,12 +230,14 @@ class OtherInvitation extends Component {
                 const longitude = parseFloat(coordinates.split(", ")[1]);
 
                 this.setState({isLoading: false});
+
                 return {
                     latitude: latitude,
                     longitude: longitude
                 }
             }
         }
+
         this.setState({isLoading: false});
         return undefined;
     }
@@ -230,6 +287,63 @@ class OtherInvitation extends Component {
         );
     };
 
+    /**
+     * Change athlete availability.
+     * @returns {Promise<void>}
+     */
+    async changeAvailability(){
+
+        this.setState({isLoading: true,});
+
+        if(this.state.athleteID){
+
+            const params = {
+                kwargs: {
+                    context: this.props.odoo.context,
+                },
+                model: 'ges.evento_desportivo',
+                method: 'atleta_alterar_disponibilidade',
+                args: [
+                    this.state.game.eventId,
+                    this.state.athleteID
+                ],
+            };
+
+            const response = await this.props.odoo.rpc_call('/web/dataset/call_kw', params);
+            if (response.success) {
+
+                const athletes = this.state.athletes;
+                const athleteIndex = athletes.findIndex(athlete => athlete.id === this.state.athleteID);
+
+                if(athleteIndex >= 0) {
+                    athletes[athleteIndex].available = !this.state.isAvailable;
+
+                    if(athletes[athleteIndex].displayColor === 'green') athletes[athleteIndex].displayColor = 'red';
+                    else athletes[athleteIndex].displayColor = 'green';
+                }
+
+                this.setState(state => ({
+                    athletes: athletes,
+                    isLoading: false,
+                    isAvailable: !state.isAvailable,
+                }));
+            }
+        }
+        else {
+
+            this.setState({
+                isLoading: false,
+            });
+            Alert.alert(
+                'Erro ao atualizar',
+                'Ocorreu um erro ao atualizar a disponibilidade. Por favor, tente novamente.',
+                [
+                    {text: 'Confirmar'}
+                ],
+                {cancelable: true},
+            );
+        }
+    };
 
     /**
      * When user refresh this screen.
@@ -246,7 +360,7 @@ class OtherInvitation extends Component {
      */
     onLocalPress = () => {
 
-        if(this.state.training.place && this.state.training.place[0]) {
+        if(this.state.game.place && this.state.game.place[0]) {
 
             this.getCoordinates().then(response => {
 
@@ -295,65 +409,103 @@ class OtherInvitation extends Component {
      */
     renderItemOfList = ({ item }) => {
 
-        if (item.name === 'Local') {
-            return (
-                <ListItem
-                    title={item.name}
-                    subtitle={item.subtitle}
-                    leftAvatar={
-                        <View style={{width: 25}}>
-                            <Ionicons name={item.icon} size={27} />
-                        </View>
-                    }
-                    containerStyle={{
-                        backgroundColor: colors.lightRedColor,
-                        minHeight: 60,
-                    }}
-                    chevron={true}
-                    onPress={() => this.onLocalPress()}
-                />
-            );
-        } else {
-            return (
-                <ListItem
-                    title={item.name}
-                    subtitle={item.subtitle}
-                    leftAvatar={
-                        <View style={{width: 25}}>
-                            <Ionicons name={item.icon} size={27} />
-                        </View>
-                    }
-                    containerStyle={{
-                        backgroundColor: colors.lightRedColor,
-                        minHeight: 60,
-                    }}
-                    disabled={true}
-                />
-            );
+        switch (item.name) {
+
+            case 'Local':
+                return (
+                    <ListItem
+                        title={item.name}
+                        subtitle={item.subtitle}
+                        leftAvatar={
+                            <View style={{width: 25}}>
+                                <Ionicons name={item.icon} size={27} />
+                            </View>
+                        }
+                        containerStyle={{
+                            backgroundColor: colors.lightRedColor,
+                            minHeight: 60,
+                        }}
+                        chevron={true}
+                        onPress={() => this.onLocalPress()}
+                    />
+                );
+            case 'Disponibilidade': {
+
+                const checkbox = (
+                    <CheckBox
+                        iconRight
+                        checked={this.state.isAvailable}
+                        onPress={async () => this.changeAvailability()}
+                        size = {30}
+                        containerStyle={{ marginRight: 5, padding: 0, backgroundColor: 'transparent', borderColor: 'transparent'}}
+                        checkedColor={colors.availableColor}
+                        uncheckedColor={colors.notAvailableColor}
+                    />
+                );
+
+                return (
+                    <ListItem
+                        title={item.name}
+                        subtitle={item.subtitle}
+                        leftAvatar={
+                            <View style={{width: 25}}>
+                                <Ionicons name={item.icon} size={27} />
+                            </View>
+                        }
+                        containerStyle={{
+                            backgroundColor: colors.lightRedColor,
+                            minHeight: 60,
+                        }}
+                        disabled={true}
+                        rightElement={checkbox}
+                    />
+                );
+            }
+            default:
+                return (
+                    <ListItem
+                        title={item.name}
+                        subtitle={item.subtitle}
+                        leftAvatar={
+                            <View style={{width: 25}}>
+                                <Ionicons name={item.icon} size={27} />
+                            </View>
+                        }
+                        containerStyle={{
+                            backgroundColor: colors.lightRedColor,
+                            minHeight: 60,
+                        }}
+                        disabled={true}
+                    />
+                );
         }
     };
 
     render() {
 
-        let list = [{
+        const list = [{
             name: 'Estado',
             icon: 'md-help-circle',
-            subtitle: this.state.training.state !== 'fechado' ? 'Convocatórias fechadas' : 'Treino fechado'
+            subtitle: 'Convocatórias em aberto'
         },{
-            name: 'Escalão',
+            name: 'Competição',
+            icon: 'md-trophy',
+            subtitle: this.state.game.competition,
+        },{
+            name: 'Escalão e Adversário',
             icon: 'md-shirt',
-            subtitle: this.state.training.echelon[1],
+            subtitle: this.state.game.echelon[1] + ' | ' + this.state.game.opponent,
         }, {
             name: 'Início e Duração',
             icon: 'md-time',
             subtitle:
-                this.state.training.date + '  às  ' +
-                this.state.training.hours + '\n' +
-                this.state.training.duration + ' min',
+                this.state.game.date + '  às  ' +
+                this.state.game.hours + '\n' +
+                this.state.game.duration + ' min',
         }, {
             name: 'Local',
             icon: 'md-pin',
-            subtitle: this.state.training.place ? this.state.training.place[1] : 'Nenhum local atribuído',
+            subtitle: this.state.game.place ? this.state.game.place[1] : 'Nenhum local atribuído',
         }, {
             name: 'Treinadores',
             icon: 'md-people',
@@ -362,18 +514,16 @@ class OtherInvitation extends Component {
             name: 'Seccionistas',
             icon: 'md-clipboard',
             subtitle: this.state.secretaries.join(',  ')
-        }, {
+        },{
             name: 'Disponibilidade',
             icon: 'md-list-box',
             subtitle: !this.state.athleteIsChild ?
-                (this.state.isAvailable ? 'Está disponível para este treino.': 'Não está disponível para este treino.') :
-                (this.state.isAvailable ?
-                    'O seu filho ' + this.state.athleteName + ' está disponível para este treino.':
-                    'O seu filho ' + this.state.athleteName + ' não está disponível para este treino.')
+                'Altere a sua disponibilidade para este jogo' :
+                'Altere a disponibilidade do seu filho para este jogo'
         }];
 
         return (
-            <View style={{flex: 1, backgroundColor: '#ffe3e4'}}>
+            <View style={{flex: 1}}>
                 <Loader isLoading={this.state.isLoading}/>
                 <ScrollView
                     style={{flex: 1}}
@@ -393,6 +543,10 @@ class OtherInvitation extends Component {
                             ListHeaderComponent={this.renderHeader}
                         />
                     </View>
+                    <AthletesGrid
+                        title={'Atletas Convocados'}
+                        athletes={this.state.athletes}
+                    />
                 </ScrollView>
             </View>
         );
@@ -402,7 +556,20 @@ class OtherInvitation extends Component {
 const styles = StyleSheet.create({
     topHeader: {
         flex: 1,
+        backgroundColor: '#ffe3e4',
+        borderBottomLeftRadius: 20,
+        borderBottomRightRadius: 20,
         paddingVertical: 10,
+
+        // shadow
+        shadowColor: "#000",
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+        elevation: 5,
     }
 });
 
@@ -414,4 +581,4 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => ({});
 
-export default connect(mapStateToProps, mapDispatchToProps)(OtherInvitation);
+export default connect(mapStateToProps, mapDispatchToProps)(OpenedGameInvitation);
