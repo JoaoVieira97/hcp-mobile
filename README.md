@@ -40,149 +40,34 @@ Web App version can be found [here](https://github.com/git-antoniosousa/hcp-1), 
 
 <br >
 
-## Odoo Installation
-
-Download Odoo 11:
+## Create a new Odoo module _gestao_equipas_app_
 
 ```bash
-wget https://nightly.odoocdn.com/11.0/nightly/src/odoo_11.0.latest.tar.gz
-mkdir ~/odoo
-tar -xvzf odoo_11.0.latest.tar.gz -C ~/odoo --strip 1
-```
-
----
-
-Install Python 3 and Virtual Environment
-
-```bash
-sudo apt-get install -y python3
-sudo apt-get install -y python3-pip
-sudo pip install --upgrade pip
-pip install virtualenv
-```
-
----
-
-Install dependencies
-
-```bash
-sudo apt-get install -y libxml2-dev libxslt-dev python3-dev
-sudo apt-get install -y libsasl2-dev libldap2-dev libssl-dev
-sudo apt-get install -y wkhtmltopdf
-sudo apt-get install -y node-less
-```
-
----
-
-Install Odoo 11
-
-```bash
-virtualenv -p python3 ~/.virtualenvs/hcpwebapp
+# Activate Virtual Environment
 source ~/.virtualenvs/hcpwebapp/bin/activate
-cd ~/odoo
-pip install -r requirements.txt
-python setup.py install
-pip install validate_email
-pip install phonenumbers
 ```
-
----
-
-Run Odoo 11
-
-```bash
-# Let's assume that you have the "gestao_equipas" folder in the following directory:
-ls $HOME/hcp-1/addons
-# To run Odoo web server, just run the following command:
-odoo --addons-path=~/.virtualenvs/hcpwebapp/lib/python3.6/site-packages/odoo-11.0.post20190227-py3.6.egg/odoo/addons/,$HOME/hcp-1/addons
-```
-
----
-
-Create Odoo module *gestao_equipas_app* to extend *gestao_equipas*
 
 ```bash
 # Assuming that you have the "gestao_equipas" folder in the following directory:
 ls $HOME/hcp-1/addons
-# Assuming that we will create the new module in the $HOME location
-cd $HOME
-# To create the new module
-source ~/.virtualenvs/hcpwebapp/bin/activate
-odoo scaffold gestao_equipas_app addons # This will create the new module inside the 'addons' folder
-# After do your modifications to your new module you can run the server like this:
-odoo --addons-path=~/.virtualenvs/hcpwebapp/lib/python3.6/site-packages/odoo-11.0.post20190227-py3.6.egg/odoo/addons,$HOME/hcp-1/addons,$HOME/addons
-# After this, open Odoo (http://0.0.0.0:8069) with the admin account
-#   * Go to 'Apps'
-#   * Remove the 'Apps' filter on the search bar
-#   * Search for your new module
-#   * Click on it and install the module
-#   * You're done
+# Assuming that you want to have "gestao_equipas_app" folder in the following directory:
+ls $HOME/hcp-mobile/hcp-server-dependencies/addons
+
+# Create gestao_equipas_app module
+odoo scaffold gestao_equipas_app addons
 ```
 
-<br >
-
-## Requirements (Linux)
-
-Install Node.js and NPM.
+## Install the _gestao_equipas_app_ module
 
 ```bash
-sudo apt-get install -y nodejs
-sudo apt-get install -y libssl1.0-dev
-sudo apt-get install -y nodejs-dev
-sudo apt-get install -y node-gyp
-sudo apt-get install -y npm
-
-# Install the React Native Command Line Interface
-sudo npm install -g react-native-cli
-# Install the Expo Command Line Interface
-sudo npm install -g expo-cli
+# Run Odoo with specific addons
+odoo --addons-path=~/.virtualenvs/hcpwebapp/lib/python3.6/site-packages/odoo-11.0.post20190616-py3.6.egg/odoo/addons/,$HOME/hcp-1/addons,$HOME/hcp-mobile/hcp-server-dependencies/addons
 ```
 
----
-
-Install Java SE Development Kit 8 (Java JDK).
-
-```bash
-sudo apt install -y openjdk-8-jdk
-sudo apt install -y openjdk-8-jre
-
-# Set Java 8 if it is not the default
-sudo update-alternatives --config java
-```
-
----
-
-Download and Install [Android Studio](https://developer.android.com/studio/index.html). Make sure to check the following boxes `Android SDK`, `Android SDK Platform` and `Android Virtual Device` (for Android Virtual Device Manager), during installation.
-
-Install the Android SDK. Android SDKs can be installed through the SDK Manager in Android Studio.
-
-```
-Install Android 9 (Pie) | Android SDK Platform 28
-```
-
----
-
-Configure the ANDROID_HOME environment variable.
-Add the following to your `bash profile` config file:
-
-- using default bash go to `$HOME/.bashrc`
-- using zsh go to `$HOME/.zshrc`
-
-```
-export ANDROID_HOME=$HOME/Android/Sdk
-export PATH=$PATH:$ANDROID_HOME/emulator
-export PATH=$PATH:$ANDROID_HOME/tools
-export PATH=$PATH:$ANDROID_HOME/tools/bin
-export PATH=$PATH:$ANDROID_HOME/platform-tools
-```
-
----
-
-Preparing the Android device:
-
-- Using a physical device, click [here](https://facebook.github.io/react-native/docs/running-on-device)
-- Using a virtual device
-
-  - Open AVD (`Tools > AVD Manager`)
-  - Create a new AVD > Create Virtual Device > Select the Pie API Level 28 image
-  - You can now launch it
+- Access Odoo Web Interface and install new module:
+  - Login as Admin
+  - Go to 'Apps'
+  - Remove the 'Apps' filter on the search bar
+  - Update Apps List on left side panel
+  - Search for your new module > "gestao_equipas_app"
+  - Click on it and install the module

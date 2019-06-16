@@ -1,4 +1,4 @@
-# HCP WEB APP Deployment
+# Odoo Installation on CentOS 7
 
 Follow these instructions to install HCP Web App on CentOS 7 machine.
 
