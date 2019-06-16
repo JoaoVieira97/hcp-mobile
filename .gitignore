@@ -1,5 +1,10 @@
-hcp-server-dependencies/hcp-lei.zip
-hcp-server-dependencies/odoo_11.0.latest.tar.gz
-hcp-server-dependencies/odoo_books.zip
 hcp-mobile-app/.idea
 __pycache__
+hcp-mobile-app/node_modules/**/*
+hcp-mobile-app/.expo/*
+hcp-mobile-app/npm-debug.*
+hcp-mobile-app/*.jks
+hcp-mobile-app/*.p12
+hcp-mobile-app/*.key
+hcp-mobile-app/*.mobileprovision
+hcp-mobile-app/.expo-shared
