@@ -3,15 +3,17 @@ import React, {Component} from 'react';
 import {
     ScrollView,
     View,
-    StyleSheet, TouchableOpacity
+    StyleSheet
 } from 'react-native';
 import { Button} from 'react-native-paper';
 import { Avatar } from 'react-native-elements';
 import {connect} from 'react-redux';
-import {Ionicons} from "@expo/vector-icons";
 import * as Animatable from "react-native-animatable";
 import {colors} from "../../styles/index.style";
 import CustomText from "../CustomText";
+import {headerTitle, closeButton} from "../navigation/HeaderComponents";
+
+
 
 class AthleteScreen extends Component {
 
@@ -24,6 +26,20 @@ class AthleteScreen extends Component {
         }
     }
 
+    /**
+     * Define navigations header components.
+     * @param navigation
+     * @returns {{headerLeft: *, headerTitle: *}}
+     */
+    static navigationOptions = ({navigation}) => ({
+        headerTitle: headerTitle(
+            '#ffffff', 'ATLETAS'
+        ),
+        headerLeft: closeButton(
+            '#ffffff', navigation
+        ),
+    });
+
     async componentDidMount() {
 
         await this.setState({
@@ -32,28 +48,6 @@ class AthleteScreen extends Component {
 
         this.setState({isLoading: false});
     }
-
-    /**
-     * Define navigation properties.
-     * @param navigation
-     */
-    static navigationOptions = ({navigation}) => {
-
-        return ({
-            headerLeft:
-                <TouchableOpacity style={{
-                    width:42,
-                    height:42,
-                    alignItems:'center',
-                    justifyContent:'center',
-                    marginLeft: 10}} onPress = {() => navigation.goBack()}>
-                    <Ionicons
-                        name="md-arrow-back"
-                        size={28}
-                        color={'#ffffff'} />
-                </TouchableOpacity>
-        });
-    };
 
     render() {
 

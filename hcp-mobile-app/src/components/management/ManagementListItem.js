@@ -4,7 +4,6 @@ import {Text, View} from 'react-native';
 import {ListItem} from 'react-native-elements';
 import {colors} from "../../styles/index.style";
 import {Ionicons} from "@expo/vector-icons";
-import FabButton from "./FabButton";
 
 
 

@@ -13,13 +13,13 @@ import {
 import {connect} from 'react-redux';
 import {Ionicons} from "@expo/vector-icons";
 import { ListItem } from 'react-native-elements';
-import CustomText from "../../CustomText";
 import { DangerZone } from 'expo';
 const { Lottie } = DangerZone;
 import {colors} from "../../../styles/index.style";
 import Loader from "../../screens/Loader";
 import AthletesGrid from "../AthletesGrid";
 import * as Animatable from "react-native-animatable";
+import {headerTitle, closeButton} from "../../navigation/HeaderComponents";
 
 class OpenedTraining extends React.Component {
 
@@ -44,27 +44,12 @@ class OpenedTraining extends React.Component {
      * @returns {{headerRight: *, headerLeft: *, headerTitle: *}}
      */
     static navigationOptions = ({navigation}) => ({
-        headerTitle:
-            <CustomText
-                type={'bold'}
-                children={'TREINO'}
-                style={{
-                    color: '#ffffff',
-                    fontSize: 16
-                }}
-            />,
-        headerLeft:
-            <TouchableOpacity style={{
-                width:42,
-                height:42,
-                alignItems:'center',
-                justifyContent:'center',
-                marginLeft: 10}} onPress = {() => navigation.goBack()}>
-                <Ionicons
-                    name="md-arrow-back"
-                    size={28}
-                    color={'#ffffff'} />
-            </TouchableOpacity>,
+        headerTitle: headerTitle(
+            '#ffffff', 'TREINO'
+        ),
+        headerLeft: closeButton(
+            '#ffffff', navigation
+        ),
         headerRight:
             <TouchableOpacity style={{
                 width:42,
@@ -488,7 +473,7 @@ class OpenedTraining extends React.Component {
                         </View>
                     </View>
                     <AthletesGrid
-                        title={'Atletas convocados'}
+                        title={'Atletas Convocados'}
                         athletes={this.state.athletes}
                     />
                 </ScrollView>

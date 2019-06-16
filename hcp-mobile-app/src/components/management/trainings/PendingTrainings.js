@@ -1,13 +1,13 @@
 import React, {Component} from 'react';
-import {View, FlatList, ActivityIndicator, TouchableOpacity} from 'react-native';
-
+import {View, FlatList, ActivityIndicator} from 'react-native';
+import moment from 'moment';
 import {connect} from 'react-redux';
-import {Ionicons} from "@expo/vector-icons";
-import CustomText from "../../CustomText";
 import {colors} from "../../../styles/index.style";
 import ManagementListItem from "../ManagementListItem";
 import ConvertTime from "../../ConvertTime";
 import FabButton from "../FabButton";
+import {headerTitle, closeButton} from "../../navigation/HeaderComponents";
+
 
 
 class PendingTrainings extends Component {
@@ -16,6 +16,7 @@ class PendingTrainings extends Component {
         super(props);
 
         this.state = {
+            stopFetching: false,
             isLoading: true,
             isRefreshing: false,
             trainingsList: [],
@@ -24,41 +25,29 @@ class PendingTrainings extends Component {
         };
     }
 
-    async componentDidMount() {
-
-        // fetch all trainings, max 20
-        await this.fetchTrainings(20, true);
-        await this.setState({isLoading: false});
-    }
-
     /**
      * Define navigations header components.
      * @param navigation
      * @returns {{headerLeft: *, headerTitle: *}}
      */
     static navigationOptions = ({navigation}) => ({
-        headerTitle:
-            <CustomText
-                type={'bold'}
-                children={'CONVOCATÓRIAS FECHADAS'}
-                style={{
-                    color: '#ffffff',
-                    fontSize: 16
-                }}
-            />,
-        headerLeft:
-            <TouchableOpacity style={{
-                width:42,
-                height:42,
-                alignItems:'center',
-                justifyContent:'center',
-                marginLeft: 10}} onPress = {() => navigation.goBack()}>
-                <Ionicons
-                    name="md-arrow-back"
-                    size={28}
-                    color={'#ffffff'} />
-            </TouchableOpacity>,
+        headerTitle: headerTitle(
+            '#ffffff', 'CONVOCATÓRIAS FECHADAS'
+        ),
+        headerLeft: closeButton(
+            '#ffffff', navigation
+        )
     });
+
+    async componentDidMount() {
+
+        const date = moment().format();
+        await this.setState({date: date});
+
+        // fetch all trainings, max 20
+        await this.fetchTrainings(20, true);
+        await this.setState({isLoading: false});
+    }
 
     /**
      * Fetch all pending trainings. Maximum of limit items.
@@ -68,64 +57,87 @@ class PendingTrainings extends Component {
      */
     async fetchTrainings(limit=20, clear=false) {
 
-        if(!this.state.isFetching) {
+        this.setState({isFetching: true});
 
-            this.setState({isFetching: true});
-
-            if(clear) {
-                await this.setState({trainingsList: []});
-            }
-
-            const idsFetched = this.state.trainingsList.map(training => {return training.id});
-            const params = {
-                domain: [
-                    ['id', 'not in', idsFetched],
-                    ['state', '=', 'convocatorias_fechadas']
-                ],
-                fields: [
-                    'id', 'atletas', 'display_start', 'local',
-                    'escalao', 'duracao',
-                    'convocatorias', 'presencas',
-                    'treinador', 'seccionistas'
-                ],
-                limit: limit,
-                order: 'display_start DESC'
-            };
-
-            const response = await this.props.odoo.search_read('ges.treino', params);
-            if (response.success && response.data.length > 0) {
-
-                let trainings = [];
-                const convertTime = new ConvertTime();
-                response.data.forEach(item => {
-
-                    convertTime.setDate(item.display_start);
-                    const date = convertTime.getTimeObject();
-
-                    const training = {
-                        id: item.id,
-                        local: item.local,
-                        echelon: item.escalao,
-                        duration: item.duracao,
-                        date: date.date,
-                        hour: date.hour,
-                        invitationIds: item.convocatorias,
-                        availabilityIds: item.presencas,
-                        athleteIds : item.atletas,
-                        coachIds: item.treinador,
-                        secretaryIds: item.seccionistas,
-                    };
-
-                    trainings.push(training);
-                });
-
-                this.setState(state => ({
-                    trainingsList: [...state.trainingsList, ...trainings]
-                }));
-            }
-
-            this.setState({isFetching: false});
+        if(clear) {
+            await this.setState({trainingsList: []});
         }
+
+        const idsFetched = this.state.trainingsList.map(training => {return training.id});
+        const params = {
+            domain: [
+                ['id', 'not in', idsFetched],
+                ['state', '=', 'convocatorias_fechadas']
+            ],
+            fields: [
+                'id', 'atletas', 'display_start', 'local',
+                'escalao', 'duracao',
+                'convocatorias', 'presencas',
+                'treinador', 'seccionistas'
+            ],
+            limit: limit,
+            order: 'display_start DESC'
+        };
+
+        const response = await this.props.odoo.search_read('ges.treino', params);
+        if (response.success && response.data.length > 0) {
+
+            if(response.data.length < limit)
+                this.setState({stopFetching: true});
+
+            let trainings = [];
+            const convertTime = new ConvertTime();
+            response.data.forEach(item => {
+
+                convertTime.setDate(item.display_start);
+                const date = convertTime.getTimeObject();
+
+                /**
+                 diff = difference in ms between actual date and training's date
+                 oneDay = one day in ms
+                 gameDayMidNight = gameDay + '00:00:00' -> To verify Hoje or Amanha
+                 twoDaysLimit = actualDate + 2 days + '00:00:00' -> To verify Amanha
+                 (se a data do jogo nao atual ultrapassar estes 2 dias de limite, data=Amanha)
+                 */
+                const diff = moment(convertTime.getDate()).diff(moment(this.state.date));
+                const oneDay = 24 * 60 * 60 * 1000;
+                const gameDayMidNight = (convertTime.getDate().split('T'))[0] + 'T00:00:00';
+                const twoDaysLimit = (moment(this.state.date).add(2, 'days').format()
+                    .split('T'))[0] + 'T00:00:00';
+
+                if(diff >=0){
+                    if(diff < oneDay) {
+                        if(moment(this.state.date).isAfter(gameDayMidNight)) date.date = 'Hoje';
+                        else date.date = 'Amanhã';
+                    }
+                    else if(diff < 2*oneDay && !moment(convertTime.getDate()).isAfter(twoDaysLimit)) {
+                        date.date = 'Amanhã';
+                    }
+                }
+
+                const training = {
+                    id: item.id,
+                    local: item.local,
+                    echelon: item.escalao,
+                    duration: item.duracao,
+                    date: date.date,
+                    hour: date.hour,
+                    invitationIds: item.convocatorias,
+                    availabilityIds: item.presencas,
+                    athleteIds : item.atletas,
+                    coachIds: item.treinador,
+                    secretaryIds: item.seccionistas,
+                };
+
+                trainings.push(training);
+            });
+
+            this.setState(state => ({
+                trainingsList: [...state.trainingsList, ...trainings]
+            }));
+        }
+
+        this.setState({isFetching: false});
     }
 
     /**
@@ -144,7 +156,7 @@ class PendingTrainings extends Component {
      */
     handleRefresh = async () => {
 
-        this.setState({isRefreshing: true, isLoading: false});
+        this.setState({isRefreshing: true, isLoading: false, stopFetching: false});
 
         // fetch all trainings and clear current list
         await this.fetchTrainings(20, true);
@@ -158,12 +170,14 @@ class PendingTrainings extends Component {
      */
     handleMoreData = async () => {
 
-        this.setState({isLoading: true});
+        if(!this.state.isFetching && !this.state.stopFetching) {
+            this.setState({isLoading: true});
 
-        // fetch more trainings
-        await this.fetchTrainings();
+            // fetch more trainings
+            await this.fetchTrainings();
 
-        this.setState({isLoading: false});
+            this.setState({isLoading: false});
+        }
     };
 
     /**

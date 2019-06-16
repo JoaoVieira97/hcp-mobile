@@ -1,13 +1,13 @@
 import React, { Component } from 'react';
 import {Alert, FlatList, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import { connect } from 'react-redux';
-import CustomText from "../../CustomText";
 import {Ionicons} from "@expo/vector-icons";
 import {ListItem} from "react-native-elements";
 import {colors} from "../../../styles/index.style";
 import Loader from "../../screens/Loader";
 import AthletesGrid from "../AthletesGrid";
 import {DangerZone} from "expo";
+import {headerTitle, closeButton} from "../../navigation/HeaderComponents";
 import * as Animatable from "react-native-animatable";
 const { Lottie } = DangerZone;
 
@@ -34,27 +34,12 @@ class PendingTraining extends Component {
      * @returns {{headerLeft: *, headerTitle: *}}
      */
     static navigationOptions = ({navigation}) => ({
-        headerTitle:
-            <CustomText
-                type={'bold'}
-                children={'TREINO'}
-                style={{
-                    color: '#ffffff',
-                    fontSize: 16
-                }}
-            />,
-        headerLeft:
-            <TouchableOpacity style={{
-                width:42,
-                height:42,
-                alignItems:'center',
-                justifyContent:'center',
-                marginLeft: 10}} onPress = {() => navigation.goBack()}>
-                <Ionicons
-                    name="md-arrow-back"
-                    size={28}
-                    color={'#ffffff'} />
-            </TouchableOpacity>
+        headerTitle: headerTitle(
+            '#ffffff', 'TREINO'
+        ),
+        headerLeft: closeButton(
+            '#ffffff', navigation
+        ),
     });
 
     async componentWillMount() {
@@ -62,8 +47,6 @@ class PendingTraining extends Component {
         await this.setState({
             training: this.props.navigation.state.params.training
         });
-
-        console.log(this.state.training);
     }
 
     async componentDidMount() {
@@ -580,7 +563,7 @@ class PendingTraining extends Component {
                         </View>
                     </View>
                     <AthletesGrid
-                        title={'Atletas presentes/atrasados'}
+                        title={'Presenças / Atrasos'}
                         athletes={this.state.athletes}
                     />
                 </ScrollView>

@@ -1,12 +1,11 @@
 import React, { Component } from 'react';
 
-import {FlatList, TouchableOpacity, View} from 'react-native';
-import CustomText from "../CustomText";
-import {Ionicons} from "@expo/vector-icons";
+import {FlatList, View} from 'react-native';
 import {Avatar, Badge, CheckBox, ListItem} from "react-native-elements";
 import {colors} from "../../styles/index.style";
 import { Snackbar } from 'react-native-paper';
 import Loader from "../screens/Loader";
+import {headerTitle, closeButton} from "../navigation/HeaderComponents";
 
 
 export default class ChangeAthletesAvailabilities extends Component {
@@ -28,27 +27,12 @@ export default class ChangeAthletesAvailabilities extends Component {
      * @returns {{headerLeft: *, headerTitle: *}}
      */
     static navigationOptions = ({navigation}) => ({
-        headerTitle:
-            <CustomText
-                type={'bold'}
-                children={'DISPONIBILIDADES'}
-                style={{
-                    color: '#ffffff',
-                    fontSize: 16
-                }}
-            />,
-        headerLeft:
-            <TouchableOpacity style={{
-                width:42,
-                height:42,
-                alignItems:'center',
-                justifyContent:'center',
-                marginLeft: 10}} onPress = {() => navigation.goBack()}>
-                <Ionicons
-                    name="md-arrow-back"
-                    size={28}
-                    color={'#ffffff'} />
-            </TouchableOpacity>
+        headerTitle: headerTitle(
+            '#ffffff', 'DISPONIBILIDADES'
+        ),
+        headerLeft: closeButton(
+            '#ffffff', navigation
+        )
     });
 
     async componentWillMount() {

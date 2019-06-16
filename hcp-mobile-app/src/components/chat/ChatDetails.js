@@ -20,6 +20,10 @@ import {
     Avatar
 } from 'react-native-elements';
 
+import {headerTitle, closeButton} from "../navigation/HeaderComponents";
+
+
+
 class ChatDetails extends Component {
 
     constructor(props) {
@@ -35,29 +39,36 @@ class ChatDetails extends Component {
         }
     }
 
+    /**
+     * Define navigations header components.
+     * @param navigation
+     * @returns {{headerLeft: *, headerTitle: *}}
+     */
     static navigationOptions = ({navigation}) => ({
-        
-        headerTitle:<CustomText
-                type={'bold'}
-                children={(navigation.state.params.channel_type == 'channel') ? 
-                        "DETALHES DO CANAL" : 
-                        "DETALHES DA CONVERSA"}
-                style={{
-                    color: '#ffffff',
-                    fontSize: 16
+        headerTitle: headerTitle(
+            '#ffffff',
+            navigation.state.params.channel_type === 'channel' ?
+                "DETALHES DO CANAL" :
+                "DETALHES DA CONVERSA"
+        ),
+        headerLeft:
+            <Ionicons
+                name="md-arrow-back"
+                size={28}
+                color={'#ffffff'}
+                style={{paddingLeft: 20}}
+                onPress = {() => {
+                    navigation.state.params.onReturn();
+                    navigation.goBack();
                 }}
-            />,
-        headerLeft: <Ionicons
-            name="md-arrow-back"
-            size={28}
-            color={'#ffffff'}
-            style={{paddingLeft: 20}}
-            onPress = {() => {
-                navigation.state.params.onReturn();
-                navigation.goBack();
-            }}
-        />
+            />
+        /*
+        headerLeft: closeButton(
+            '#ffffff', navigation
+        ),
+         */
     });
+
 
     async componentDidMount(){
 

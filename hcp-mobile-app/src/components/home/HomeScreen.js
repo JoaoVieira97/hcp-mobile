@@ -74,7 +74,6 @@ class HomeScreen extends React.Component {
         const {params = {}} = navigation.state;
 
         return ({
-            title: 'Treinos',
             headerRight: (
                 <TouchableOpacity
                     onPress = {() => navigation.navigate('ProfileStack')}

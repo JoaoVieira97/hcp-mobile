@@ -1,12 +1,11 @@
 import React, {Component} from 'react';
-
-import {View, FlatList, ActivityIndicator, TouchableOpacity, StyleSheet} from 'react-native';
+import {View, FlatList, ActivityIndicator, StyleSheet} from 'react-native';
 import {ListItem, Avatar, Badge, SearchBar} from 'react-native-elements';
 import {connect} from 'react-redux';
-import {Ionicons} from "@expo/vector-icons";
 import _ from 'lodash';
 import CustomText from "../CustomText";
 import moment from 'moment';
+import {headerTitle, closeButton} from "../navigation/HeaderComponents";
 
 
 class AthletesScreen extends Component {
@@ -25,6 +24,23 @@ class AthletesScreen extends Component {
         }
     };
 
+    /**
+     * Define navigations header components.
+     * @param navigation
+     * @returns {{headerLeft: *, headerTitle: *}}
+     */
+    static navigationOptions = ({navigation}) => ({
+        headerTitle: headerTitle(
+            '#ffffff',
+                navigation.state.params.echelon.denomination === 'Iniciação' ?
+                'INICIAÇÃO' :
+                _.upperCase(navigation.state.params.echelon.denomination)
+        ),
+        headerLeft: closeButton(
+            '#ffffff', navigation
+        ),
+    });
+
     async componentDidMount() {
 
         await this.setState({
@@ -33,37 +49,6 @@ class AthletesScreen extends Component {
 
         await this.getAthletes();
     }
-
-    /**
-     * Define navigation properties.
-     * @param navigation
-     */
-    static navigationOptions = ({navigation}) => ({
-        headerTitle:
-            <CustomText
-                type={'bold'}
-                children={ navigation.state.params.echelon.denomination === 'Iniciação' ?
-                    'INICIAÇÃO' :
-                    _.upperCase(navigation.state.params.echelon.denomination)
-                }
-                style={{
-                    color: '#ffffff',
-                    fontSize: 16
-                }}
-            />,
-        headerLeft:
-            <TouchableOpacity style={{
-                width:42,
-                height:42,
-                alignItems:'center',
-                justifyContent:'center',
-                marginLeft: 10}} onPress = {() => navigation.goBack()}>
-                <Ionicons
-                    name="md-arrow-back"
-                    size={28}
-                    color={'#ffffff'} />
-            </TouchableOpacity>
-    });
 
     /**
      * Get athletes of current echelon.

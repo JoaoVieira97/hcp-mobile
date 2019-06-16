@@ -235,6 +235,7 @@ const InvitationsNavigator = createMaterialTopTabNavigator({
 }, {
     initialRouteName: 'TrainingInvitations',
     order: ['TrainingInvitations', 'GameInvitations'],
+    swipeEnabled: false,
     tabBarOptions: {
         activeTintColor: colors.redColor,
         inactiveTintColor: '#5f5f5f',
@@ -245,7 +246,7 @@ const InvitationsNavigator = createMaterialTopTabNavigator({
         },
         indicatorStyle: {
             backgroundColor: colors.redColor,
-        },
+        }
     }
 });
 
@@ -274,6 +275,7 @@ const ManagementNavigator = createMaterialTopTabNavigator({
 }, {
     initialRouteName: 'TrainingScreen',
     order: ['TrainingScreen', 'GameScreen'],
+    swipeEnabled: false,
     tabBarOptions: {
         activeTintColor: colors.redColor,
         inactiveTintColor: '#5f5f5f',
@@ -604,7 +606,7 @@ const AthleteAndCoachOrSecretaryDrawerNavigator = createDrawerNavigator({
     ChatStack: drawerNavigatorFullStacks['ChatStack']
 }, {
     ...drawerNavigatorDefaultSettings,
-    initialRouteName: 'HomeStack',
+    initialRouteName: 'ManagementStack',
     order: ['HomeStack', 'CalendarStack', 'ManagementStack', 'InvitationsStack', 'AthletesStack', 'ProfileStack', 'ChatStack'],
 });
 

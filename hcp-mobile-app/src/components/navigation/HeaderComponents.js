@@ -43,7 +43,7 @@ export const closeButton = (color, navigation) => {
             height: '100%',
             alignItems: 'center',
             justifyContent: 'center',
-            marginLeft: 10}} onPress = {() => navigation.goBack()}>
+            marginLeft: 5}} onPress = {() => navigation.goBack()}>
             <Ionicons
                 name="md-arrow-back"
                 size={28}

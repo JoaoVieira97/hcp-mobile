@@ -1,15 +1,12 @@
 import React, { Component } from 'react';
-
-import {ScrollView, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
-
+import {ScrollView, StyleSheet, View} from 'react-native';
 import { connect } from 'react-redux';
 import CustomText from "../CustomText";
-import {Ionicons} from "@expo/vector-icons";
 import {colors} from "../../styles/index.style";
 import {Avatar} from "react-native-elements";
 import * as Animatable from "react-native-animatable";
 import {Button} from "react-native-paper";
-
+import {headerTitle, closeButton} from "../navigation/HeaderComponents";
 
 class ChildScreen extends Component {
 
@@ -22,6 +19,20 @@ class ChildScreen extends Component {
         }
     };
 
+    /**
+     * Define navigations header components.
+     * @param navigation
+     * @returns {{headerLeft: *, headerTitle: *}}
+     */
+    static navigationOptions = ({navigation}) => ({
+        headerTitle: headerTitle(
+            '#ffffff', 'FILHOS'
+        ),
+        headerLeft: closeButton(
+            '#ffffff', navigation
+        ),
+    });
+
     async componentDidMount() {
 
         await this.setState({
@@ -30,26 +41,6 @@ class ChildScreen extends Component {
 
         this.setState({isLoading: false});
     }
-
-    /**
-     * Define navigation properties.
-     * @param navigation
-     */
-    static navigationOptions = ({navigation}) => ({
-        headerLeft:
-            <TouchableOpacity style={{
-                width:42,
-                height:42,
-                alignItems:'center',
-                justifyContent:'center',
-                marginLeft: 10}} onPress = {() => navigation.goBack()}>
-                <Ionicons
-                    name="md-arrow-back"
-                    size={28}
-                    color={'#ffffff'} />
-            </TouchableOpacity>
-    });
-
 
 
     render() {

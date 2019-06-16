@@ -1,14 +1,11 @@
 import React, { Component } from 'react';
-
-import {ActivityIndicator, FlatList, TouchableOpacity, View} from 'react-native';
-
+import {ActivityIndicator, FlatList, View} from 'react-native';
 import { connect } from 'react-redux';
-import CustomText from "../../CustomText";
-import {Ionicons} from "@expo/vector-icons";
 import ConvertTime from "../../ConvertTime";
 import {colors} from "../../../styles/index.style";
 import ManagementListItem from "../ManagementListItem";
-
+import {headerTitle, closeButton} from "../../navigation/HeaderComponents";
+import moment from 'moment';
 
 
 class PendingGames extends Component {
@@ -16,6 +13,7 @@ class PendingGames extends Component {
         super(props);
 
         this.state = {
+            stopFetching: false,
             isLoading: true,
             isRefreshing: false,
             isFetching: false,
@@ -29,32 +27,18 @@ class PendingGames extends Component {
      * @returns {{headerLeft: *, headerTitle: *}}
      */
     static navigationOptions = ({navigation}) => ({
-        headerTitle:
-            <CustomText
-                type={'bold'}
-                numberOfLines={1}
-                ellipsizeMode='tail'
-                children={'CONVOCATÓRIAS FECHADAS'}
-                style={{
-                    color: '#ffffff',
-                    fontSize: 16
-                }}
-            />,
-        headerLeft:
-            <TouchableOpacity style={{
-                width:42,
-                height:42,
-                alignItems:'center',
-                justifyContent:'center',
-                marginLeft: 10}} onPress = {() => navigation.goBack()}>
-                <Ionicons
-                    name="md-arrow-back"
-                    size={28}
-                    color={'#ffffff'} />
-            </TouchableOpacity>
+        headerTitle: headerTitle(
+            '#ffffff', 'CONVOCATÓRIAS FECHADAS'
+        ),
+        headerLeft: closeButton(
+            '#ffffff', navigation
+        )
     });
 
     async componentDidMount() {
+
+        const date = moment().format();
+        await this.setState({date: date});
 
         // fetch all games, max 20
         await this.fetchGames(20, false);
@@ -69,60 +53,83 @@ class PendingGames extends Component {
      */
     async fetchGames(limit=20, clear=false) {
 
-        if(!this.state.isFetching) {
+        this.setState({isFetching: true});
 
-            this.setState({isFetching: true});
-
-            if (clear) {
-                await this.setState({gamesList: []});
-            }
-
-            const idsFetched = this.state.gamesList.map(game => {
-                return game.id
-            });
-            const params = {
-                domain: [
-                    ['id', 'not in', idsFetched],
-                    ['state', '=', 'convocatorias_fechadas']
-                ],
-                fields: ['id', 'state', 'atletas', 'display_start', 'local', 'escalao', 'duracao', 'convocatorias', 'treinador', 'seccionistas'],
-                limit: limit,
-                order: 'display_start DESC'
-            };
-
-            const response = await this.props.odoo.search_read('ges.jogo', params);
-            if (response.success && response.data.length > 0) {
-
-                let games = [];
-                const convertTime = new ConvertTime();
-                response.data.forEach(item => {
-
-                    convertTime.setDate(item.display_start);
-                    const date = convertTime.getTimeObject();
-
-                    const game = {
-                        id: item.id,
-                        local: item.local,
-                        echelon: item.escalao,
-                        duration: item.duracao,
-                        date: date.date,
-                        hour: date.hour,
-                        invitationIds: item.convocatorias,
-                        athleteIds : item.atletas,
-                        coachIds: item.treinador,
-                        secretaryIds: item.seccionistas,
-                    };
-
-                    games.push(game);
-                });
-
-                this.setState(state => ({
-                    gamesList: [...state.gamesList, ...games]
-                }));
-            }
-
-            this.setState({isFetching: false});
+        if (clear) {
+            await this.setState({gamesList: []});
         }
+
+        const idsFetched = this.state.gamesList.map(game => {
+            return game.id
+        });
+        const params = {
+            domain: [
+                ['id', 'not in', idsFetched],
+                ['state', '=', 'convocatorias_fechadas']
+            ],
+            fields: ['id', 'state', 'atletas', 'display_start', 'local', 'escalao', 'duracao', 'convocatorias', 'treinador', 'seccionistas'],
+            limit: limit,
+            order: 'display_start DESC'
+        };
+
+        const response = await this.props.odoo.search_read('ges.jogo', params);
+        if (response.success && response.data.length > 0) {
+
+            if(response.data.length < limit)
+                this.setState({stopFetching: true});
+
+            let games = [];
+            const convertTime = new ConvertTime();
+            response.data.forEach(item => {
+
+                convertTime.setDate(item.display_start);
+                const date = convertTime.getTimeObject();
+
+                /**
+                 diff = difference in ms between actual date and games's date
+                 oneDay = one day in ms
+                 gameDayMidNight = gameDay + '00:00:00' -> To verify Hoje or Amanha
+                 twoDaysLimit = actualDate + 2 days + '00:00:00' -> To verify Amanha
+                 (se a data do jogo nao atual ultrapassar estes 2 dias de limite, data=Amanha)
+                 */
+                const diff = moment(convertTime.getDate()).diff(moment(this.state.date));
+                const oneDay = 24 * 60 * 60 * 1000;
+                const gameDayMidNight = (convertTime.getDate().split('T'))[0] + 'T00:00:00';
+                const twoDaysLimit = (moment(this.state.date).add(2, 'days').format()
+                    .split('T'))[0] + 'T00:00:00';
+
+                if(diff >=0){
+                    if(diff < oneDay) {
+                        if(moment(this.state.date).isAfter(gameDayMidNight)) date.date = 'Hoje';
+                        else date.date = 'Amanhã';
+                    }
+                    else if(diff < 2*oneDay && !moment(convertTime.getDate()).isAfter(twoDaysLimit)) {
+                        date.date = 'Amanhã';
+                    }
+                }
+
+                const game = {
+                    id: item.id,
+                    local: item.local,
+                    echelon: item.escalao,
+                    duration: item.duracao,
+                    date: date.date,
+                    hour: date.hour,
+                    invitationIds: item.convocatorias,
+                    athleteIds : item.atletas,
+                    coachIds: item.treinador,
+                    secretaryIds: item.seccionistas,
+                };
+
+                games.push(game);
+            });
+
+            this.setState(state => ({
+                gamesList: [...state.gamesList, ...games]
+            }));
+        }
+
+        this.setState({isFetching: false});
     }
 
     /**
@@ -131,26 +138,28 @@ class PendingGames extends Component {
      */
     handleRefresh = async () => {
 
-        await this.setState({isRefreshing: true, isLoading: false});
+        this.setState({isRefreshing: true, isLoading: false, stopFetching: false});
 
-        // fetch all games and clear current list
+        // fetch all trainings and clear current list
         await this.fetchGames(20, true);
 
-        await this.setState({isRefreshing: false});
+        this.setState({isRefreshing: false});
     };
 
     /**
-     * Add more games if they exist.
+     * Add more trainings if they exist.
      * @returns {Promise<void>}
      */
     handleMoreData = async () => {
 
-        this.setState({isLoading: true});
+        if(!this.state.isFetching && !this.state.stopFetching) {
+            this.setState({isLoading: true});
 
-        // fetch more games
-        await this.fetchGames(20, false);
+            // fetch more trainings
+            await this.fetchGames();
 
-        this.setState({isLoading: false});
+            this.setState({isLoading: false});
+        }
     };
 
     /**

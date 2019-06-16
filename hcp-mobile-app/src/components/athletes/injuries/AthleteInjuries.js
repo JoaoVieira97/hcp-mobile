@@ -5,10 +5,11 @@ import {FlatList, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import {connect} from 'react-redux';
 import {Ionicons} from "@expo/vector-icons/build/Icons";
 import {colors} from "../../../styles/index.style";
-import {Avatar, ListItem} from "react-native-elements/src/index";
+import {ListItem} from "react-native-elements/src/index";
 import CustomText from "../../CustomText";
 import _ from 'lodash';
 import AthleteInjuriesHeader from "./AthleteInjuriesHeader";
+import {headerTitle, closeButton} from "../../navigation/HeaderComponents";
 
 
 class AthleteInjuries extends Component {
@@ -27,32 +28,17 @@ class AthleteInjuries extends Component {
     }
 
     /**
-     * Define navigation properties.
+     * Define navigations header components.
      * @param navigation
+     * @returns {{headerLeft: *, headerTitle: *}}
      */
     static navigationOptions = ({navigation}) => ({
-        headerTitle:
-            <CustomText
-                type={'bold'}
-                children={_.upperCase(navigation.getParam('type'))}
-                style={{
-                    color: '#ffffff',
-                    fontSize: 16
-                }}
-            />,
-        headerLeft:
-            <TouchableOpacity style={{
-                width: 42,
-                height: 42,
-                alignItems: 'center',
-                justifyContent: 'center',
-                marginLeft: 10
-            }} onPress={() => navigation.goBack()}>
-                <Ionicons
-                    name="md-arrow-back"
-                    size={28}
-                    color={'#ffffff'}/>
-            </TouchableOpacity>
+        headerTitle: headerTitle(
+            '#ffffff', _.upperCase(navigation.getParam('type'))
+        ),
+        headerLeft: closeButton(
+            '#ffffff', navigation
+        ),
     });
 
     async componentWillMount() {

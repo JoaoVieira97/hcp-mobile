@@ -2,7 +2,9 @@ import React, { Component } from 'react';
 import {
     Alert,
     View,
-    StyleSheet, TouchableOpacity, AsyncStorage, KeyboardAvoidingView, Text, Picker
+    StyleSheet,
+    AsyncStorage,
+    KeyboardAvoidingView
 } from 'react-native';
 import {Button, Card, TextInput, DefaultTheme, HelperText} from 'react-native-paper';
 import {Ionicons} from "@expo/vector-icons";
@@ -11,7 +13,7 @@ import * as Animatable from "react-native-animatable";
 import {connect} from "react-redux";
 import Authentication from '../authentication/Authentication';
 import {colors} from "../../styles/index.style";
-import CustomText from "../CustomText";
+import {headerTitle, closeButton} from "../navigation/HeaderComponents";
 
 
 class ResetPassword extends Component {
@@ -32,40 +34,24 @@ class ResetPassword extends Component {
         };
     };
 
+    /**
+     * Define navigations header components.
+     * @param navigation
+     * @returns {{headerLeft: *, headerTitle: *}}
+     */
+    static navigationOptions = ({navigation}) => ({
+        headerTitle: headerTitle(
+            '#ffffff', 'REDEFINIR PALAVRA-PASSE'
+        ),
+        headerLeft: closeButton(
+            '#ffffff', navigation
+        ),
+    });
+
     async componentDidMount() {
 
         await this.fetchOldPassword();
-        //this._oldPasswordInput.focus();
     }
-
-    /**
-     * Define header navigation options.
-     */
-    static navigationOptions = ({navigation}) => ({
-        headerTitle:
-            <CustomText
-                numberOfLines={1}
-                ellipsizeMode='tail'
-                type={'bold'}
-                children={'REDEFINIR PALAVRA-PASSE'}
-                style={{
-                    color: '#ffffff',
-                    fontSize: 16
-                }}
-            />,
-        headerLeft:
-            <TouchableOpacity style={{
-                width:42,
-                height:42,
-                alignItems:'center',
-                justifyContent:'center',
-                marginLeft: 10}} onPress = {() => navigation.goBack()}>
-                <Ionicons
-                    name="md-arrow-back"
-                    size={28}
-                    color={'#ffffff'} />
-            </TouchableOpacity>
-    });
 
     /**
      *

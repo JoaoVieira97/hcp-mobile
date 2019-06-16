@@ -24,7 +24,7 @@ import {
     setLocalId
 } from "../../../redux/actions/newTraining";
 import Loader from "../../screens/Loader";
-
+import {headerTitle} from "../../navigation/HeaderComponents";
 
 
 class NewTraining extends Component {
@@ -97,22 +97,16 @@ class NewTraining extends Component {
      * Define navigation settings.
      */
     static navigationOptions = ({navigation}) => ({
-        headerTitle:
-            <CustomText
-                type={'bold'}
-                children={'CRIAR TREINO'}
-                style={{
-                    color: '#ffffff',
-                    fontSize: 16
-                }}
-            />,
+        headerTitle: headerTitle(
+            '#ffffff', 'TREINO'
+        ),
         headerLeft:
             <TouchableOpacity style={{
                 width:42,
                 height:42,
                 alignItems:'center',
                 justifyContent:'center',
-                marginLeft: 10}} onPress = {() => navigation.cancelTraining()}>
+                marginLeft: 5}} onPress = {() => navigation.cancelTraining()}>
                 <Ionicons
                     name="md-arrow-back"
                     size={28}
