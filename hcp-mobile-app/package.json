@@ -29,6 +29,7 @@
     "react-navigation": "^3.3.2",
     "react-navigation-material-bottom-tabs": "^1.0.0",
     "react-redux": "^6.0.1",
+    "reanimated-bottom-sheet": "^1.0.0-alpha.11",
     "redux": "^4.0.1"
   },
   "devDependencies": {

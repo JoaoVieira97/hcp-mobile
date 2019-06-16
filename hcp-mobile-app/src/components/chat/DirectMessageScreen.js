@@ -47,7 +47,7 @@ class DirectMessageScreen extends Component {
             color={'#ffffff'}
             style={{paddingLeft: 20}}
             onPress = {() => {
-                navigation.state.params.onNavigateBack();
+                //navigation.state.params.onNavigateBack();
                 navigation.goBack()
             }}
         />
@@ -56,7 +56,7 @@ class DirectMessageScreen extends Component {
     async componentDidMount() {
         
         BackHandler.addEventListener('hardwareBackPress', () => {
-            this.props.navigation.state.params.onNavigateBack();
+            //this.props.navigation.state.params.onNavigateBack();
         });
 
         await this.getPartners();
@@ -147,7 +147,7 @@ class DirectMessageScreen extends Component {
                 };
 
                 this.props.navigation.navigate('ConcreteChat',{
-                    item,
+                    channel: item,
                     originChannel: 2
                 })
 

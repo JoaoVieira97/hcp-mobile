@@ -373,7 +373,7 @@ class OpenedTraining extends React.Component {
             name: 'Início e duração',
             icon: 'md-time',
             subtitle:
-                this.state.training.date + '  |  ' +
+                this.state.training.date + '  às  ' +
                 this.state.training.hour + '\n' +
                 this.state.training.duration + ' min',
         }, {

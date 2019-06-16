@@ -2,7 +2,9 @@ import React, {Component} from 'react';
 import {
     View,
     FlatList,
-    ActivityIndicator, StyleSheet, Text, Alert, Button
+    StyleSheet,
+    Text,
+    TouchableOpacity
 } from 'react-native';
 import {
     ListItem,
@@ -12,9 +14,10 @@ import {
 import {connect} from 'react-redux';
 import _ from 'lodash';
 import {colors} from "../../styles/index.style";
-import Menu, { MenuItem, MenuDivider } from 'react-native-material-menu';
-import { AntDesign } from "@expo/vector-icons";
+import {AntDesign} from "@expo/vector-icons";
 import ConvertTime from "../ConvertTime";
+import BottomSheet from 'reanimated-bottom-sheet'
+import CustomText from "../CustomText";
 
 class ChannelsScreen extends Component {
 
@@ -23,79 +26,70 @@ class ChannelsScreen extends Component {
         super(props);
 
         this.state = {
+            channelsIDs: [],
             channels: [],
             filteredChannels: [],
-            isLoading: true,
             isRefreshing: false,
             filter: '',
         };
     }
 
-    _menu = null;
-
-    setMenuRef = ref => {
-        this._menu = ref;
-    };
-
-    hideMenu = () => {
-        this._menu.hide();
-    };
-
-    showMenu = () => {
-        this._menu.show();
-    };
-
-    menuDirectMessage = () => {
-        this.hideMenu();
-        this.props.navigation.navigate('DirectMessageScreen',{
-            onNavigateBack: this.handleRefresh
-        })
-    };
-
-    menuJoinChannel = () => {
-        this.hideMenu();
-        this.props.navigation.navigate('JoinChannel',{
-            onNavigateBack: this.handleRefresh
-        })
-    };
-
+    /**
+     *
+     * @param navigation
+     * @returns {{headerRight: *}}
+     */
     static navigationOptions = ({navigation}) => {
-        const {params = {}} = navigation.state;
 
+        const {params = {}} = navigation.state;
         return ({
-            headerRight: 
-                <Menu
-                    ref={params.setMenuRef}
-                    button={<AntDesign
+            headerRight:
+                <TouchableOpacity style={{
+                    width: 50,
+                    height: '100%',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginLeft: 5}} onPress = {() => params.showBottomSheet()}>
+                    <AntDesign
                         name="pluscircle"
                         size={28}
                         color={'#ffffff'}
-                        style={{paddingRight: 10}}
-                        onPress={params.showMenu} 
-                    />}
-                >
-                    <MenuItem onPress={params.menuDirectMessage} style={{width: 250, alignItems: 'center'}}>
-                        Mensagem direta
-                    </MenuItem>
-                    <MenuDivider/>
-                    <MenuItem onPress={params.menuJoinChannel} style={{width: 250, alignItems: 'center'}}>
-                        Juntar-me a grupo
-                    </MenuItem>
-                </Menu>
+                    />
+                </TouchableOpacity>
         });
-    }
+    };
 
     async componentDidMount() {
 
         this.props.navigation.setParams({
-            showMenu: this.showMenu,
-            setMenuRef: this.setMenuRef,
-            menuDirectMessage: this.menuDirectMessage,
-            menuJoinChannel: this.menuJoinChannel,
+            showBottomSheet: this.showBottomSheet
         });
 
-        await this.getChannels();
+        this.subscriptions = [
+            this.props.navigation.addListener('willFocus', async () => {
 
+                this.setState({isRefreshing: true});
+                await this.getChannels();
+                this.setState({isRefreshing: false});
+
+                this.interval = setInterval( async () => {
+
+                    // TODO: improve this
+                    await this.getChannels();
+
+                }, 2500);
+            }),
+            this.props.navigation.addListener('willBlur', async () => {
+
+                clearInterval(this.interval);
+            }),
+        ];
+    }
+
+    componentWillUnmount() {
+
+        this.subscriptions.forEach(sub => sub.remove());
+        clearInterval(this.interval);
     }
 
     /**
@@ -104,7 +98,27 @@ class ChannelsScreen extends Component {
      */
     async getChannels(){
 
-        const c_params = {
+        // reset channels IDS
+        this.setState({channelsIDs: []});
+
+        // get the new channels
+        await this.getChannelsIDs();
+        if(this.state.channelsIDs.length > 0) {
+
+            await this.getChannelsInfo();
+        }
+        else {
+            this.setState({channels: [], filteredChannels: []});
+        }
+    }
+
+    /**
+     * Get channels ids.
+     * @returns {Promise<null>}
+     */
+    async getChannelsIDs() {
+
+        const params = {
             kwargs: {
                 context: this.props.odoo.context,
             },
@@ -113,74 +127,69 @@ class ChannelsScreen extends Component {
             args: []
         };
 
-        const c_response = await this.props.odoo.rpc_call(
-            '/web/dataset/call_kw',
-            c_params
-        );
+        const response = await this.props.odoo.rpc_call('/web/dataset/call_kw', params);
+        if (response.success) {
 
-        if (c_response.success){
+            const publicChannels = response.data.channel_channel;
+            const directMessageChannels = response.data.channel_direct_message;
+            const privateGroupChannels = response.data.channel_private_group;
 
-            const public_channels = c_response.data.channel_channel
-            const direct_channels = c_response.data.channel_direct_message
-            const private_channels = c_response.data.channel_private_group
+            let channelsIDs = [];
+            publicChannels.forEach(channel => channelsIDs.push(channel.id));
+            directMessageChannels.forEach(channel => channelsIDs.push(channel.id));
+            privateGroupChannels.forEach(channel => channelsIDs.push(channel.id));
 
-            const channels = []
+            this.setState({channelsIDs: channelsIDs});
+        }
+    }
 
-            for (let i = 0; i < public_channels.length; i++) channels.push(public_channels[i].id)
-            for (let i = 0; i < direct_channels.length; i++) channels.push(direct_channels[i].id)
-            for (let i = 0; i < private_channels.length; i++) channels.push(private_channels[i].id)
+    /**
+     * Get channels private information.
+     * @returns {Promise<void>}
+     */
+    async getChannelsInfo() {
 
-            const params = {
-                domain: [
-                    ['id', 'in', channels]
-                ],
-                fields: [
-                    'id',
-                    'display_name',
-                    'description',
-                    'image',
-                    'uuid',
-                    'channel_type',
-                ],
-                order:  'display_name ASC',
-            };
-    
-            const response = await this.props.odoo.search_read('mail.channel', params);
-            if (response.success && response.data.length > 0) {
-    
-                let channelsList = [];
-                const size = response.data.length;
-    
-                // Parsing channels and get last message for each one
-                for (let i = 0; i < size; i++) {
-    
-                    const channelInfo = response.data[i];
-    
-                    const lastMessage = await this.getLastMessage(channelInfo.id);
-                    const channel = {
-                        id: channelInfo.id,
-                        name: '#' + channelInfo.display_name,
-                        description: channelInfo.description,
-                        image: channelInfo.image,
-                        lastMessage: lastMessage,
-                        uuid: channelInfo.uuid,
-                        type: channelInfo.channel_type
-                    };
-                    channelsList.push(channel);
-                }
-    
-                this.setState({
-                    channels: channelsList,
-                    filteredChannels: channelsList,
-                });
+        const params = {
+            domain: [
+                ['id', 'in', this.state.channelsIDs]
+            ],
+            fields: [
+                'id',
+                'display_name',
+                'description',
+                'image',
+                'uuid',
+                'channel_type',
+            ],
+            order: 'display_name ASC',
+        };
+
+        const response = await this.props.odoo.search_read('mail.channel', params);
+        if (response.success && response.data.length > 0) {
+
+            let channelsList = [];
+            for (let i=0; i<response.data.length; i++) {
+
+                const channelInfo = response.data[i];
+                const lastMessage = await this.getLastMessage(channelInfo.id);
+                const channel = {
+                    id: channelInfo.id,
+                    name: '#' + channelInfo.display_name,
+                    description: channelInfo.description,
+                    image: channelInfo.image,
+                    lastMessage: lastMessage,
+                    uuid: channelInfo.uuid,
+                    type: channelInfo.channel_type
+                };
+
+                channelsList.push(channel);
             }
 
+            this.setState({
+                channels: channelsList,
+                filteredChannels: channelsList,
+            });
         }
-
-        this.setState({
-            isLoading: false,
-            isRefreshing: false
-        });
     }
 
     /**
@@ -226,7 +235,7 @@ class ChannelsScreen extends Component {
      * @param item
      * @returns {*}
      */
-    renderItem = ({ item }) => {
+    renderItem = ({ item, index }) => {
 
         let subtitle;
         if (item.lastMessage)
@@ -267,10 +276,12 @@ class ChannelsScreen extends Component {
                 subtitle={subtitle}
                 leftAvatar={this.channelImage(item.image)}
                 chevron
+                containerStyle={{
+                    backgroundColor: index % 2 === 0 ? colors.lightGrayColor : '#fff'
+                }}
                 onPress={() => (
-                    this.props.navigation.navigate('ConcreteChat',{
-                        item,
-                        onNavigateBack: this.handleRefresh,
+                    this.props.navigation.navigate('ConcreteChat', {
+                        channel: item,
                         originChannel: 1
                     })
                 )}
@@ -309,13 +320,24 @@ class ChannelsScreen extends Component {
         );
     };
 
-    renderSeparator = () => (
-        <View style={{
-            height: 1,
-            width: '100%',
-            backgroundColor: '#ced0ce',
-        }}/>
-    );
+    contains = ({name}, text) => {
+
+        // case insensitive
+        return name.toUpperCase().includes(text.toUpperCase());
+    };
+
+    renderHeader = () => {
+        return (
+            <SearchBar
+                placeholder={"Pesquisar por nome"}
+                lightTheme
+                round
+                onClear={this.handleSearchClear}
+                onChangeText={this.handleSearch}
+                value={this.state.filter}
+            />
+        )
+    };
 
     handleSearchClear = () => {
 
@@ -324,12 +346,6 @@ class ChannelsScreen extends Component {
             filteredChannels: this.state.channels
         });
         
-    };
-
-    contains = ({name}, text) => {
-
-        // case insensitive
-        return name.toUpperCase().includes(text.toUpperCase());
     };
 
     handleSearch = (text) => {
@@ -342,87 +358,97 @@ class ChannelsScreen extends Component {
         });
     };
 
-    renderHeader = () => (
-        <SearchBar
-            placeholder={"Pesquisar por nome"}
-            lightTheme
-            round
-            onClear={this.handleSearchClear}
-            onChangeText={this.handleSearch}
-            value={this.state.filter}
-        />
-    );
-
-    renderFooter = () => {
-
-        return (
-            <View style={{
-                paddingVertical: 20,
-                borderTopWidth: 1,
-                borderTopColor: '#ced0ce'
-            }}>
-                {
-                    this.state.isLoading &&
-                    <ActivityIndicator
-                        size={'large'}
-                        color={'#ced0ce'}
-                    />
-                }
-            </View>
-        );
-    };
-
     handleRefresh = () => {
         this.setState({
-            channels: [],
-            filteredChannels: [],
-            isRefreshing: true,
-            isLoading: false
-        },
-        async () => {
-            await this.getChannels()
-        });
+                channels: [],
+                filteredChannels: [],
+                isRefreshing: true
+            },
+            async () => {
+                await this.getChannels()
+            });
     };
 
-    _menu = null;
+    /**
+     * Show bottom sheet when user press + button.
+     */
+    showBottomSheet = () => {
 
-    setMenuRef = ref => {
-        this._menu = ref;
+        this._bottomSheet.snapTo(1);
     };
 
-    hideMenu = () => {
-        this._menu.hide();
+    /**
+     * Header of Bottom Sheet.
+     * @returns {*}
+     */
+    bottomSheetHeader = () => {
+        return (
+            <View style={styles.bottomSheetHeaderContainer}>
+                <View style={styles.bottomSheetHeaderButton}/>
+            </View>
+        )
     };
 
-    showMenu = () => {
-        this._menu.show();
+    /**
+     * Inner content of Bottom Sheet.
+     * @returns {*}
+     */
+    bottomSheetInner = () => {
+        return (
+            <View style={styles.panel}>
+                <TouchableOpacity
+                    style={styles.panelButton}
+                    onPress={() => {
+                        console.log("DirectMessageScreen");
+                        this.props.navigation.navigate('DirectMessageScreen');
+                    }}
+                >
+                    <CustomText
+                        type={'bold'}
+                        numberOfLines={2}
+                        ellipsizeMode='tail'
+                        children={'MENSAGEM DIRETA'}
+                        style={styles.panelButtonTitle}
+                    />
+                </TouchableOpacity>
+                <TouchableOpacity
+                    style={styles.panelButton}
+                    onPress={() => {
+                        this.props.navigation.navigate('JoinChannel',{
+                            onNavigateBack: this.handleRefresh
+                        });
+                    }}
+                >
+                    <CustomText
+                        type={'bold'}
+                        numberOfLines={2}
+                        ellipsizeMode='tail'
+                        children={'JUNTAR-ME A UM GRUPO'}
+                        style={styles.panelButtonTitle}
+                    />
+                </TouchableOpacity>
+            </View>
+        )
     };
 
-    menuDirectMessage = () => {
-        this.hideMenu();
-        this.props.navigation.navigate('DirectMessageScreen',{
-            onNavigateBack: this.handleRefresh
-        })
-    };
-
-    menuJoinChannel = () => {
-        this.hideMenu();
-        this.props.navigation.navigate('JoinChannel',{
-            onNavigateBack: this.handleRefresh
-        })
-    };
 
     render() {
 
         return (
             <View style={styles.container}>
+                <BottomSheet
+                    ref={ref => this._bottomSheet = ref}
+                    snapPoints={['55%', '45%', 0]}
+                    renderContent={this.bottomSheetInner}
+                    renderHeader={this.bottomSheetHeader}
+                    enabledInnerScrolling={false}
+                    initialSnap={2}
+                />
                 <FlatList
                     keyExtractor={item => item.id + item.name}
                     data={this.state.filteredChannels}
                     renderItem={this.renderItem}
-                    ItemSeparatorComponent={this.renderSeparator}
                     ListHeaderComponent={this.renderHeader}
-                    ListFooterComponent={this.renderFooter.bind(this)}
                     refreshing={this.state.isRefreshing}
                     onRefresh={this.handleRefresh}
                 />
@@ -432,10 +458,46 @@ class ChannelsScreen extends Component {
 
 }
 
+const bgColor = 'rgba(52, 52, 52, 0.8)';
+const buttonColor = '#292929';
+
+
 const styles = StyleSheet.create({
     container: {
         flex: 1
-    }
+    },
+    bottomSheetHeaderContainer: {
+        paddingTop: 15,
+        backgroundColor: bgColor,
+        alignItems: 'center',
+        justifyContent: 'center'
+    },
+    bottomSheetHeaderButton: {
+        width: 40,
+        height: 5,
+        borderRadius: 20,
+        backgroundColor: buttonColor
+    },
+    panel: {
+        height: 700,
+        padding: 20,
+        backgroundColor: bgColor,
+        zIndex: 100,
+    },
+    panelButton: {
+        height: 55,
+        borderRadius: 10,
+        backgroundColor: buttonColor,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginVertical: 10,
+        zIndex: 105,
+    },
+    panelButtonTitle: {
+        fontSize: 15,
+        fontWeight: 'bold',
+        color: '#fff',
+    },
 });
 
 const mapStateToProps = state => ({
