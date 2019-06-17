@@ -368,7 +368,9 @@ class ChannelsScreen extends Component {
                 isRefreshing: true
             },
             async () => {
-                await this.getChannels()
+                await this.getChannels();
+
+                this.setState({isRefreshing: false});
             });
     };
 
