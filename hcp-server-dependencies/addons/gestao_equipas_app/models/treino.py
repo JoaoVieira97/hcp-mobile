@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from odoo import models, fields, api
+from . import send_notifications
 
 class Treino(models.Model):
     _inherit = 'ges.treino'
@@ -51,6 +52,7 @@ class Treino(models.Model):
 					'atleta': False,
 					'filhos': []
 				}
+                dados[seccionista.user_id.id] = aux
             else:
                 dados[seccionista.user_id.id]['treinador_seccionista'] = True
 		
@@ -61,14 +63,24 @@ class Treino(models.Model):
                     'atleta': False,
                     'filhos': []
                 }
+                dados[treinador.user_id.id] = aux
             else:
                 dados[treinador.user_id.id]['treinador_seccionista'] = True
 		
         dados.pop(naoUsarUserId, None)
+
+        notifications = []
 		
         for dado in dados:
+
             if dados[dado]['treinador_seccionista'] and dados[dado]['atleta']:
-                self.env['res.users'].browse(dado).send_notification(title='Nova convocatória', msg='Foste convocado como técnico e atleta para um novo treino.')
+                for token in self.env['res.users'].browse(dado).get_user_tokens():
+                    notifications.append({
+                        'to': token,
+                        'title': 'Nova convocatória',
+                        'body': 'Foste convocado como técnico e atleta para um novo treino.'
+                    })
+            
             elif dados[dado]['treinador_seccionista'] and dados[dado]['filhos']:
                 msg = 'Foste convocado como técnico para um novo treino. '
                 if (len(dados[dado]['filhos']) == 1):
@@ -76,17 +88,44 @@ class Treino(models.Model):
                 else:
                     msgAux = ' também foram convocados/as.'
                 msg = msg + ', '.join(dados[dado]['filhos']) + msgAux
-                self.env['res.users'].browse(dado).send_notification(title='Nova convocatória', msg=msg)
+                for token in self.env['res.users'].browse(dado).get_user_tokens():
+                    notifications.append({
+                        'to': token,
+                        'title': 'Nova convocatória',
+                        'body': msg
+                    })
+            
             elif dados[dado]['treinador_seccionista']:
-                self.env['res.users'].browse(dado).send_notification(title='Nova convocatória', msg='Foste convocado como técnico para um novo treino.')
+                for token in self.env['res.users'].browse(dado).get_user_tokens():
+                    notifications.append({
+                        'to': token,
+                        'title': 'Nova convocatória',
+                        'body': 'Foste convocado como técnico para um novo treino.'
+                    })
+            
             elif dados[dado]['atleta']:
-                self.env['res.users'].browse(dado).send_notification(title='Nova convocatória', msg='Foste convocado para um novo treino.')
+                for token in self.env['res.users'].browse(dado).get_user_tokens():
+                    notifications.append({
+                        'to': token,
+                        'title': 'Nova convocatória',
+                        'body': 'Foste convocado para um novo treino.'
+                    })
+            
             elif dados[dado]['filhos']:
                 if (len(dados[dado]['filhos']) == 1):
                     msgAux = ' foi convocado/a para um novo treino.'
                 else:
                     msgAux = ' foram convocados/as para um novo treino.'
                 msg = ', '.join(dados[dado]['filhos']) + msgAux
-                self.env['res.users'].browse(dado).send_notification(title='Nova convocatória', msg=msg)
+                for token in self.env['res.users'].browse(dado).get_user_tokens():
+                    notifications.append({
+                        'to': token,
+                        'title': 'Nova convocatória',
+                        'body': msg
+                    })
+
+        #print(notifications)
+        
+        send_notifications.send_notifications(notifications)
 		
         return res
