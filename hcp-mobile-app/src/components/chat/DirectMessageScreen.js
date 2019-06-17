@@ -14,8 +14,9 @@ import {
 } from 'react-native-elements';
 import {connect} from 'react-redux';
 import _ from 'lodash';
-import CustomText from "../CustomText";
-import {Ionicons} from "@expo/vector-icons";
+import {headerTitle, closeButton} from "../navigation/HeaderComponents";
+
+
 
 class DirectMessageScreen extends Component {
 
@@ -33,24 +34,12 @@ class DirectMessageScreen extends Component {
     }
 
     static navigationOptions = ({navigation}) => ({
-        headerTitle:<CustomText
-                type={'bold'}
-                children={'MENSAGEM DIRETA'}
-                style={{
-                    color: '#ffffff',
-                    fontSize: 16
-                }}
-            />,
-        headerLeft: <Ionicons
-            name="md-arrow-back"
-            size={28}
-            color={'#ffffff'}
-            style={{paddingLeft: 20}}
-            onPress = {() => {
-                //navigation.state.params.onNavigateBack();
-                navigation.goBack()
-            }}
-        />
+        headerTitle: headerTitle(
+            '#ffffff', 'MENSAGEM DIRETA'
+        ),
+        headerLeft: closeButton(
+            '#ffffff', navigation
+        ),
     });
 
     async componentDidMount() {

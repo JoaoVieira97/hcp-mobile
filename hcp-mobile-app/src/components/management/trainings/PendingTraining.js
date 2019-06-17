@@ -10,6 +10,10 @@ import {DangerZone} from "expo";
 import {headerTitle, closeButton} from "../../navigation/HeaderComponents";
 import * as Animatable from "react-native-animatable";
 const { Lottie } = DangerZone;
+import BottomSheet from 'reanimated-bottom-sheet';
+import CustomText from "../../CustomText";
+
+
 
 class PendingTraining extends Component {
 
@@ -254,7 +258,7 @@ class PendingTraining extends Component {
                 {text: 'Cancelar', style: 'cancel'},
                 {
                     text: 'Confirmar',
-                    onPress: async () => this._closeTraining()
+                    onPress: async () => {await this._closeTraining()}
                 },
             ],
             {cancelable: true},
@@ -288,7 +292,12 @@ class PendingTraining extends Component {
             await this.setState({isLoading: false, animation: true});
 
             this.animation.play();
-            setTimeout(() => {this.props.navigation.goBack()}, 1100);
+            setTimeout(() => {
+                //this.props.navigation.goBack()
+                this.animation.reset();
+                this.setState({animation: false});
+                this._bottomSheet.snapTo(0);
+            }, 1100);
 
         } else {
 
@@ -415,6 +424,49 @@ class PendingTraining extends Component {
         await this.setState({isRefreshing: true, showMore: false});
         await this.fetchData();
         this.setState({isRefreshing: false});
+    };
+
+    /**
+     * Inner content of Bottom Sheet.
+     * @returns {*}
+     */
+    bottomSheetInner = () => {
+        return (
+            <View style={styles.panel}>
+                <TouchableOpacity
+                    style={styles.panelButton}
+                    onPress={() => {
+                        this.props.navigation.navigate('AddSummary', {
+                            trainingID: this.state.training.id,
+                            trainingDuration: this.state.training.duration
+                        });
+                    }}
+                >
+                    <CustomText
+                        type={'bold'}
+                        numberOfLines={2}
+                        ellipsizeMode='tail'
+                        children={'REGISTAR SUMÁRIO'}
+                        style={styles.panelButtonTitle}
+                    />
+                </TouchableOpacity>
+                <TouchableOpacity
+                    style={styles.panelButton}
+                    onPress={() => {
+                        //this.props.navigation.navigate();
+                        this.props.navigation.goBack();
+                    }}
+                >
+                    <CustomText
+                        type={'bold'}
+                        numberOfLines={2}
+                        ellipsizeMode='tail'
+                        children={'REGRESSAR ÀS CONVOCATÓRIAS'}
+                        style={styles.panelButtonTitle}
+                    />
+                </TouchableOpacity>
+            </View>
+        )
     };
 
     render() {
@@ -567,10 +619,21 @@ class PendingTraining extends Component {
                         athletes={this.state.athletes}
                     />
                 </ScrollView>
+                <BottomSheet
+                    ref={ref => this._bottomSheet = ref}
+                    snapPoints={['100%', 0]}
+                    renderContent={this.bottomSheetInner}
+                    enabledInnerScrolling={false}
+                    enabledGestureInteraction={false}
+                    initialSnap={1}
+                />
             </View>
         );
     }
 }
+
+const bgColor = 'rgba(52, 52, 52, 0.9)';
+const buttonColor = '#292929';
 
 const styles = StyleSheet.create({
     topHeader: {
@@ -625,7 +688,29 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         backgroundColor: "#ffffff",
         zIndex: 101
-    }
+    },
+    panel: {
+        height: 700,
+        padding: 20,
+        backgroundColor: bgColor,
+        alignItems: 'center',
+        justifyContent: 'center'
+    },
+    panelButton: {
+        minHeight: 60,
+        width: '100%',
+        borderRadius: 5,
+        backgroundColor: buttonColor,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginVertical: 10,
+    },
+    panelButtonTitle: {
+        fontSize: 15,
+        fontWeight: 'bold',
+        color: '#fff',
+        textAlign: 'center'
+    },
 });
 
 const mapStateToProps = state => ({

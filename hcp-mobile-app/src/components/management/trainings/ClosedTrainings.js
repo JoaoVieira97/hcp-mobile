@@ -68,7 +68,12 @@ class ClosedTrainings extends Component {
                 ['id', 'not in', idsFetched],
                 ['state', '=', 'fechado']
             ],
-            fields: ['id', 'atletas', 'display_start', 'local', 'escalao', 'duracao', 'convocatorias','treinador', 'seccionistas'],
+            fields: [
+                'id', 'atletas', 'display_start', 'local',
+                'escalao', 'duracao',
+                'convocatorias', 'presencas',
+                'treinador', 'seccionistas'
+            ],
             limit: limit,
             order: 'display_start DESC'
         };
@@ -117,6 +122,7 @@ class ClosedTrainings extends Component {
                     date: date.date,
                     hour: date.hour,
                     invitationIds: item.convocatorias,
+                    availabilityIds: item.presencas,
                     athleteIds : item.atletas,
                     coachIds: item.treinador,
                     secretaryIds: item.seccionistas,
@@ -194,16 +200,7 @@ class ClosedTrainings extends Component {
             index={index}
             titleType={'Treino '}
             navigateToFunction={() => {
-
-                /*
-                this.props.navigation.navigate(
-                    'PendingTraining',
-                    {
-                        training: item,
-                        //removeTraining: (id) => this.removeTraining(id)
-                    }
-                );
-                 */
+                this.props.navigation.navigate('ClosedTraining', {training: item});
             }} />
     );
 

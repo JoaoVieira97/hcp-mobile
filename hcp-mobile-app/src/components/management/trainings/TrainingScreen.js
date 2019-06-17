@@ -193,25 +193,24 @@ class TrainingScreen extends Component {
             }, {
                 name: 'Convocatórias em aberto',
                 icon: 'md-list-box',
-                subtitle: 'Editar dados | ' +
-                    'Controlar a disponibilidade dos atletas | ' +
-                    'Fechar o período de convocatórias | Eliminar treinos',
+                subtitle: 'Alterar dados de uma convocatória | ' +
+                    'Alterar disponibilidade dos atletas | ' +
+                    'Fechar o período de convocatórias',
                 value: this.state.openedTrainingsCounter > 100 ? '+99' : this.state.openedTrainingsCounter,
                 onPress: 'OpenedTrainings'
             }, {
                 name: 'Convocatórias fechadas',
                 icon: 'md-log-out',
-                subtitle: 'Editar presenças e atrasos | ' +
-                    'Concluir treinos',
+                subtitle: 'Alterar presenças e atrasos | Fechar treinos',
                 value: this.state.closedTrainingsCounter > 100 ? '+99' : this.state.closedTrainingsCounter,
                 onPress: 'PendingTrainings'
             }, {
-            name: 'Treinos fechados',
-            icon: 'md-done-all',
-            subtitle: 'Treinos que já foram terminados',
-            value: this.state.finishedTrainingsCounter > 100 ? '+99' : this.state.finishedTrainingsCounter,
-            onPress: 'ClosedTrainings'
-        },
+                name: 'Treinos fechados',
+                icon: 'md-done-all',
+                subtitle: 'Consultar informações dos treinos fechados',
+                value: this.state.finishedTrainingsCounter > 100 ? '+99' : this.state.finishedTrainingsCounter,
+                onPress: 'ClosedTrainings'
+            },
         ];
 
         return (

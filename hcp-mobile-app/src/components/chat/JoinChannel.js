@@ -13,9 +13,11 @@ import {
 } from 'react-native-elements';
 import {connect} from 'react-redux';
 import _ from 'lodash';
-import CustomText from "../CustomText";
-import {Ionicons, FontAwesome, AntDesign} from "@expo/vector-icons";
+import {FontAwesome, AntDesign} from "@expo/vector-icons";
 import {colors} from "../../styles/index.style";
+import {headerTitle, closeButton} from "../navigation/HeaderComponents";
+
+
 
 class JoinChannel extends Component {
 
@@ -33,24 +35,12 @@ class JoinChannel extends Component {
     }
 
     static navigationOptions = ({navigation}) => ({
-        headerTitle:<CustomText
-                type={'bold'}
-                children={'JUNTAR-ME A CANAL'}
-                style={{
-                    color: '#ffffff',
-                    fontSize: 16
-                }}
-            />,
-        headerLeft: <Ionicons
-            name="md-arrow-back"
-            size={28}
-            color={'#ffffff'}
-            style={{paddingLeft: 20}}
-            onPress = {() => {
-                navigation.state.params.onNavigateBack();
-                navigation.goBack()
-            }}
-        />
+        headerTitle: headerTitle(
+            '#ffffff', 'JUNTAR-ME A UM GRUPO'
+        ),
+        headerLeft: closeButton(
+            '#ffffff', navigation
+        ),
     });
 
     async componentDidMount() {

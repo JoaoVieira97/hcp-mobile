@@ -38,7 +38,7 @@ class ConcreteChat extends Component {
      */
     static navigationOptions = ({navigation}) => ({
         headerTitle: headerTitle(
-            '#ffffff', (navigation.state.params.title ? navigation.state.params.title : 'Conversa')
+            '#ffffff', (navigation.state.params.title ? navigation.state.params.title : 'CHAT')
         ),
         headerLeft: closeButton(
             '#ffffff', navigation
@@ -98,10 +98,18 @@ class ConcreteChat extends Component {
             await this.getNewMessages();
 
         }, 1500);
+
+        this.subscriptions = [
+            this.props.navigation.addListener('willBlur', () => {
+
+                clearInterval(this.interval);
+            }),
+        ];
     }
 
     componentWillUnmount() {
 
+        this.subscriptions.forEach(sub => sub.remove());
         clearInterval(this.interval);
     }
 
@@ -221,8 +229,6 @@ class ConcreteChat extends Component {
 
         const dateArray = message[0].createdAt.toISOString().split('T');
         const dateText = dateArray[0].slice(0,10) + ' ' + dateArray[1].slice(0,8);
-
-        console.log(dateText);
 
         const msg = message[0].text;
         const params = {
@@ -461,7 +467,7 @@ class ConcreteChat extends Component {
                     renderBubble={ConcreteChat.renderBubble}
                     renderSend={ConcreteChat.renderSend}
                     renderUsernameOnMessage={true}
-                    loadEarlier={true}
+                    loadEarlier={!this.state.isLoading}
                     renderLoadEarlier={this.renderLoad.bind(this)}
                     locale={moment.locale('pt')}
                     timeFormat={'LT'}

@@ -2,14 +2,10 @@ import React, { Component } from 'react';
 import {Image, StyleSheet, Text, View} from 'react-native';
 import {SectionGrid} from "react-native-super-grid";
 import {colors} from "../../styles/index.style";
-
+import PropTypes from 'prop-types';
 
 
 export default class AthletesGrid extends Component {
-
-    constructor(props) {
-        super(props);
-    }
 
     /**
      * Render athlete item.
@@ -87,6 +83,11 @@ export default class AthletesGrid extends Component {
         );
     }
 }
+
+AthletesGrid.propTypes = {
+    title: PropTypes.string.isRequired,
+    athletes: PropTypes.array.isRequired
+};
 
 const styles = StyleSheet.create({
     gridView: {

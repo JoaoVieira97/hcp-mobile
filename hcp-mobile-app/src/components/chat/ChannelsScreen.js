@@ -4,7 +4,7 @@ import {
     FlatList,
     StyleSheet,
     Text,
-    TouchableOpacity
+    //TouchableOpacity
 } from 'react-native';
 import {
     ListItem,
@@ -16,8 +16,11 @@ import _ from 'lodash';
 import {colors} from "../../styles/index.style";
 import {AntDesign} from "@expo/vector-icons";
 import ConvertTime from "../ConvertTime";
-import BottomSheet from 'reanimated-bottom-sheet'
+import BottomSheet from 'reanimated-bottom-sheet';
 import CustomText from "../CustomText";
+import {
+    TouchableOpacity,
+} from 'react-native-gesture-handler'; // NÃO INSTALAR OU COLOCAR NO PACKAGE JSON
 
 class ChannelsScreen extends Component {
 
@@ -374,7 +377,7 @@ class ChannelsScreen extends Component {
      */
     showBottomSheet = () => {
 
-        this._bottomSheet.snapTo(1);
+        this._bottomSheet.snapTo(0);
     };
 
     /**
@@ -398,10 +401,7 @@ class ChannelsScreen extends Component {
             <View style={styles.panel}>
                 <TouchableOpacity
                     style={styles.panelButton}
-                    onPress={() => {
-                        console.log("DirectMessageScreen");
-                        this.props.navigation.navigate('DirectMessageScreen');
-                    }}
+                    onPress={() => {this.props.navigation.navigate('DirectMessageScreen');}}
                 >
                     <CustomText
                         type={'bold'}
@@ -413,11 +413,7 @@ class ChannelsScreen extends Component {
                 </TouchableOpacity>
                 <TouchableOpacity
                     style={styles.panelButton}
-                    onPress={() => {
-                        this.props.navigation.navigate('JoinChannel',{
-                            onNavigateBack: this.handleRefresh
-                        });
-                    }}
+                    onPress={() => {this.props.navigation.navigate('JoinChannel')}}
                 >
                     <CustomText
                         type={'bold'}
@@ -436,14 +432,6 @@ class ChannelsScreen extends Component {
 
         return (
             <View style={styles.container}>
-                <BottomSheet
-                    ref={ref => this._bottomSheet = ref}
-                    snapPoints={['55%', '45%', 0]}
-                    renderContent={this.bottomSheetInner}
-                    renderHeader={this.bottomSheetHeader}
-                    enabledInnerScrolling={false}
-                    initialSnap={2}
-                />
                 <FlatList
                     keyExtractor={item => item.id + item.name}
                     data={this.state.filteredChannels}
@@ -451,6 +439,14 @@ class ChannelsScreen extends Component {
                     ListHeaderComponent={this.renderHeader}
                     refreshing={this.state.isRefreshing}
                     onRefresh={this.handleRefresh}
+                />
+                <BottomSheet
+                    ref={ref => this._bottomSheet = ref}
+                    snapPoints={['45%', 0]}
+                    renderContent={this.bottomSheetInner}
+                    renderHeader={this.bottomSheetHeader}
+                    enabledInnerScrolling={false}
+                    initialSnap={1}
                 />
             </View>
         );
@@ -482,7 +478,6 @@ const styles = StyleSheet.create({
         height: 700,
         padding: 20,
         backgroundColor: bgColor,
-        zIndex: 100,
     },
     panelButton: {
         height: 55,
@@ -491,7 +486,6 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         marginVertical: 10,
-        zIndex: 105,
     },
     panelButtonTitle: {
         fontSize: 15,

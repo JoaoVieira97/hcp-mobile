@@ -182,22 +182,21 @@ class GameScreen extends Component {
         }, {
             name: 'Convocatórias em aberto',
             icon: 'md-list-box',
-            subtitle: 'Editar dados | ' +
-                'Controlar a disponibilidade dos atletas | ' +
+            subtitle: 'Alterar dados de uma convocatória | ' +
+                'Alterar disponibilidade dos atletas | ' +
                 'Fechar o período de convocatórias',
             value: this.state.openedGamesCounter > 100 ? '+99' : this.state.openedGamesCounter,
             onPress: 'OpenedGames'
         }, {
             name: 'Convocatórias fechadas',
             icon: 'md-log-out',
-            subtitle: 'Editar presenças e atrasos | ' +
-                'Concluir ou eliminar jogos',
+            subtitle: 'Alterar presenças e atrasos | Fechar jogos',
             value: this.state.closedGamesCounter > 100 ? '+99' : this.state.closedGamesCounter,
             onPress: 'PendingGames'
         }, {
             name: 'Jogos fechados',
             icon: 'md-done-all',
-            subtitle: 'Jogos que já foram terminados',
+            subtitle: 'Consultar informações dos jogos fechados',
             value: this.state.finishedGamesCounter > 100 ? '+99' : this.state.finishedGamesCounter,
             onPress: false
         }
