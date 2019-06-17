@@ -12,11 +12,12 @@ class Evento_Desportivo(models.Model):
             linha.write({
                 'disponivel': not linha.disponivel
             })
+            
             context = self._context
             current_uid = context.get('uid')
-            user_test = self.env['res.users'].browse(current_uid)
-            print(user_test.id)
-            print(self.display_name)
+            user = self.env['res.users'].browse(current_uid)
+            naoUsarUserId = user.id
+
             atleta = self.env['ges.atleta'].browse(atletaId)
             nome = atleta.user_id.name
             users_to_notificate = []
@@ -24,7 +25,13 @@ class Evento_Desportivo(models.Model):
                 users_to_notificate.append(treinador.user_id.id)
             for seccionista in self.seccionistas:
                 users_to_notificate.append(seccionista.user_id.id)
+
+            if naoUsarUserId in users_to_notificate:
+                users_to_notificate.remove(naoUsarUserId)
+                
+            print(str(users_to_notificate))
             for user in users_to_notificate:
                 self.env['res.users'].browse(user).send_notification(title='Indisponibilidade de atleta', msg='Foi alterada a disponibilidade do atleta ' + nome)
+            return True
         else:
             raise models.ValidationError('Não está convocado!')

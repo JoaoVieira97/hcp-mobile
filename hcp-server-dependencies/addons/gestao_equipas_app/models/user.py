@@ -70,3 +70,10 @@ class User(models.Model):
             }
             requests.post(url, body, headers)
         return True
+
+    @api.multi
+    def get_user_tokens(self):
+        tokens = []
+        for token in self.tokens:
+            tokens.append(token.token)
+        return tokens
