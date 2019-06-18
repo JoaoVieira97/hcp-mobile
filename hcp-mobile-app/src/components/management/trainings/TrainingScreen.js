@@ -16,7 +16,8 @@ class TrainingScreen extends Component {
             openedTrainingsCounter: 0,
             closedTrainingsCounter: 0,
             finishedTrainingsCounter: 0,
-            isRefreshing: false
+            isRefreshing: false,
+            isCoach: false,
         };
     }
 
@@ -26,6 +27,17 @@ class TrainingScreen extends Component {
     static navigationOptions = {
         title: 'Treinos',
     };
+
+    componentWillMount() {
+
+        for (let i = 0; i < this.props.user.groups.length; i++) {
+            const group = this.props.user.groups[i];
+            if (group.name === 'Treinador') {
+                this.setState({isCoach: true});
+                break;
+            }
+        }
+    }
 
     componentDidMount() {
 
@@ -184,13 +196,7 @@ class TrainingScreen extends Component {
 
     render() {
 
-        const list = [{
-                name: 'Criar treino',
-                icon: 'md-add',
-                subtitle: false,
-                value: -1,
-                onPress: 'NewTraining'
-            }, {
+        let list = [{
                 name: 'Convocatórias em aberto',
                 icon: 'md-list-box',
                 subtitle: 'Alterar dados de uma convocatória | ' +
@@ -213,6 +219,16 @@ class TrainingScreen extends Component {
             },
         ];
 
+        if(this.state.isCoach) {
+            list = [{
+                name: 'Criar treino',
+                icon: 'md-add',
+                subtitle: false,
+                value: -1,
+                onPress: 'NewTraining'
+            }, ...list];
+        }
+
         return (
             <FlatList
                 keyExtractor={item => item.name}
@@ -229,6 +245,7 @@ class TrainingScreen extends Component {
 const mapStateToProps = state => ({
 
     odoo: state.odoo.odoo,
+    user: state.user
 });
 
 const mapDispatchToProps = dispatch => ({});
