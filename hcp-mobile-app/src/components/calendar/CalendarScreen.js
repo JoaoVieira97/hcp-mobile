@@ -413,17 +413,24 @@ class CalendarScreen extends React.Component {
         return (
             <View style={{flex: 1}}>
                 <View style={styles.topHeader}>
-                    <CheckBox
-                        iconRight
-                        size={28}
-                        title='Visualizar todos os eventos'
-                        textStyle={{color: colors.gradient1}}
-                        checkedColor={colors.gradient1}
-                        uncheckedColor={colors.gradient1}
-                        checked={this.state.checked}
-                        onPress={() => this.changeChecked()}
-                        containerStyle={{ margin: 0, padding: 0, backgroundColor: 'transparent', borderColor: 'transparent'}}
-                    />
+                    <View>
+                        <CheckBox
+                            iconRight
+                            size={28}
+                            title='Eventos em que estou presente'
+                            textStyle={{color: colors.gradient1}}
+                            checkedColor={colors.gradient1}
+                            uncheckedColor={colors.gradient1}
+                            checked={!this.state.checked}
+                            onPress={() => this.changeChecked()}
+                            containerStyle={{ margin: 0, padding: 0, backgroundColor: 'transparent', borderColor: 'transparent'}}
+                        />
+                    </View>
+                    <View>
+                        <Text style={{fontSize: 12, color: colors.darkGrayColor, marginLeft: 20}}>
+                            {'Pressionar para ver outros eventos.'}
+                        </Text>
+                    </View>
                 </View>
                 <Agenda
                     ref={agenda => this.agenda = agenda /*this.r.chooseDay(this.state.selectedDay, true)*/ }
@@ -482,7 +489,6 @@ const styles = StyleSheet.create({
         paddingTop: 30
     },
     topHeader: {
-        flexDirection: 'row',
         width: '100%',
         paddingVertical: 10,
         backgroundColor: '#eeeeee',

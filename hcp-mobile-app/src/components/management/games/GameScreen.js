@@ -26,6 +26,17 @@ class GameScreen extends Component {
         title: 'Jogos',
     };
 
+    componentWillMount() {
+
+        for (let i = 0; i < this.props.user.groups.length; i++) {
+            const group = this.props.user.groups[i];
+            if (group.name === 'Treinador') {
+                this.setState({isCoach: true});
+                break;
+            }
+        }
+    }
+
     componentDidMount() {
 
         this.subscriptions = [
@@ -173,13 +184,7 @@ class GameScreen extends Component {
 
     render() {
 
-        const list = [{
-            name: 'Criar jogo',
-            icon: 'md-add',
-            subtitle: false,
-            value: -1,
-            //onPress: 'NewTraining'
-        }, {
+        let list = [{
             name: 'Convocatórias em aberto',
             icon: 'md-list-box',
             subtitle: 'Alterar dados de uma convocatória | ' +
@@ -199,8 +204,17 @@ class GameScreen extends Component {
             subtitle: 'Consultar informações dos jogos fechados',
             value: this.state.finishedGamesCounter > 100 ? '+99' : this.state.finishedGamesCounter,
             onPress: false
+        }];
+
+        if(this.state.isCoach) {
+            list = [{
+                name: 'Criar jogo',
+                icon: 'md-add',
+                subtitle: false,
+                value: -1,
+                //onPress: 'NewTraining'
+            }, ...list];
         }
-        ];
 
         return (
             <FlatList
@@ -217,6 +231,7 @@ class GameScreen extends Component {
 const mapStateToProps = state => ({
 
     odoo: state.odoo.odoo,
+    user: state.user
 });
 
 const mapDispatchToProps = dispatch => ({});

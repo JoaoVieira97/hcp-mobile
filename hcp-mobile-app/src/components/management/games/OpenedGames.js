@@ -68,7 +68,10 @@ class OpenedGames extends Component {
                 ['id', 'not in', idsFetched],
                 ['state', '=', 'aberto']
             ],
-            fields: ['id', 'atletas', 'display_start', 'local', 'escalao', 'duracao', 'convocatorias', 'treinador', 'seccionistas'],
+            fields: ['id', 'evento_desportivo' ,'atletas', 'display_start',
+                'local', 'escalao', 'duracao',
+                'convocatorias','treinador', 'seccionistas',
+                'equipa_adversaria', 'competicao', 'state'],
             limit: limit,
             order: 'display_start DESC'
         };
@@ -116,10 +119,13 @@ class OpenedGames extends Component {
                     duration: item.duracao,
                     date: date.date,
                     hour: date.hour,
-                    invitationIds: item.convocatorias,
+                    opponent: item.equipa_adversaria ? item.equipa_adversaria[1] : 'Não definido',
+                    competition: item.competicao ? (item.competicao[1].split('('))[0] : 'Não definida',
                     athleteIds : item.atletas,
+                    invitationIds: item.convocatorias,
                     coachIds: item.treinador,
                     secretaryIds: item.seccionistas,
+                    eventId: item.evento_desportivo[0]
                 };
 
                 games.push(game);

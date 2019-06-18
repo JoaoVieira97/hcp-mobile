@@ -588,7 +588,7 @@ const CoachAndSecretaryDrawerNavigator = createDrawerNavigator({
     ChatStack: drawerNavigatorFullStacks['ChatStack']
 }, {
     ...drawerNavigatorDefaultSettings,
-    initialRouteName: 'CalendarStack',
+    initialRouteName: 'HomeStack',
     order: ['HomeStack', 'CalendarStack', 'ManagementStack', 'AthletesStack', 'ProfileStack', 'ChatStack'],
 });
 

@@ -486,7 +486,7 @@ class OpenedGameInvitation extends Component {
         const list = [{
             name: 'Estado',
             icon: 'md-help-circle',
-            subtitle: 'Convocatórias em aberto'
+            subtitle: 'Convocatórias em Aberto'
         },{
             name: 'Competição',
             icon: 'md-trophy',
