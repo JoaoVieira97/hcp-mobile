@@ -69,7 +69,10 @@ import OtherGameInvitation from "../invitations/games/OtherGameInvitation";
 import ClosedTraining from "../management/trainings/ClosedTraining";
 import AddSummary from "../management/trainings/AddSummary";
 import Summary from "../management/trainings/Summary";
+import HomePendingTraining from "../home/HomePendingTraining";
+import HomePendingGame from "../home/HomePendingGame";
 import {linearGradientHeader, headerTitle, openDrawerButton} from "./HeaderComponents";
+
 
 
 const styles = StyleSheet.create({
@@ -199,16 +202,12 @@ const CustomDrawerContentComponent = (props) => {
 // HOME STACK
 const HomeStackNavigator = createStackNavigator({
     HomeScreen: {screen: HomeScreen},
-    EventScreen: {screen: EventScreen}
+    HomePendingTraining: {screen: HomePendingTraining},
+    HomePendingGame: {screen: HomePendingGame},
 }, {
     initialRouteName: 'HomeScreen',
     defaultNavigationOptions: ({navigation}) => {
         return {
-            headerStyle: {
-                elevation: 0, // remove shadow on Android
-                shadowOpacity: 0, // remove shadow on iOS
-                backgroundColor: colors.grayColor
-            },
             headerTitle: headerTitle(colors.redColor,'INÍCIO'),
             headerLeft: openDrawerButton(colors.redColor, navigation)
         }
@@ -589,7 +588,7 @@ const CoachAndSecretaryDrawerNavigator = createDrawerNavigator({
     ChatStack: drawerNavigatorFullStacks['ChatStack']
 }, {
     ...drawerNavigatorDefaultSettings,
-    initialRouteName: 'ManagementStack',
+    initialRouteName: 'HomeStack',
     order: ['HomeStack', 'CalendarStack', 'ManagementStack', 'AthletesStack', 'ProfileStack', 'ChatStack'],
 });
 

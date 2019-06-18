@@ -10,9 +10,14 @@ import {
 import {AsyncStorage} from 'react-native';
 import Odoo from "react-native-odoo-promise-based";
 
-const HOST = '89.26.252.108'; //'hcp-web.ddns.net';
-const PORT = 80;
-const DATABASE = 'hcp';
+
+
+const HOST      =   '89.26.252.108';
+const PORT      =   80;
+const DATABASE  =   'hcp';
+const PROTOCOL  =   'http';
+
+
 
 export default class Authentication {
 
@@ -126,7 +131,8 @@ export default class Authentication {
             port: PORT,
             database: DATABASE,
             username: username,
-            password: password
+            password: password,
+            protocol: PROTOCOL
         });
 
         // save odoo data on store
