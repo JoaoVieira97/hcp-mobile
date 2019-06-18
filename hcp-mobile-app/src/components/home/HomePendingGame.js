@@ -1,103 +1,128 @@
 import React, {Component} from 'react';
 import {FlatList, RefreshControl, ScrollView, StyleSheet, View, Alert} from 'react-native';
 import {connect} from 'react-redux';
-import {ListItem} from 'react-native-elements';
+import { ListItem } from 'react-native-elements';
 import {Ionicons} from "@expo/vector-icons";
+import {headerTitle, closeButton, linearGradientHeader} from "../navigation/HeaderComponents";
+import Loader from "../screens/Loader";
+import {colors} from "../../styles/index.style";
 import getDirections from 'react-native-google-maps-directions';
-import {headerTitle, closeButton} from "../../navigation/HeaderComponents";
-import {colors} from "../../../styles/index.style";
-import Loader from "../../screens/Loader";
+import ConvertTime  from '../ConvertTime';
+import moment from 'moment';
 
 
-class OtherGameInvitation extends Component {
+class HomePendingGame extends Component {
 
     constructor(props) {
-
         super(props);
+
         this.state = {
             isLoading: true,
             isRefreshing: false,
-
-            // game info
+            gameEvent: undefined,
             game: undefined,
-            coaches: ["A carregar..."],
-            secretaries: ["A carregar..."],
-            athletes: [],
-
-            // athlete info
-            athleteID: undefined,
-            athleteIsChild: false,
-            isAvailable: true,
-            athleteName: undefined,
-        }
+            coaches: ['A carregar...'],
+            secretaries: ['A carregar...'],
+        };
     }
 
+    /**
+     * Define navigations header components.
+     * @param navigation
+     * @returns {{headerLeft: *, headerTitle: *}}
+     */
     static navigationOptions = ({navigation}) => ({
         headerTitle: headerTitle(
             '#ffffff', 'JOGO'
         ),
         headerLeft: closeButton(
             '#ffffff', navigation
-        )
+        ),
+        headerBackground: linearGradientHeader(),
     });
 
     async componentWillMount() {
-
         await this.setState({
-            game: this.props.navigation.getParam('game'),
-            athleteID: this.props.navigation.getParam('athleteID'),
-            athleteIsChild: this.props.navigation.getParam('athleteIsChild'),
+            gameEvent: this.props.navigation.state.params.gameEvent
         });
     }
 
     async componentDidMount() {
 
-        await this.fetchData();
-        await this.setState({isLoading: false});
+        await this.fetchGameInfo();
+        this.setState({isLoading: false});
     }
 
     /**
-     * Fetch all needed data.
+     * Fetch game information.
      * @returns {Promise<void>}
      */
-    async fetchData() {
-
-        await this.fetchAthletes(this.state.game.invitationIds);
-        await this.fetchCoaches(this.state.game.coachIds);
-        await this.fetchSecretaries(this.state.game.secretaryIds);
-    }
-
-    /**
-     * Fetch athletes data. Order by squad number.
-     * @param ids
-     * @returns {Promise<void>}
-     */
-    async fetchAthletes(ids) {
+    fetchGameInfo = async () => {
 
         const params = {
-            fields: [
-                'id',
-                'atleta',
-                'disponivel',
-                'numero'
+            domain: [
+                ['evento_desportivo', 'in', [this.state.gameEvent.id]],
             ],
-            domain: [['id', 'in', ids]],
-            order: 'numero ASC'
+            fields: [
+                'id', 'evento_desportivo' , 'display_start',
+                'local', 'escalao', 'duracao',
+                'treinador', 'seccionistas',
+                'equipa_adversaria', 'competicao'],
         };
 
-        const response = await this.props.odoo.search_read('ges.linha_convocatoria', params);
-        if (response.success && response.data.length > 0) {
+        const response = await this.props.odoo.search_read('ges.jogo', params);
+        if(response.success && response.data.length > 0) {
 
-            const data = response.data;
-            for (let item of data) {
+            const game = response.data[0];
 
-                if (item.atleta[0] === this.state.athleteID) {
-                    this.setState({isAvailable: item.disponivel, athleteName: item.atleta[1]});
-                    break;
+            const convertTime = new ConvertTime();
+            convertTime.setDate(game.display_start);
+            const date = convertTime.getTimeObject();
+
+            /**
+             diff = difference in ms between actual date and game's date
+             oneDay = one day in ms
+             gameDayMidNight = gameDay + '00:00:00' -> To verify Hoje or Amanha
+             twoDaysLimit = actualDate + 2 days + '00:00:00' -> To verify Amanha
+             (se a data do jogo nao atual ultrapassar estes 2 dias de limite, data=Amanha)
+             */
+            let diff = moment(convertTime.getDate()).diff(moment(this.state.date));
+            let oneDay = 24 * 60 * 60 * 1000;
+            let gameDayMidNight = (convertTime.getDate().split('T'))[0] + 'T00:00:00';
+            let twoDaysLimit = (moment(this.state.date).add(2, 'days').format()
+                .split('T'))[0] + 'T00:00:00';
+
+            if(diff >=0){
+                if(diff < oneDay) {
+                    if(moment(this.state.date).isAfter(gameDayMidNight)) date.date = 'Hoje';
+                    else date.date = 'Amanhã';
+                }
+                else if(diff < 2*oneDay && !moment(convertTime.getDate()).isAfter(twoDaysLimit)) {
+                    date.date = 'Amanhã';
                 }
             }
+
+            await this.setState({
+                game: {
+                    id: game.id,
+                    eventId: game.evento_desportivo[0],
+                    place: game.local,
+                    echelon: game.escalao,
+                    duration: game.duracao,
+                    date: date.date,
+                    hours: date.hour,
+                    state: game.state,
+                    opponent: game.equipa_adversaria ? game.equipa_adversaria[1] : 'Não definido',
+                    competition: game.competicao ? (game.competicao[1].split('('))[0] : 'Não definida',
+                    coachIds: game.treinador,
+                    secretaryIds: game.seccionistas,
+                }
+            });
+
+            await this.fetchCoaches(this.state.game.coachIds);
+            await this.fetchSecretaries(this.state.game.secretaryIds);
         }
-    }
+    };
 
     /**
      * Fetch coaches names.
@@ -112,7 +137,7 @@ class OtherGameInvitation extends Component {
         };
 
         const response = await this.props.odoo.get('ges.treinador', params);
-        if (response.success && response.data.length > 0) {
+        if(response.success && response.data.length > 0) {
 
             const data = response.data;
 
@@ -144,7 +169,7 @@ class OtherGameInvitation extends Component {
         };
 
         const response = await this.props.odoo.get('ges.seccionista', params);
-        if (response.success && response.data.length > 0) {
+        if(response.success && response.data.length > 0) {
 
             await this.setState({secretaries: response.data.map(item => item.name)});
 
@@ -171,20 +196,18 @@ class OtherGameInvitation extends Component {
 
             const coordinates = response.data[0].coordenadas;
 
-            if (coordinates !== false) {
+            if(coordinates !== false) {
 
                 const latitude = parseFloat(coordinates.split(", ")[0]);
                 const longitude = parseFloat(coordinates.split(", ")[1]);
 
                 this.setState({isLoading: false});
-
                 return {
                     latitude: latitude,
                     longitude: longitude
                 }
             }
         }
-
         this.setState({isLoading: false});
         return undefined;
     }
@@ -230,9 +253,10 @@ class OtherGameInvitation extends Component {
                     {cancelable: true},
                 );
             },
-            {enableHighAccuracy: true, timeout: 20000, maximumAge: 1000}
+            { enableHighAccuracy: true, timeout: 20000, maximumAge: 1000 }
         );
     };
+
 
     /**
      * When user refresh this screen.
@@ -240,7 +264,7 @@ class OtherGameInvitation extends Component {
     onRefresh = async () => {
 
         await this.setState({isRefreshing: true});
-        await this.fetchData();
+        await this.fetchGameInfo();
         this.setState({isRefreshing: false});
     };
 
@@ -249,7 +273,7 @@ class OtherGameInvitation extends Component {
      */
     onLocalPress = () => {
 
-        if (this.state.game.place && this.state.game.place[0]) {
+        if(this.state.game.place && this.state.game.place[0]) {
 
             this.getCoordinates().then(response => {
 
@@ -260,15 +284,14 @@ class OtherGameInvitation extends Component {
                         'Pretende abrir o Google Maps para visualizar o local do evento?',
                         [
                             {text: 'Cancelar', style: 'cancel',},
-                            {
-                                text: 'Sim', onPress: () => {
+                            {text: 'Sim', onPress: () => {
                                     this.openGoogleMaps(response);
-                                }
-                            },
+                                }},
                         ],
                         {cancelable: true},
                     );
-                } else {
+                }
+                else {
                     Alert.alert(
                         'Não existem coordenadas',
                         'As coordenadas deste evento ainda não foram definidas. Peça ao administrador para as adicionar.',
@@ -279,7 +302,8 @@ class OtherGameInvitation extends Component {
                     );
                 }
             });
-        } else {
+        }
+        else {
             Alert.alert(
                 'Local não atribuído',
                 'O local para este evento ainda não foi atribuído.',
@@ -341,26 +365,29 @@ class OtherGameInvitation extends Component {
         const list = [{
             name: 'Estado',
             icon: 'md-help-circle',
-            subtitle: this.state.game.state !== 'fechado' ? 'Convocatórias fechadas' : 'Jogo fechado'
+            subtitle: 'Convocatórias fechadas'
         }, {
             name: 'Competição',
             icon: 'md-trophy',
-            subtitle: this.state.game.competition,
+            subtitle: this.state.game ? this.state.game.competition : 'A carregar...',
         }, {
             name: 'Escalão e Adversário',
             icon: 'md-shirt',
-            subtitle: this.state.game.echelon[1] + '\n' + this.state.game.opponent,
+            subtitle: this.state.game ? (this.state.game.echelon[1] + '\n' + this.state.game.opponent) :
+                'A carregar...',
         }, {
             name: 'Início e Duração',
             icon: 'md-time',
-            subtitle:
-                this.state.game.date + '  às  ' +
+            subtitle: this.state.game ? (this.state.game.date + '  às  ' +
                 this.state.game.hours + '\n' +
-                this.state.game.duration + ' min',
+                this.state.game.duration + ' min') :
+                'A carregar...'
         }, {
             name: 'Local',
             icon: 'md-pin',
-            subtitle: this.state.game.place ? this.state.game.place[1] : 'Nenhum local atribuído',
+            subtitle: this.state.game ?
+                (this.state.game.place ? this.state.game.place[1] : 'Nenhum local atribuído') :
+                'A carregar...',
         }, {
             name: 'Treinadores',
             icon: 'md-people',
@@ -369,18 +396,11 @@ class OtherGameInvitation extends Component {
             name: 'Seccionistas',
             icon: 'md-clipboard',
             subtitle: this.state.secretaries.join(',  ')
-        }, {
-            name: 'Disponibilidade',
-            icon: 'md-list-box',
-            subtitle: !this.state.athleteIsChild ?
-                (this.state.isAvailable ? 'Está disponível para este jogo.' : 'Não está disponível para este jogo.') :
-                (this.state.isAvailable ?
-                    'O seu filho ' + this.state.athleteName + ' está disponível para este jogo.' :
-                    'O seu filho ' + this.state.athleteName + ' não está disponível para este jogo.')
         }];
 
+
         return (
-            <View style={{flex: 1}}>
+            <View style={{flex: 1, backgroundColor: '#ffe3e4'}}>
                 <Loader isLoading={this.state.isLoading}/>
                 <ScrollView
                     style={{flex: 1}}
@@ -395,7 +415,7 @@ class OtherGameInvitation extends Component {
                         <FlatList
                             keyExtractor={item => item.name}
                             data={list}
-                            extraData={this.state.isAvailable}
+                            extraData = {this.state.isAvailable}
                             renderItem={this.renderItemOfList}
                             ListHeaderComponent={this.renderHeader}
                         />
@@ -409,20 +429,7 @@ class OtherGameInvitation extends Component {
 const styles = StyleSheet.create({
     topHeader: {
         flex: 1,
-        backgroundColor: '#ffe3e4',
-        borderBottomLeftRadius: 20,
-        borderBottomRightRadius: 20,
         paddingVertical: 10,
-
-        // shadow
-        shadowColor: "#000",
-        shadowOffset: {
-            width: 0,
-            height: 2,
-        },
-        shadowOpacity: 0.25,
-        shadowRadius: 3.84,
-        elevation: 5,
     }
 });
 
@@ -434,4 +441,4 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => ({});
 
-export default connect(mapStateToProps, mapDispatchToProps)(OtherGameInvitation);
+export default connect(mapStateToProps, mapDispatchToProps)(HomePendingGame);

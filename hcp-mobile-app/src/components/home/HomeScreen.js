@@ -35,45 +35,15 @@ class HomeScreen extends React.Component {
         };
     }
 
-    componentWillMount() {
-        this.props.navigation.setParams({
-            userAvatar: this.props.user.image
-        });
-    }
-
-    async componentDidMount() {
-
-        this.subscriptions = [
-
-            this.props.navigation.addListener('willFocus', async () => {
-
-                await this.setState({isLoading: true});
-
-                if(await this.fetchOwnEvents() === false)
-                    await this.fetchOtherEvents();
-
-                await this.setState({isLoading: false});
-            })
-        ];
-
-        await this.registerForPushNotificationsAsync();
-        await this.addUserToken();
-    
-    }
-
-    componentWillUnmount() {
-
-        this.subscriptions.forEach(sub => sub.remove());
-    }
-
-    /**
-     * Define home navigator.
-     */
     static navigationOptions = ({navigation}) => {
 
         const {params = {}} = navigation.state;
-
         return ({
+            headerStyle: {
+                elevation: 0, // remove shadow on Android
+                shadowOpacity: 0, // remove shadow on iOS
+                backgroundColor: colors.grayColor
+            },
             headerRight: (
                 <TouchableOpacity
                     onPress = {() => navigation.navigate('ProfileStack')}
@@ -110,6 +80,88 @@ class HomeScreen extends React.Component {
             )
         });
     };
+
+    componentWillMount() {
+        this.props.navigation.setParams({
+            userAvatar: this.props.user.image
+        });
+    }
+
+    async componentDidMount() {
+
+        this.subscriptions = [
+
+            this.props.navigation.addListener('willFocus', async () => {
+
+                //await this.setState({isLoading: true});
+
+                if(await this.fetchOwnEvents() === false)
+                    await this.fetchOtherEvents();
+
+                await this.setState({isLoading: false});
+            })
+        ];
+
+        await this.registerForPushNotificationsAsync();
+        await this.addUserToken();
+    
+    }
+
+    componentWillUnmount() {
+
+        this.subscriptions.forEach(sub => sub.remove());
+    }
+
+
+
+    /**
+     * Get Device Token.
+     * @returns {Promise<void>}
+     */
+    async registerForPushNotificationsAsync() {
+
+        const { status } = await Permissions.getAsync(Permissions.NOTIFICATIONS);
+
+        let finalStatus = status;
+
+        if (status !== 'granted'){
+            const { status } = await Permissions.askAsync(Permissions.NOTIFICATIONS);
+            finalStatus = status
+        }
+
+        if (finalStatus === 'granted'){
+            await Notifications.getExpoPushTokenAsync().then( token => {
+                this.setState({
+                    token: token
+                })
+            }).catch( err => {
+                console.log('token err', err)
+            })
+        }
+    }
+
+    /**
+     * Add Device Token to Odoo.
+     * @returns {Promise<void>}
+     */
+    async addUserToken(){
+
+        if (this.state.token){
+            const token = this.state.token.toString();
+            const device = Constants.deviceName;
+
+            const params = {
+                kwargs: {
+                    context: this.props.odoo.context,
+                },
+                model: 'res.users',
+                method: 'add_token',
+                args: [this.props.user.id, device, token]
+            };
+
+            await this.props.odoo.rpc_call('/web/dataset/call_kw', params);
+        }
+    }
 
     /**
      * Fetch own future events. All events are associated to the current user.
@@ -243,7 +295,8 @@ class HomeScreen extends React.Component {
                     const opponent = await this.fetchGameOpponent(parseInt(eventReference[1]));
 
                     eventsOrder.push({
-                        id: parseInt(eventReference[1]),
+                        //id: parseInt(eventReference[1]),
+                        id: event.id,
                         type: 0,
                         title: 'Jogo | ' + event.escalao[1],
                         date: date.date,
@@ -256,7 +309,8 @@ class HomeScreen extends React.Component {
                 else {
 
                     eventsOrder.push({
-                        id: parseInt(eventReference[1]),
+                        //id: parseInt(eventReference[1]),
+                        id: event.id,
                         type: 1,
                         title: 'Treino | ' + event.escalao[1],
                         date: date.date,
@@ -300,11 +354,23 @@ class HomeScreen extends React.Component {
         return null;
     }
 
-    /**
-     * Render carousel item.
-     * @param item
-     * @returns {*}
-     */
+
+
+
+    onPressHandler = (item) => {
+
+        if(item.type === 0) {
+            this.props.navigation.navigate('HomePendingGame',{
+                gameEvent: item
+            });
+        }
+        else {
+            this.props.navigation.navigate('HomePendingTraining',{
+                trainingEvent: item
+            });
+        }
+    };
+
     renderItem ({item}) {
 
         if(!this.state.isLoading && item.type < 2) {
@@ -350,18 +416,19 @@ class HomeScreen extends React.Component {
                                     style={{color: textColor, textAlign: 'center', marginTop: 6}}/>
                             </View>
                             <View style={{height: '15%'}}>
-                                <TouchableOpacity style={{
-                                    flex: 1,
-                                    flexDirection: 'row',
-                                    justifyContent: 'flex-end',
-                                    alignItems: 'center',
-                                    paddingHorizontal: 20}}
-                                                  onPress={() => {
-                                                      this.props.navigation.navigate('EventScreen',{item})
-                                                  }}>
+                                <TouchableOpacity
+                                    style={{
+                                        flex: 1,
+                                        flexDirection: 'row',
+                                        justifyContent: 'flex-end',
+                                        alignItems: 'center',
+                                        paddingHorizontal: 20
+                                    }}
+                                    onPress={() => this.onPressHandler(item)}
+                                >
                                     <View style={{marginRight: 15}}>
                                         <CustomText
-                                            children={'Detalhes'}
+                                            children={'DETALHES'}
                                             type={'bold'}
                                             style={{
                                                 fontSize: 14,
@@ -410,7 +477,7 @@ class HomeScreen extends React.Component {
         }
     }
 
-    get pagination () {
+    pagination = () => {
         const { entries, activeSlide } = this.state;
         return (
             <Pagination
@@ -438,93 +505,6 @@ class HomeScreen extends React.Component {
         );
     };
 
-    async addUserToken(){
-
-        if (this.state.token){
-            let token = this.state.token.toString()
-            let device = Constants.deviceName
-
-            const params = {
-                kwargs: {
-                    context: this.props.odoo.context,
-                },
-                model: 'res.users',
-                method: 'add_token',
-                args: [this.props.user.id, device, token]
-            };
-
-            const response = await this.props.odoo.rpc_call(
-                '/web/dataset/call_kw',
-                params
-            );
-
-            console.log(response)
-        }
-    }
-
-    async registerForPushNotificationsAsync() {
-        const { status } = await Permissions.getAsync(Permissions.NOTIFICATIONS);
-
-        let finalStatus = status;
-
-        if (status !== 'granted'){
-            const { status } = await Permissions.askAsync(Permissions.NOTIFICATIONS);
-            finalStatus = status
-        }
-
-        if (finalStatus !== 'granted'){
-            return;
-        }
-        console.log(finalStatus)
-
-        await Notifications.getExpoPushTokenAsync().then( token => {
-            this.setState({
-                token: token
-            })
-        }).catch( err => {
-            console.log('token err', err)
-        })
-    }
-
-    /*
-    sendNotificationJS(){
-        let title = "Nova convocatória (JS)"
-        let body = "Foste convocado para o jogo deste fim-de-semana"
-        fetch('https://exp.host/--/api/v2/push/send', {
-            body: JSON.stringify({
-                to: this.state.token,
-                title: title,
-                body: body,
-                //data: { message: `${title} - ${body}` },
-            }),
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            method: 'POST',
-        });
-    }
-
-    async sendNotificationOdoo(){
-
-        let userId = this.props.user.id.toString()
-
-        const params = {
-            kwargs: {
-                context: this.props.odoo.context,
-            },
-            model: 'ges.notificacao',
-            method: 'sendNotification',
-            args: [0, userId]
-        };
-
-        const response = await this.props.odoo.rpc_call(
-            '/web/dataset/call_kw',
-            params
-        );
-        console.log("Pedido de notificação realizado")
-    }
-    */
-
     render() {
         return (
             <ScrollView
@@ -541,7 +521,7 @@ class HomeScreen extends React.Component {
                             textAlign: 'center'
                         }}
                     />
-                    { this.pagination }
+                    { this.pagination() }
                     <Carousel
                         enableMomentum={false}
                         decelerationRate={'fast'}
@@ -551,25 +531,6 @@ class HomeScreen extends React.Component {
                         data={this.state.entries}
                         onSnapToItem={(index) => this.setState({ activeSlide: index }) }
                     />
-                    {
-                        /*
-                        <View style={{marginBottom: 20}}>
-                        <Button
-                            title={'Enviar notificação Odoo'}
-                            color={colors.gradient1}
-                            onPress={() => this.sendNotificationOdoo()}
-                            style={{marginBottom: 20}}
-                        />
-                    </View>
-                    <View>
-                        <Button
-                            title={'Enviar notificação JavaScript'}
-                            color={colors.gradient1}
-                            onPress={() => this.sendNotificationJS()}
-                        />
-                    </View>
-                         */
-                    }
                 </View>
             </ScrollView>
         );
