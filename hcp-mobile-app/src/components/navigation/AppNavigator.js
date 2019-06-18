@@ -34,7 +34,6 @@ import AthletesScreen from "../athletes/AthletesScreen";
 import AthleteScreen from '../athletes/AthleteScreen';
 import NewTraining from '../management/trainings/NewTraining';
 import OpenedTrainings from "../management/trainings/OpenedTrainings";
-import EventScreen from "../calendar/EventScreen";
 import PendingTrainings from "../management/trainings/PendingTrainings";
 import OpenedTraining from "../management/trainings/OpenedTraining";
 import EditOpenedTraining from "../management/trainings/EditOpenedTraining";
@@ -217,7 +216,8 @@ const HomeStackNavigator = createStackNavigator({
 // CALENDAR STACK
 const CalendarStackNavigator = createStackNavigator({
     CalendarScreen: {screen: CalendarScreen},
-    EventScreen: { screen: EventScreen },
+    CalendarPendingTraining: {screen: HomePendingTraining},
+    CalendarPendingGame: {screen: HomePendingGame},
 }, {
     initialRouteName: 'CalendarScreen',
     defaultNavigationOptions: ({navigation}) => {
@@ -588,7 +588,7 @@ const CoachAndSecretaryDrawerNavigator = createDrawerNavigator({
     ChatStack: drawerNavigatorFullStacks['ChatStack']
 }, {
     ...drawerNavigatorDefaultSettings,
-    initialRouteName: 'HomeStack',
+    initialRouteName: 'CalendarStack',
     order: ['HomeStack', 'CalendarStack', 'ManagementStack', 'AthletesStack', 'ProfileStack', 'ChatStack'],
 });
 

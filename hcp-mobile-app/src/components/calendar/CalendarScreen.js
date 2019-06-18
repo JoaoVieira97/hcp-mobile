@@ -5,14 +5,14 @@ import {
     StyleSheet,
     TouchableOpacity
 } from 'react-native';
-
 import {Agenda, LocaleConfig} from 'react-native-calendars';
 import {connect} from 'react-redux';
-
 import {colors} from "../../styles/index.style";
 import {MaterialCommunityIcons} from "@expo/vector-icons";
-
 import { CheckBox } from 'react-native-elements';
+import ConvertTime from "../ConvertTime";
+import _ from 'lodash';
+
 
 // Locale settings
 LocaleConfig.locales['pt'] = {
@@ -25,6 +25,8 @@ LocaleConfig.locales['pt'] = {
     dayNamesShort: ['Dom.','Seg.','Terç.','Qua.','Qui.','Sex.','Sáb.']
 };
 LocaleConfig.defaultLocale = 'pt';
+
+
 
 class AgendaItem extends React.PureComponent {
 
@@ -47,7 +49,16 @@ class AgendaItem extends React.PureComponent {
         return (
             <TouchableOpacity
                 onPress={() => {
-                    this.props.navigation.navigate('EventScreen',{item})
+                    if(item.type === 0) {
+                        this.props.navigation.navigate('CalendarPendingGame',{
+                            gameEvent: item
+                        });
+                    }
+                    else {
+                        this.props.navigation.navigate('CalendarPendingTraining',{
+                            trainingEvent: item
+                        });
+                    }
                 }}
                 style={styles.item}>
                 <View style={{
@@ -67,11 +78,13 @@ class AgendaItem extends React.PureComponent {
                         />
                     </View>
                     <View style={{width: '82%'}}>
-                        <Text style={{fontWeight: '600', marginBottom: 10, color: color}}>
+                        <Text numberOfLines={1} ellipsizeMode='tail'
+                            style={{fontWeight: '600', marginBottom: 10, color: color}}>
                             {this.props.item.title}
                         </Text>
-                        <Text>{this.props.item.time}</Text>
-                        <Text>{this.props.item.description}</Text>
+                        <Text numberOfLines={1} ellipsizeMode='tail'>{this.props.item.time}</Text>
+                        <Text numberOfLines={1} ellipsizeMode='tail'>{this.props.item.description}</Text>
+                        <Text numberOfLines={1} ellipsizeMode='tail'>{this.props.item.localName}</Text>
                     </View>
                 </View>
             </TouchableOpacity>
@@ -88,7 +101,6 @@ class CalendarScreen extends React.Component {
             isRefreshing: false,
             isLoading: false,
             items: {},
-            markedDates: {},
             monthsFetched: [],
             checked: false
         };
@@ -97,17 +109,7 @@ class CalendarScreen extends React.Component {
     async componentDidMount() {
 
         const today = new Date().toJSON().slice(0,10);
-
-        await this.setState({
-            items: {
-                [today]: [],
-            },
-        });
-
-        this.props.navigation.setParams({
-            handleThis: this.changeChecked.bind(this),
-            checkValue: this.state.checked
-        });
+        await this.setState({items: {[today]: []}});
     }
 
     /**
@@ -138,15 +140,12 @@ class CalendarScreen extends React.Component {
                 monthsFetched: [...state.monthsFetched, firstDaySliced]
             }));
 
-            await this.fetchTrainings(
-                firstDaySliced,
-                lastDaySliced
-            );
-
-            await this.fetchGames(
-                firstDaySliced,
-                lastDaySliced
-            );
+            if(this.state.checked === false) {
+                await this.fetchOwnEvents(firstDaySliced, lastDaySliced);
+            }
+            else {
+                await this.fetchAllEvents(firstDaySliced, lastDaySliced);
+            }
         }
 
         await this.setState({
@@ -155,30 +154,26 @@ class CalendarScreen extends React.Component {
     };
 
     /**
-     * Fetch all trainings.
-     * @param date1
-     * @param date2
+     * Fetch own future events. All events are associated to the current user.
+     * Display the first 5 events from now.
      * @returns {Promise<void>}
      */
-    async fetchTrainings(date1, date2) {
+    async fetchOwnEvents(date1, date2) {
 
         // Create aux domain
         let auxDomain = [];
-        if(this.state.checked === false) {
+        for (let i = 0; i < this.props.user.groups.length; i++) {
 
-            for (let i = 0; i < this.props.user.groups.length; i++) {
+            const group = this.props.user.groups[i];
 
-                const group = this.props.user.groups[i];
-
-                if(group.name === 'Atleta') {
-                    auxDomain = [...auxDomain, ['atletas', 'in', group.id]];
-                }
-                else if (group.name === 'Seccionista') {
-                    auxDomain = [...auxDomain, ['seccionistas', 'in', group.id]];
-                }
-                else if (group.name === 'Treinador') {
-                    auxDomain = [...auxDomain, ['treinador', 'in', group.id]];
-                }
+            if(group.name === 'Atleta') {
+                auxDomain = [...auxDomain, ['atletas', 'in', group.id]];
+            }
+            else if (group.name === 'Seccionista') {
+                auxDomain = [...auxDomain, ['seccionistas', 'in', group.id]];
+            }
+            else if (group.name === 'Treinador') {
+                auxDomain = [...auxDomain, ['treinador', 'in', group.id]];
             }
         }
 
@@ -237,219 +232,124 @@ class CalendarScreen extends React.Component {
             ];
         }
 
+        await this.fetchEvents(domain);
+    }
+
+    /**
+     * Fetch other future events. All events are associated to the current user.
+     * Display the first 5 events from now.
+     * @returns {Promise<void>}
+     */
+    async fetchAllEvents(date1, date2) {
+
+        const domain = [
+            '&',
+            '&',
+            ['start_datetime', '>=', date1],
+            ['start_datetime', '<=', date2],
+            ['state', '=', 'convocatorias_fechadas']
+        ];
+
+        await this.fetchEvents(domain);
+    }
+
+    /**
+     * Fetch all necessary data.
+     * @param domain
+     * @returns {Promise<boolean>}
+     */
+    async fetchEvents(domain) {
+
         const params = {
             domain: domain,
-            fields: [
-                'id',
-                'display_name',
-                'start_datetime',
-                'description',
-                'duracao',
-                'local'
-            ],
-            order: 'start_datetime ASC'
+            fields: ['evento_ref', 'duracao', 'local', 'display_start', 'display_name', 'escalao'],
+            order: 'start_datetime ASC',
+            limit: 6
         };
 
-        const response = await this.props.odoo.search_read('ges.treino', params);
+        const response = await this.props.odoo.search_read('ges.evento_desportivo', params);
         if (response.success && response.data.length > 0) {
 
             let items = this.state.items;
-            let markedDates = this.state.markedDates;
+            for (let i=0; i<response.data.length; i++) {
 
-            for (let i=0; i < response.data.length; i++){
+                const event = response.data[i];
+                const eventReference = event.evento_ref.split(",");
 
-                // Add training to the items list
-                let training = this.parseTraining(response.data[i]);
+                // get datetime
+                const convertTime = new ConvertTime();
+                convertTime.setDate(event.display_start);
+                const date = convertTime.getTimeObject();
 
-                if (items[training.date] === undefined){
-                    items[training.date] = [training];
+                let eventObject;
+                if (eventReference[0] === 'ges.jogo') {
+
+                    const opponent = await this.fetchGameOpponent(parseInt(eventReference[1]));
+                    eventObject = {
+                        id: event.id,
+                        type: 0,
+                        title: 'JOGO | ' + _.upperCase(event.escalao[1]),
+                        rawDate: (event.display_start.split(" "))[0],
+                        date: date.date,
+                        time: 'Início às ' + date.hour,
+                        description: opponent ? 'Adversário: ' + opponent : "",
+                        local: event.local[0],
+                        localName: 'Local: ' + event.local[1]
+                    };
                 }
-                else if(items[training.date].find(item => item.type === 1 && item.id === training.id) === undefined)
-                    items[training.date].push(training);
-
-                /*
-                const trainingMark = {key:'training', color: colors.trainingColor};
-                // Add training mark
-                if (markedDates[training.date] === undefined) {
-                    markedDates[training.date] = {
-                        dots: [training]
-                    }
+                else {
+                    eventObject = {
+                        id: event.id,
+                        type: 1,
+                        title: 'TREINO | ' + _.upperCase(event.escalao[1]),
+                        rawDate: (event.display_start.split(" "))[0],
+                        date: date.date,
+                        time: 'Início às ' + date.hour,
+                        description: 'Duração de ' + event.duracao + ' min',
+                        local: event.local[0],
+                        localName: 'Local: ' + event.local[1]
+                    };
                 }
-                else if (markedDates[training.date].dots.find(item => item.key === trainingMark.key) === undefined)
-                    markedDates[training.date].dots.push(trainingMark);
-                */
+
+                // if it is the first add
+                if (items[eventObject.rawDate] === undefined){
+                    items[eventObject.rawDate] = [eventObject];
+                }
+                // if there is already a entry for this day
+                else {
+                    if(items[eventObject.rawDate].find(item => item.id === eventObject.id) === undefined)
+                        items[eventObject.rawDate].push(eventObject);
+                }
             }
 
-            await this.setState({
-                items: items,
-                markedDates: markedDates
-            });
+            await this.setState({items: items});
         }
     }
-
-    parseTraining = (training)  => {
-
-        const description = training.display_name;
-        const duration = training.duracao;
-        const startTime = training.start_datetime;
-        const startTimeDate = (startTime.split(" "))[0];
-        const startTimeHour = (startTime.split(" "))[1];
-        const localId = training.local[0];
-        const local_name = training.local[1];
-
-        return {
-            id: training.id,
-            type: 1,
-            title: description,
-            time: 'Início: ' + startTimeHour.slice(0,5) + 'h',
-            description: 'Duração: ' + duration + ' min',
-            local: localId,
-            date: startTimeDate,
-            localName: local_name
-        };
-    };
 
     /**
-     * Fetch all games.
-     * @param date1
-     * @param date2
-     * @returns {Promise<void>}
+     * Fetch game opponent.
+     * @param gameId
+     * @returns {Promise<string|null>}
      */
-    async fetchGames(date1, date2) {
-
-        // Create aux domain
-        let auxDomain = [];
-        if(this.state.checked === false) {
-
-            for (let i = 0; i < this.props.user.groups.length; i++) {
-
-                const group = this.props.user.groups[i];
-
-                if(group.name === 'Atleta') {
-                    auxDomain = [...auxDomain, ['atletas', 'in', group.id]];
-                }
-                else if (group.name === 'Seccionista') {
-                    auxDomain = [...auxDomain, ['seccionistas', 'in', group.id]];
-                }
-                else if (group.name === 'Treinador') {
-                    auxDomain = [...auxDomain, ['treinador', 'in', group.id]];
-                }
-            }
-        }
-
-        // Define domain
-        // (A and B) = & A B
-        // (A and B and C) = & & A B C
-        // (A and (B or C)) = & A or B C
-        // (A and (B or C or D)) = & A or B or C D
-        let domain = [];
-        if (auxDomain.length === 0) {
-            domain = [
-                '&',
-                '&',
-                ['start_datetime', '>=', date1],
-                ['start_datetime', '<=', date2],
-                ['state', '=', 'convocatorias_fechadas']
-            ];
-        }
-        else if (auxDomain.length === 1) {
-            domain = [
-                '&',
-                '&',
-                '&',
-                ['start_datetime', '>=', date1],
-                ['start_datetime', '<=', date2],
-                ['state', '=', 'convocatorias_fechadas'],
-                auxDomain[0]
-            ];
-        }
-        else if (auxDomain.length === 2) {
-            domain = [
-                '&',
-                '&',
-                '&',
-                ['start_datetime', '>=', date1],
-                ['start_datetime', '<=', date2],
-                ['state', '=', 'convocatorias_fechadas'],
-                '|',
-                auxDomain[0],
-                auxDomain[1]
-            ];
-        }
-        else if (auxDomain.length === 3) {
-            domain = [
-                '&',
-                '&',
-                '&',
-                ['start_datetime', '>=', date1],
-                ['start_datetime', '<=', date2],
-                ['state', '=', 'convocatorias_fechadas'],
-                '|',
-                auxDomain[0],
-                '|',
-                auxDomain[1],
-                auxDomain[2]
-            ];
-        }
+    async fetchGameOpponent(gameId) {
 
         const params = {
-            domain: domain,
-            fields: [
-                'id',
-                'local',
-                'start_datetime',
-                'equipa_adversaria',
-                'escalao'
-            ],
-            order: 'start_datetime ASC'
+            ids: [gameId],
+            fields: ['equipa_adversaria'],
         };
 
-        const response = await this.props.odoo.search_read('ges.jogo', params);
-        if (response.success && response.data.length > 0){
+        // Parsing trainings
+        const response = await this.props.odoo.get('ges.jogo', params);
+        if(response.success && response.data.length > 0) {
 
-            let items = this.state.items;
-            let markedDates = this.state.markedDates;
+            const game = response.data[0];
 
-            for (let i=0; i < response.data.length; i++){
-
-                // Add game to items object
-                let game = this.parseGame(response.data[i]);
-
-                if (items[game.date] === undefined){
-                    items[game.date] = [game];
-                }
-                else if(items[game.date].find(item => item.type === 0 && item.id === game.id) === undefined)
-                    items[game.date].push(game);
-            }
-
-            await this.setState({
-                items: items,
-                markedDates: markedDates
-            });
+            return game.equipa_adversaria ? game.equipa_adversaria[1] : "";
         }
+
+        return null;
     }
 
-    parseGame = (game) =>{
-
-        const level = game.escalao[1];
-        const opponent = game.equipa_adversaria[1];
-        const startTime = game.start_datetime;
-        const startTimeDate = (startTime.split(" "))[0];
-        const startTimeHour = (startTime.split(" "))[1];
-        const localId = game.local[0];
-        const local_name = game.local[1];
-
-        return {
-            id: game.id,
-            type: 0,
-            title: 'Jogo | ' + level + ' | ' + local_name,
-            time: 'Início ' + startTimeHour.slice(0,5) + 'h',
-            description: 'Adversário: ' + opponent,
-            local: localId,
-            localName: local_name,
-            date: startTimeDate
-        };
-    };
 
     /**
      * Handle refresh.
@@ -467,7 +367,7 @@ class CalendarScreen extends React.Component {
         });
 
         // Go to today
-        this.agenda.chooseDay(new Date().toJSON().slice(0,10), true);
+        this.agenda.chooseDay(today, true);
     };
 
     /**
@@ -477,7 +377,6 @@ class CalendarScreen extends React.Component {
     renderItem = (item) => {
 
         const key = (item.type === 0 ? 'game' : 'training') + item.id;
-
         return (
             <AgendaItem key={key} item={item} navigation={this.props.navigation} />
         );
@@ -490,7 +389,7 @@ class CalendarScreen extends React.Component {
     renderEmptyDate = () => {
         return (
             <View style={styles.emptyDate}>
-                <Text>Nenhum evento para hoje.</Text>
+                <Text>Nenhum evento para este dia.</Text>
             </View>
         );
     };
@@ -505,77 +404,65 @@ class CalendarScreen extends React.Component {
 
     async changeChecked() {
 
-        const {setParams} = this.props.navigation;
-        if (this.state.checked === false){
-            await this.setState({checked: true})
-            setParams({ checkValue: true })
-        } else{
-            await this.setState({checked: false})
-            setParams({ checkValue: false })
-        }
-        console.log(this.state.checked)
+        await this.setState(state => ({checked: !state.checked}));
         await this.handleRefresh();
     }
-
-    static navigationOptions = ({navigation}) => {
-        const {params = {}} = navigation.state;
-        return {
-            headerRight:
-                <CheckBox
-                    center
-                    iconRight
-                    size={28}
-                    title='Todos os eventos'
-                    textStyle={{color: colors.gradient1}}
-                    checkedColor={colors.gradient1}
-                    uncheckedColor={colors.gradient1}
-                    checked={params.checkValue}
-                    onPress={() => params.handleThis()}
-                    containerStyle={{ margin: 0, padding: 0, backgroundColor: 'transparent', borderColor: 'transparent'}}
-                />
-        }
-    };
 
     render() {
 
         return (
-            <Agenda
-                ref={agenda => this.agenda = agenda /*this.r.chooseDay(this.state.selectedDay, true)*/ }
-                items={this.state.items}
-                loadItemsForMonth={this.fetchData.bind(this)}
-                //markedDates = {this.state.markedDates}
-                //markingType={'multi-dot'}
-                //selected={this.state.selectedDay}
-                renderItem={this.renderItem.bind(this)}
-                renderEmptyDate={this.renderEmptyDate.bind(this)}
-                rowHasChanged={this.rowHasChanged.bind(this)}
-                theme={{
-                    backgroundColor: '#eeeeee',
-                    // calendarBackground: '#ffffff',
-                    // textSectionTitleColor: colors.gradient2,
-                    agendaKnobColor: colors.gradient1,
-                    // agendaDayTextColor: colors.gradient2,
-                    // agendaDayNumColor: 'green',
-                    agendaTodayColor: colors.gradient1,
-                    // Dot colors marking events
-                    dotColor: colors.gradient1,
-                    //Selected day circle
-                    selectedDayBackgroundColor: colors.gradient1,
-                    selectedDayTextColor: '#ffffff',
-                    selectedDotColor: '#ffffff',
-                    todayTextColor: colors.gradient1,
-                    dayTextColor: colors.gradient2,
-                    monthTextColor: colors.gradient1,
-                }}
-                // Max amount of months allowed to scroll to the past. Default = 50
-                //pastScrollRange={2}
-                // Max amount of months allowed to scroll to the future. Default = 50
-                //futureScrollRange={3}
-                // If provided, a standard RefreshControl will be added for "Pull to Refresh" functionality. Make sure to also set the refreshing prop correctly.
-                onRefresh={this.handleRefresh.bind(this)}
-                // Set this true while waiting for new data from a refresh
-                refreshing={this.state.isRefreshing}
-            />
+            <View style={{flex: 1}}>
+                <View style={styles.topHeader}>
+                    <CheckBox
+                        iconRight
+                        size={28}
+                        title='Visualizar todos os eventos'
+                        textStyle={{color: colors.gradient1}}
+                        checkedColor={colors.gradient1}
+                        uncheckedColor={colors.gradient1}
+                        checked={this.state.checked}
+                        onPress={() => this.changeChecked()}
+                        containerStyle={{ margin: 0, padding: 0, backgroundColor: 'transparent', borderColor: 'transparent'}}
+                    />
+                </View>
+                <Agenda
+                    ref={agenda => this.agenda = agenda /*this.r.chooseDay(this.state.selectedDay, true)*/ }
+                    items={this.state.items}
+                    loadItemsForMonth={this.fetchData.bind(this)}
+                    //markedDates = {this.state.markedDates}
+                    //markingType={'multi-dot'}
+                    //selected={this.state.selectedDay}
+                    renderItem={this.renderItem.bind(this)}
+                    renderEmptyDate={this.renderEmptyDate.bind(this)}
+                    rowHasChanged={this.rowHasChanged.bind(this)}
+                    theme={{
+                        backgroundColor: '#eeeeee',
+                        // calendarBackground: '#ffffff',
+                        // textSectionTitleColor: colors.gradient2,
+                        agendaKnobColor: colors.gradient1,
+                        // agendaDayTextColor: colors.gradient2,
+                        // agendaDayNumColor: 'green',
+                        agendaTodayColor: colors.gradient1,
+                        // Dot colors marking events
+                        dotColor: colors.gradient1,
+                        //Selected day circle
+                        selectedDayBackgroundColor: colors.gradient1,
+                        selectedDayTextColor: '#ffffff',
+                        selectedDotColor: '#ffffff',
+                        todayTextColor: colors.gradient1,
+                        dayTextColor: colors.gradient2,
+                        monthTextColor: colors.gradient1,
+                    }}
+                    // Max amount of months allowed to scroll to the past. Default = 50
+                    //pastScrollRange={2}
+                    // Max amount of months allowed to scroll to the future. Default = 50
+                    //futureScrollRange={3}
+                    // If provided, a standard RefreshControl will be added for "Pull to Refresh" functionality. Make sure to also set the refreshing prop correctly.
+                    onRefresh={this.handleRefresh.bind(this)}
+                    // Set this true while waiting for new data from a refresh
+                    refreshing={this.state.isRefreshing}
+                />
+            </View>
         );
     }
 }
@@ -593,9 +480,23 @@ const styles = StyleSheet.create({
         height: 15,
         flex:1,
         paddingTop: 30
+    },
+    topHeader: {
+        flexDirection: 'row',
+        width: '100%',
+        paddingVertical: 10,
+        backgroundColor: '#eeeeee',
+        // shadow
+        shadowColor: "#000",
+        shadowOffset: {
+            width: 0,
+            height: 1,
+        },
+        shadowOpacity: 0.22,
+        shadowRadius: 2.22,
+        elevation: 3,
     }
 });
-
 
 const mapStateToProps = state => ({
 
@@ -603,8 +504,6 @@ const mapStateToProps = state => ({
     user: state.user
 });
 
-const mapDispatchToProps = dispatch => ({
-
-});
+const mapDispatchToProps = dispatch => ({});
 
 export default connect(mapStateToProps, mapDispatchToProps)(CalendarScreen);
