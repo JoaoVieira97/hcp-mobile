@@ -2,6 +2,8 @@
 
 from odoo import models, fields, api
 from . import send_notifications
+from datetime import datetime
+from pytz import timezone
 
 class Evento_Desportivo(models.Model):
     _inherit = 'ges.evento_desportivo'
@@ -33,13 +35,18 @@ class Evento_Desportivo(models.Model):
             if naoUsarUserId in users_to_notificate:
                 users_to_notificate.remove(naoUsarUserId)
 
+            nome_evento = self.calendar_event.evento_ref._description
+            evento_datetime = datetime.strptime(self.calendar_event.display_start, '%Y-%m-%d %H:%M:%S').astimezone(timezone('Europe/Lisbon')).strftime('%d/%m/%Y %HH%M')
+            datetime_split = evento_datetime.split(" ")
+            evento_data = datetime_split[0]
+            evento_horas = datetime_split[1]
             disponibilidade = ''
             titulo = ''
             if linha['disponivel']:
-                disponibilidade = disponibilidade + ' para \'disponível\''
+                disponibilidade = disponibilidade + '\'disponível\''
                 titulo = 'Disponibilidade de atleta'
             else:
-                disponibilidade = disponibilidade + ' para \'indisponível\''
+                disponibilidade = disponibilidade + '\'indisponível\''
                 titulo = 'Indisponibilidade de atleta'
 
             notifications = []
@@ -49,7 +56,7 @@ class Evento_Desportivo(models.Model):
                     notifications.append({
                         'to': token,
                         'title': titulo,
-                        'body': 'Foi alterada a disponibilidade do atleta ' + nome + disponibilidade + '.'
+                        'body': 'Foi alterada a disponibilidade do atleta ' + nome + ' para ' + disponibilidade + ' no ' + nome_evento + ' de dia ' + evento_data + ' às ' + evento_horas + '.'
                     })
 
             #print(notifications)
