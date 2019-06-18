@@ -43,10 +43,10 @@ class Evento_Desportivo(models.Model):
             disponibilidade = ''
             titulo = ''
             if linha['disponivel']:
-                disponibilidade = disponibilidade + '\'disponível\''
+                disponibilidade = disponibilidade + 'disponível'
                 titulo = 'Disponibilidade de atleta'
             else:
-                disponibilidade = disponibilidade + '\'indisponível\''
+                disponibilidade = disponibilidade + 'indisponível'
                 titulo = 'Indisponibilidade de atleta'
 
             notifications = []
@@ -56,7 +56,7 @@ class Evento_Desportivo(models.Model):
                     notifications.append({
                         'to': token,
                         'title': titulo,
-                        'body': 'Foi alterada a disponibilidade do atleta ' + nome + ' para ' + disponibilidade + ' no ' + nome_evento + ' de dia ' + evento_data + ' às ' + evento_horas + '.'
+                        'body': nome + ' estará ' + disponibilidade + ' para o ' + nome_evento + ' de dia ' + evento_data + ' às ' + evento_horas + '.'
                     })
 
             #print(notifications)
