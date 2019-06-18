@@ -84,11 +84,17 @@ class AthleteInjuriesTypes extends Component {
             fields: [
                 'id',
                 'ocorreu_num',
-                'treino', 'jogo', 'outro',
-                'create_date', 'data_ocorrencia',
+                'treino',
+                'jogo',
+                'outro',
+                'create_date',
+                'data_ocorrencia',
                 'state',
                 'tipo_lesao',
-                'data_conclusao'
+                'data_conclusao',
+                'observacoes_ocor',
+                'diagnostico',
+                'data_diagnostico'
             ],
             domain: [['atleta', 'in', [this.state.athleteId]]]
         };
@@ -119,6 +125,15 @@ class AthleteInjuriesTypes extends Component {
                 else
                     endDate = 'não definido';
 
+                const diagnosticDateAux = item.data_diagnostico;
+                let diagnosticDate;
+                if(diagnosticDateAux)
+                    diagnosticDate = diagnosticDateAux.slice(8,10) + '/' +
+                        diagnosticDateAux.slice(5,7) + '/' +
+                        diagnosticDateAux.slice(0,4);
+                else
+                    diagnosticDate = 'não definido';
+
 
                 const injury = {
                     id: item.id,
@@ -129,7 +144,10 @@ class AthleteInjuriesTypes extends Component {
                     training: item.treino, //array or false
                     game: item.jogo, //array or false
                     other: item.outro, //... or false
-                    injuryType: item.tipo_lesao
+                    injuryType: item.tipo_lesao,
+                    observations: item.observacoes_ocor,
+                    diagnostic: item.diagnostico,
+                    diagnostic_date: diagnosticDate
                 };
 
                 if(item.state === 'diagnostico') {

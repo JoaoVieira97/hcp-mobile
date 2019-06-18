@@ -34,7 +34,7 @@ class AthleteInjuries extends Component {
      */
     static navigationOptions = ({navigation}) => ({
         headerTitle: headerTitle(
-            '#ffffff', _.upperCase(navigation.getParam('type'))
+            '#ffffff', navigation.getParam('type').toUpperCase()
         ),
         headerLeft: closeButton(
             '#ffffff', navigation
@@ -50,6 +50,7 @@ class AthleteInjuries extends Component {
             athleteName: this.props.navigation.getParam('athleteName'),
             athleteImage: this.props.navigation.getParam('athleteImage'),
         });
+
     }
 
     /**
@@ -157,21 +158,59 @@ class AthleteInjuries extends Component {
 
         return (
             <ListItem
-                title={(item.occurredIn !== 'outro') ?
+                title={(item.occurredIn !== 'outro' && item.occurredIn !== false) ?
                     'Lesão durante um ' + item.occurredIn :
                     'Lesão'
                 }
                 subtitle={
                     <View  style={{flex: 1, flexDirection: 'column'}}>
                         <Text style={{color: colors.darkGrayColor}}>
-                            {'Ocorreu a:  ' + item.occurredInDate}
+                            {'• Ocorreu a:  ' + item.occurredInDate}
                         </Text>
-                        <Text numberOfLines={1} ellipsizeMode='tail' style={{color: colors.darkGrayColor}}>
+                        {(this.state.type === 'Em tratamento' || this.state.type === 'Tratadas') &&
+                            <Text style={{color: colors.darkGrayColor}}>
+                                {'• Data de diagnóstico:  ' + item.diagnostic_date}
+                            </Text>
+                        }
+                        {(this.state.type === 'Tratadas') &&
+                            <Text style={{color: colors.darkGrayColor}}>
+                                {'• Data de conclusão:  ' + item.finishDate}
+                            </Text>
+                        }
+                        {(item.training !== false) &&
+                            <Text style={{color: colors.darkGrayColor}}>
+                                {'• Treino:  \n' + item.training[1]}
+                            </Text>
+                        }
+                        {(item.game !== false) &&
+                            <Text style={{color: colors.darkGrayColor}}>
+                                {'• Jogo:  \n' + item.game[1]}
+                            </Text>
+                        }
+                        {(this.state.type === 'Em diagnóstico' || this.state.type === 'Em tratamento') &&
+                            <Text style={{color: colors.darkGrayColor}}>
+                                {(item.observations !== false) ?
+                                    '• Observações:  \n' + item.observations :
+                                    '• Observações:  não definido'
+                                }
+                            </Text>
+                        }
+                        {(this.state.type === 'Em tratamento' || this.state.type === 'Tratadas') &&
+                            <Text numberOfLines={1} ellipsizeMode='tail' style={{color: colors.darkGrayColor}}>
                             {(item.injuryType !== false) ?
-                                'Tipo de lesão:  ' + item.injuryType[1] :
-                                'Tipo de lesão:  por definir'
+                                '• Tipo de lesão:  ' + item.injuryType[1] :
+                                '• Tipo de lesão:  não definido'
                             }
-                        </Text>
+                            </Text>
+                        }
+                        {(this.state.type === 'Em tratamento' || this.state.type === 'Tratadas') &&
+                            <Text style={{color: colors.darkGrayColor}}>
+                            {(item.diagnostic !== false) ?
+                                '• Diagnóstico:  \n' + item.diagnostic :
+                                '• Diagnóstico:  não definido'
+                            }
+                            </Text>
+                        }
                     </View>
                 }
                 leftAvatar={
@@ -184,7 +223,7 @@ class AthleteInjuries extends Component {
                         <Ionicons name={icon} size={27}/>
                     </View>
                 }
-                chevron={true}
+                //chevron={true}
                 onPress={() => {
 
                     if(this.props.navigation.state.routeName === 'ProfileInjuriesScreen') {

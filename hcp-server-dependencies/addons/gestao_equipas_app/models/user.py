@@ -59,19 +59,6 @@ class User(models.Model):
         return False
 
     @api.multi
-    def send_notification(self, title, msg):
-        url = 'https://exp.host/--/api/v2/push/send'
-        headers = {'Content-Type': 'application/json'}
-        for token in self.tokens:
-            body = {
-                'to': token.token,
-                'title': title,
-                'body': msg
-            }
-            requests.post(url, body, headers)
-        return True
-
-    @api.multi
     def get_user_tokens(self):
         tokens = []
         for token in self.tokens:
