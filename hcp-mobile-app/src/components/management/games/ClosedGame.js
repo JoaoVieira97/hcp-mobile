@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 
-import {Alert, FlatList, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+import {Alert, FlatList, RefreshControl, ScrollView, StyleSheet, View} from 'react-native';
 
 import {connect} from 'react-redux';
 import {closeButton, headerTitle} from "../../navigation/HeaderComponents";
@@ -9,14 +9,13 @@ import {CheckBox, ListItem} from "react-native-elements";
 import {Ionicons, MaterialCommunityIcons, MaterialIcons} from "@expo/vector-icons";
 import {colors} from "../../../styles/index.style";
 import Loader from "../../screens/Loader";
-import * as Animatable from "react-native-animatable";
 import {DangerZone} from "expo";
 const { Lottie } = DangerZone;
 import AthletesGrid from "../AthletesGrid";
 
 
 
-class PendingGame extends Component {
+class ClosedGame extends Component {
 
     constructor(props) {
 
@@ -382,152 +381,6 @@ class PendingGame extends Component {
     };
 
     /**
-     * Close training alert.
-     * @returns {Promise<void>}
-     */
-    closeGame() {
-
-        Alert.alert(
-            'Confirmação',
-            'Pretende fechar este jogo?',
-            [
-                {text: 'Cancelar', style: 'cancel'},
-                {
-                    text: 'Confirmar',
-                    onPress: async () => {await this._closeGame()}
-                },
-            ],
-            {cancelable: true},
-        );
-    }
-
-    /**
-     * Close invitations.
-     * @returns {Promise<void>}
-     * @private
-     */
-    async _closeGame() {
-
-        await this.setState({isLoading: true});
-
-        const params = {
-            kwargs: {
-                context: this.props.odoo.context,
-            },
-            model: 'ges.jogo',
-            method: 'fechar_evento',
-            args: [this.state.game.id]
-        };
-
-        const response = await this.props.odoo.rpc_call('/web/dataset/call_kw', params);
-        if (response.success) {
-
-            // remove training from list
-            this.props.navigation.state.params.removeGame(this.state.game.id);
-
-            await this.setState({isLoading: false, animation: true});
-
-            this.animation.play();
-            setTimeout(() => {
-                this.animation.reset();
-                this.setState({animation: false});
-                this.props.navigation.goBack();
-            }, 1100);
-
-        } else {
-
-            await this.setState({isLoading: false});
-
-            Alert.alert(
-                'Erro',
-                'Não foi possível fechar este jogo. Por favor, tente mais tarde.',
-                [{text: 'Confirmar', style: 'cancel'}],
-                {cancelable: true},
-            );
-        }
-    }
-
-    /**
-     * Change athlete availability.
-     * @param athletePresenceId
-     */
-    async changeAthletePresence(athletePresenceId) {
-
-        let value = false;
-        const athletes = this.state.athletes.map(item => {
-            let itemAux = item;
-            if(item.presenceId === athletePresenceId) {
-                // athlete presence
-                itemAux.present = !item.present;
-
-                // color
-                if (itemAux.present && itemAux.late)
-                    itemAux.displayColor = 'yellow';
-                else if (itemAux.present)
-                    itemAux.displayColor = 'green';
-                else
-                    itemAux.displayColor = 'red';
-
-                // aux value
-                value = itemAux.present;
-            }
-
-            return itemAux;
-        });
-
-
-        const response = await this.props.odoo.update('ges.linha_presenca', [athletePresenceId], {presente: value});
-        if (response.success) {
-
-            this.setState({athletes: athletes});
-
-            return {success: true, athletes: athletes};
-        }
-
-        return {success: false, athletes: this.state.athletes};
-    }
-
-    /**
-     * Change athlete availability.
-     * @param athletePresenceId
-     */
-    async changeLateAthlete(athletePresenceId) {
-
-        let value = false;
-        const athletes = this.state.athletes.map(item => {
-            let itemAux = item;
-            if(item.presenceId === athletePresenceId) {
-                // athlete presence
-                itemAux.late = !item.late;
-
-                // color
-                if (itemAux.present && itemAux.late)
-                    itemAux.displayColor = 'yellow';
-                else if (itemAux.present)
-                    itemAux.displayColor = 'green';
-                else
-                    itemAux.displayColor = 'red';
-
-                // aux value
-                value = itemAux.late;
-            }
-
-            return itemAux;
-        });
-
-
-        const response = await this.props.odoo.update('ges.linha_presenca', [athletePresenceId], {atrasado: value});
-        if (response.success) {
-
-            this.setState({athletes: athletes});
-
-            return {success: true, athletes: athletes.filter(item => item.present)};
-        }
-
-        return {success: false, athletes: this.state.athletes.filter(item => item.present)};
-    }
-
-    /**
      * Render item of first list.
      * @param item
      * @returns {*}
@@ -679,94 +532,12 @@ class PendingGame extends Component {
                         />
                     }>
                     <View style={styles.topHeader}>
-                        <View style={{zIndex: 500}}>
-                            <TouchableOpacity
-                                style={styles.topButton}
-                                onPress={() => this.closeGame()}
-                            >
-                                <Text style={{color: '#fff', fontWeight: '700', fontSize: 15}}>
-                                    {'FECHAR JOGO'}
-                                </Text>
-                                <Text style={{color: '#dedede', fontWeight: '400', textAlign: 'center'}}>
-                                    {'O jogo será fechado com as presenças e os atrasos definidos.'}
-                                </Text>
-                            </TouchableOpacity>
-                            <View style={styles.registerContainer}>
-                                <TouchableOpacity
-                                    disabled={this.state.athletes && this.state.athletes.length === 0}
-                                    onPress={() => {
-                                        this.props.navigation.navigate('ChangeAthletesPresences', {
-                                            athletes: this.state.athletes,
-                                            presenceFunction: async (id) => await this.changeAthletePresence(id)
-                                        });
-                                    }}
-                                    style={styles.registerButton}>
-                                    <Text style={{color: '#fff', fontWeight: '700', fontSize: 15}}>
-                                        {'REGISTAR'}
-                                    </Text>
-                                    <Text style={{color: '#fff', fontWeight: '700', fontSize: 15}}>
-                                        {'PRESENÇAS'}
-                                    </Text>
-                                </TouchableOpacity>
-                                <TouchableOpacity
-                                    disabled={this.state.athletes && this.state.athletes.length === 0}
-                                    onPress={() => {
-                                        this.props.navigation.navigate('ChangeLateAthletes', {
-                                            athletes: this.state.athletes.filter(item => item.present),
-                                            lateFunction: async (id) => await this.changeLateAthlete(id)
-                                        });
-                                    }}
-                                    style={styles.registerButton}>
-                                    <Text style={{color: '#fff', fontWeight: '700', fontSize: 15}}>
-                                        {'REGISTAR'}
-                                    </Text>
-                                    <Text style={{color: '#fff', fontWeight: '700', fontSize: 15}}>
-                                        {'ATRASOS'}
-                                    </Text>
-                                </TouchableOpacity>
-                                <TouchableOpacity
-                                    disabled={this.state.athletes && this.state.athletes.length === 0}
-                                    onPress={() => {
-                                        this.props.navigation.navigate('RegisterInjury', {
-                                            eventId: this.state.game.id,
-                                            eventDate: this.state.game.date,
-                                            athletes: this.state.athletes.filter(a => a.present),
-                                            eventType: 'jogo'
-                                        });
-                                    }}
-                                    style={styles.registerButton}>
-                                    <Text style={{color: '#fff', fontWeight: '700', fontSize: 15}}>
-                                        {'REGISTAR'}
-                                    </Text>
-                                    <Text style={{color: '#fff', fontWeight: '700', fontSize: 15}}>
-                                        {'LESÃO'}
-                                    </Text>
-                                </TouchableOpacity>
-                            </View>
-                        </View>
                         <View style={{zIndex: 499}}>
-                            {
-                                this.state.showMore ?
-                                    <Animatable.View animation={"fadeInDown"}>
-                                        <FlatList
-                                            keyExtractor={item => item.name}
-                                            data={list}
-                                            renderItem={this.renderItemOfList}
-                                        />
-                                    </Animatable.View> :
-                                    <TouchableOpacity
-                                        onPress={() => {this.setState({showMore: true})}}
-                                        style={{justifyContent: 'center', alignItems: 'center', marginTop: 15}}
-                                    >
-                                        <Text style={{color: colors.darkGrayColor, fontWeight: '700', fontSize: 13}}>
-                                            {'Ver informações do evento'}
-                                        </Text>
-                                        <Ionicons
-                                            name="ios-arrow-down"
-                                            size={28}
-                                            color={colors.darkGrayColor} />
-                                    </TouchableOpacity>
-                            }
+                            <FlatList
+                                keyExtractor={item => item.name}
+                                data={list}
+                                renderItem={this.renderItemOfList}
+                            />
                         </View>
                     </View>
                     <AthletesGrid
@@ -844,4 +615,4 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => ({});
 
-export default connect(mapStateToProps, mapDispatchToProps)(PendingGame);
+export default connect(mapStateToProps, mapDispatchToProps)(ClosedGame);

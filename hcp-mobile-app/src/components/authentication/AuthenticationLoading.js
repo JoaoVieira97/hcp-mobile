@@ -1,8 +1,7 @@
 import React from 'react';
-import Loader from '../screens/Loader';
 import Authentication from './Authentication';
 import {View} from "react-native-animatable";
-import {Alert, AsyncStorage, Image, StyleSheet, ActivityIndicator, Dimensions} from "react-native";
+import {Alert, AsyncStorage, Image, StyleSheet, ActivityIndicator, Dimensions, BackHandler} from "react-native";
 import {colors} from "../../styles/index.style";
 import CustomText from "../CustomText";
 
@@ -11,10 +10,6 @@ export default class AuthenticationLoading extends React.Component {
 
     constructor(props) {
         super(props);
-
-        this.state = {
-            isLoading: true
-        };
     }
 
     async componentDidMount() {
@@ -22,36 +17,56 @@ export default class AuthenticationLoading extends React.Component {
         const auth = new Authentication();
         const isAuthenticated = await auth.checkIfUserIsAuthenticated();
 
-        await this.setState({isLoading: false}, async () => {
+        await this.validateAuthentication(auth, isAuthenticated);
+    }
 
-            if (isAuthenticated) {
-                const isSuccess = await auth.userLogin(isAuthenticated);
 
-                if(isSuccess === "success") {
-                    const stackName = await Authentication.getUserDrawerNavigator();
-                    this.props.navigation.navigate(stackName);
-                }
-                else if(isSuccess === "fail") {
+    async validateAuthentication (auth, isAuthenticated) {
 
-                    Alert.alert(
-                        "Erro",
-                        "Ocorreu um erro durante o arranque da aplicação. Por favor, efetue login novamente."
-                    );
-                    await AsyncStorage.clear();
-                    this.props.navigation.navigate('Authentication');
-                }
-                else {
-                    Alert.alert("Erro", "A conexão ao servidor foi interrompida.");
-                    await AsyncStorage.clear();
-                    this.props.navigation.navigate('Authentication');
-                }
+        if (isAuthenticated) {
+            const isSuccess = await auth.userLogin(isAuthenticated);
+
+            if(isSuccess === "success") {
+                const stackName = await Authentication.getUserDrawerNavigator();
+                this.props.navigation.navigate(stackName);
             }
-            else {
+            else if(isSuccess === "fail") {
+
+                Alert.alert(
+                    "Erro",
+                    "Ocorreu um erro durante o arranque da aplicação. Por favor, efetue login novamente."
+                );
                 await AsyncStorage.clear();
                 this.props.navigation.navigate('Authentication');
             }
-        });
+            else {
+                Alert.alert(
+                    "Erro",
+                    "Não é possível estabelecer uma conexão com o servidor.",
+                    [
+                        {
+                            text: 'Fechar',
+                            style: 'cancel',
+                            onPress: () => {
+                                BackHandler.exitApp();
+                            },
+                        }, {
+                            text: 'Voltar a tentar',
+                            onPress: async () => {
+                                await this.validateAuthentication(auth, isAuthenticated);
+                            }
+                        },
+                    ],
+                    {cancelable: true},
+                );
+            }
+        }
+        else {
+            await AsyncStorage.clear();
+            this.props.navigation.navigate('Authentication');
+        }
     }
+
 
     render() {
         return (

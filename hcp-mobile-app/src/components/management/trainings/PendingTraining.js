@@ -308,8 +308,7 @@ class PendingTraining extends Component {
 
             Alert.alert(
                 'Erro',
-                'Não foi possível fechar o período de convocatórias para este treino.' +
-                ' Por favor, tente mais tarde.',
+                'Não foi possível fechar este treino. Por favor, tente mais tarde.',
                 [{text: 'Confirmar', style: 'cancel'}],
                 {cancelable: true},
             );

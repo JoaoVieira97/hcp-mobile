@@ -203,7 +203,7 @@ class GameScreen extends Component {
             icon: 'md-done-all',
             subtitle: 'Consultar informações dos jogos fechados',
             value: this.state.finishedGamesCounter > 100 ? '+99' : this.state.finishedGamesCounter,
-            onPress: false
+            onPress: 'ClosedGames'
         }];
 
         if(this.state.isCoach) {

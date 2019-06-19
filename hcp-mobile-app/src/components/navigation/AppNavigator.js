@@ -69,8 +69,11 @@ import AddSummary from "../management/trainings/AddSummary";
 import Summary from "../management/trainings/Summary";
 import HomePendingTraining from "../home/HomePendingTraining";
 import HomePendingGame from "../home/HomePendingGame";
-import {linearGradientHeader, headerTitle, openDrawerButton} from "./HeaderComponents";
 import PendingGame from "../management/games/PendingGame";
+import ClosedGames from "../management/games/ClosedGames";
+import ClosedGame from "../management/games/ClosedGame";
+import {linearGradientHeader, headerTitle, openDrawerButton} from "./HeaderComponents";
+
 
 
 
@@ -311,6 +314,8 @@ const ManagementStackNavigator = createStackNavigator({
     OpenedGame: {screen: OpenedGame},
     PendingGames: {screen: PendingGames},
     PendingGame: {screen: PendingGame},
+    ClosedGames: {screen: ClosedGames},
+    ClosedGame: {screen: ClosedGame},
     // all
     ChangeAthletesAvailabilities: {screen: ChangeAthletesAvailabilities},
     ChangeAthletesPresences: {screen: ChangeAthletesPresences},

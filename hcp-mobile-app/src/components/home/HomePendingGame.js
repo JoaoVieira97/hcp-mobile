@@ -2,7 +2,7 @@ import React, {Component} from 'react';
 import {FlatList, RefreshControl, ScrollView, StyleSheet, View, Alert} from 'react-native';
 import {connect} from 'react-redux';
 import { ListItem } from 'react-native-elements';
-import {Ionicons} from "@expo/vector-icons";
+import {Ionicons, MaterialCommunityIcons, MaterialIcons} from "@expo/vector-icons";
 import {headerTitle, closeButton, linearGradientHeader} from "../navigation/HeaderComponents";
 import Loader from "../screens/Loader";
 import {colors} from "../../styles/index.style";
@@ -64,7 +64,7 @@ class HomePendingGame extends Component {
                 ['evento_desportivo', 'in', [this.state.gameEvent.id]],
             ],
             fields: [
-                'id', 'evento_desportivo' , 'display_start',
+                'id', 'evento_desportivo' , 'display_start', 'antecedencia',
                 'local', 'escalao', 'duracao',
                 'treinador', 'seccionistas',
                 'equipa_adversaria', 'competicao'],
@@ -112,6 +112,8 @@ class HomePendingGame extends Component {
                     date: date.date,
                     hours: date.hour,
                     state: game.state,
+                    antecedence: !game.antecedencia ? 'Não definida' :
+                        game.antecedencia === 1 ? game.antecedencia + ' hora' : game.antecedencia + ' horas',
                     opponent: game.equipa_adversaria ? game.equipa_adversaria[1] : 'Não definido',
                     competition: game.competicao ? (game.competicao[1].split('('))[0] : 'Não definida',
                     coachIds: game.treinador,
@@ -329,14 +331,24 @@ class HomePendingGame extends Component {
                     subtitle={item.subtitle}
                     leftAvatar={
                         <View style={{width: 25}}>
-                            <Ionicons name={item.icon} size={27} />
+                            <MaterialCommunityIcons
+                                name={item.icon}
+                                size={27}
+                                color={colors.redColor}
+                            />
                         </View>
                     }
                     containerStyle={{
                         backgroundColor: colors.lightRedColor,
                         minHeight: 60,
                     }}
-                    chevron={true}
+                    rightIcon={
+                        <MaterialIcons
+                            name={'keyboard-arrow-right'}
+                            size={25}
+                            color={colors.redColor}
+                        />
+                    }
                     onPress={() => this.onLocalPress()}
                 />
             );
@@ -382,9 +394,13 @@ class HomePendingGame extends Component {
                 this.state.game.hours + '\n' +
                 this.state.game.duration + ' min') :
                 'A carregar...'
+        },{
+            name: 'Antecedência',
+            icon: 'ios-alarm',
+            subtitle: this.state.game ? this.state.game.antecedence : 'A carregar...',
         }, {
             name: 'Local',
-            icon: 'md-pin',
+            icon: 'google-maps',
             subtitle: this.state.game ?
                 (this.state.game.place ? this.state.game.place[1] : 'Nenhum local atribuído') :
                 'A carregar...',
