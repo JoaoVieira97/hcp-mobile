@@ -77,7 +77,6 @@ class ChannelsScreen extends Component {
 
                 this.interval = setInterval( async () => {
 
-                    // TODO: improve this
                     await this.getChannels();
 
                 }, 2500);

@@ -44,19 +44,8 @@ class JoinChannel extends Component {
     });
 
     async componentDidMount() {
-        
-        BackHandler.addEventListener('hardwareBackPress', () => {
-            this.props.navigation.state.params.onNavigateBack();
-        });
 
         await this.getChannels();
-
-    }
-
-    async componentWillMount(){
-
-        BackHandler.removeEventListener('hardwareBackPress');
-
     }
 
     async getChannels(){
@@ -127,14 +116,31 @@ class JoinChannel extends Component {
 
         if (response.success){
 
-            Alert.alert('Sucesso', 'Foi adicionado ao canal com sucesso.')
-            this.props.navigation.state.params.onNavigateBack();
-            this.props.navigation.goBack();
+            Alert.alert(
+                'Sucesso',
+                'Foi adicionado ao canal com sucesso.',
+                [
+                    {
+                        text: 'Voltar',
+                        onPress: () => {this.props.navigation.goBack();}
+                    },
+                ],
+                {cancelable: true},
+            );
 
         } else {
 
-            Alert.alert('Erro', 'Ocorreu um problema. Tente de novo.')
-            
+            Alert.alert(
+                'Erro',
+                'Ocorreu um problema ao ser adicionado ao canal. Tente novamente mais tarde.',
+                [
+                    {
+                        text: 'Voltar',
+                        onPress: () => {this.props.navigation.goBack()}
+                    },
+                ],
+                {cancelable: true},
+            );
         }
 
     }

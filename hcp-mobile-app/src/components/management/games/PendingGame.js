@@ -14,7 +14,7 @@ import {DangerZone} from "expo";
 const { Lottie } = DangerZone;
 import AthletesGrid from "../AthletesGrid";
 
-// import styles from './styles';
+
 
 class PendingGame extends Component {
 

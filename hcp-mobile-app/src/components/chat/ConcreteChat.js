@@ -2,12 +2,13 @@ import React, {Component} from 'react';
 import { GiftedChat, Bubble, Send } from "react-native-gifted-chat";
 import KeyboardSpacer from 'react-native-keyboard-spacer';
 import {connect} from 'react-redux';
-import {Ionicons} from "@expo/vector-icons";
+import {Ionicons, SimpleLineIcons} from "@expo/vector-icons";
 import {colors} from "../../styles/index.style";
 import {
     View,
     Platform,
-    Text
+    Text,
+    Alert
 } from 'react-native';
 
 import moment from 'moment';
@@ -15,6 +16,7 @@ import 'moment/locale/pt'
 import ConvertTime from "../ConvertTime";
 import {headerTitle, closeButton} from "../navigation/HeaderComponents";
 import Loader from "../screens/Loader";
+import Menu, {MenuDivider, MenuItem} from "react-native-material-menu";
 
 
 
@@ -43,7 +45,6 @@ class ConcreteChat extends Component {
         headerLeft: closeButton(
             '#ffffff', navigation
         ),
-        /*
         headerRight:
             <Menu
                 ref={navigation.state.params.setMenuRef}
@@ -66,8 +67,6 @@ class ConcreteChat extends Component {
                         "Ver detalhes da conversa"}
                 </MenuItem>
             </Menu>
-
-         */
     });
 
     async componentDidMount(){
@@ -78,7 +77,6 @@ class ConcreteChat extends Component {
             title: this.state.channel.name
         });
 
-        /*
         this.props.navigation.setParams({
             title: this.state.channel.name,
             showMenu: this.showMenu,
@@ -87,7 +85,6 @@ class ConcreteChat extends Component {
             channelInfo: this.channelInfo,
             channel_type: this.state.channel.type
         });
-         */
 
         this.setState({isLoading: true});
         await this.getChannelMessages();
@@ -125,7 +122,7 @@ class ConcreteChat extends Component {
             },
             model: 'mail.channel',
             method: 'channel_fetch_message',
-            args: [this.state.channel.id, this.state.lastMessageID, 10]
+            args: [this.state.channel.id, this.state.lastMessageID, 25]
         };
         const response = await this.props.odoo.rpc_call('/web/dataset/call_kw', params);
         if (response.success && response.data.length > 0) {
@@ -180,7 +177,7 @@ class ConcreteChat extends Component {
             },
             model: 'mail.channel',
             method: 'channel_fetch_message',
-            args: [this.state.channel.id, false, 10]
+            args: [this.state.channel.id, false, 25]
         };
         const response = await this.props.odoo.rpc_call('/web/dataset/call_kw', params);
         if (response.success && response.data.length > 0) {
@@ -291,6 +288,10 @@ class ConcreteChat extends Component {
 
 
     /*
+    ------------------------
+    MENU
+    ------------------------
+     */
     _menu = null;
 
     setMenuRef = ref => {
@@ -307,9 +308,9 @@ class ConcreteChat extends Component {
 
     leaveChannel = async () => {
 
-        this.hideMenu()
+        this.hideMenu();
 
-        if (this.state.channel.type == 'channel') {
+        if (this.state.channel.type === 'channel') {
             
             const params = {
                 kwargs: {
@@ -329,9 +330,9 @@ class ConcreteChat extends Component {
 
             if (response.success){
 
-                Alert.alert('Sucesso', 'Deixou o canal ' + this.state.channel.name + '.')
-                
-                clearInterval(listener);
+                Alert.alert('Sucesso', 'Deixou o canal ' + this.state.channel.name + '.');
+
+                //clearInterval(listener);
                 //if (this.props.navigation.state.params.originChannel == 1) this.props.navigation.state.params.onNavigateBack();
                 this.props.navigation.goBack();
             
@@ -350,8 +351,8 @@ class ConcreteChat extends Component {
                 model: 'mail.channel',
                 method: 'channel_pin',
                 args: [
-                    uuid=this.state.channel.uuid,
-                    pinned=false
+                    this.state.channel.uuid,
+                    false
                 ]
             };
     
@@ -362,7 +363,7 @@ class ConcreteChat extends Component {
     
             if (response.success){
 
-                Alert.alert('Sucesso', 'Desmarcou a conversa ' + this.state.channel.name + '.')
+                Alert.alert('Sucesso', 'Desmarcou a conversa ' + this.state.channel.name + '.');
                 
                 clearInterval(listener);
                 //if (this.props.navigation.state.params.originChannel == 1) this.props.navigation.state.params.onNavigateBack();
@@ -371,32 +372,27 @@ class ConcreteChat extends Component {
             } else {
                 
                 Alert.alert('Erro', 'Ocorreu um problema. Tente de novo.')
-            
             }
         }
-
-    }
+    };
 
     channelInfo = async () => {
 
-        this.hideMenu()
+        this.hideMenu();
 
         this.props.navigation.navigate('ChatDetails', {
             channel_id: this.state.channel.id,
             channel_type: this.state.channel.type,
             channel_name: this.state.channel.name,
-            onReturn: this.onReturn
+            onReturn: () => {}
         })
 
-    }
-
-    onReturn = () => {
-        console.log('return')
-        
-        clearInterval(listener)
-        listener = setInterval(async () => { await this.getNewMessages() }, 3500);
-    }
-    */
+    };
+    /*
+    ------------------------
+    MENU
+    ------------------------
+     */
 
 
     /**
