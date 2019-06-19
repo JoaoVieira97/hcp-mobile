@@ -423,20 +423,7 @@ class OtherGameInvitation extends Component {
 const styles = StyleSheet.create({
     topHeader: {
         flex: 1,
-        backgroundColor: '#ffe3e4',
-        borderBottomLeftRadius: 20,
-        borderBottomRightRadius: 20,
         paddingVertical: 10,
-
-        // shadow
-        shadowColor: "#000",
-        shadowOffset: {
-            width: 0,
-            height: 2,
-        },
-        shadowOpacity: 0.25,
-        shadowRadius: 3.84,
-        elevation: 5,
     }
 });
 
