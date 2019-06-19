@@ -1,19 +1,22 @@
 import React, {Component} from 'react';
-import {FlatList, RefreshControl, ScrollView, StyleSheet, View, Alert, TouchableOpacity, Text} from 'react-native';
+
+import {Alert, FlatList, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+
 import {connect} from 'react-redux';
-import { ListItem, CheckBox } from 'react-native-elements';
+import {closeButton, headerTitle} from "../../navigation/HeaderComponents";
+import getDirections from "react-native-google-maps-directions";
+import {CheckBox, ListItem} from "react-native-elements";
 import {Ionicons} from "@expo/vector-icons";
-import getDirections from 'react-native-google-maps-directions';
-import {headerTitle, closeButton} from "../../navigation/HeaderComponents";
 import {colors} from "../../../styles/index.style";
 import Loader from "../../screens/Loader";
-import AthletesGrid from "../../management/AthletesGrid";
 import * as Animatable from "react-native-animatable";
 import {DangerZone} from "expo";
 const { Lottie } = DangerZone;
+import AthletesGrid from "../AthletesGrid";
 
+// import styles from './styles';
 
-class OpenedGame extends Component {
+class PendingGame extends Component {
 
     constructor(props) {
 
@@ -60,7 +63,7 @@ class OpenedGame extends Component {
      */
     async fetchData() {
 
-        await this.fetchAthletes(this.state.game.invitationIds);
+        await this.fetchAthletes(this.state.game.availabilityIds);
         await this.fetchCoaches(this.state.game.coachIds);
         await this.fetchSecretaries(this.state.game.secretaryIds);
     }
@@ -76,45 +79,85 @@ class OpenedGame extends Component {
             fields: [
                 'id',
                 'atleta',
-                'disponivel',
-                'numero'
+                'presente',
+                'atrasado',
             ],
             domain: [['id', 'in', ids]],
-            order: 'numero ASC'
         };
 
-        const response = await this.props.odoo.search_read('ges.linha_convocatoria', params);
+        const response = await this.props.odoo.search_read('ges.linha_presenca', params);
+        console.log(response);
         if(response.success && response.data.length > 0) {
 
             const data = response.data;
-            const ids = this.state.game.athleteIds;
+            const athletesIds = data.map(item => item.atleta[0]);
+            const athletesInfo = await this.fetchAthletesInfo(athletesIds);
+
             let athletes = [];
-            const athletesInfo = await this.fetchAthletesInfo(ids);
+            // orderBy squadNumber
+            if(data.length === athletesInfo.length) {
+                athletesInfo.forEach(item => {
 
-            data.forEach(item => {
+                    const athleteInfo = data.find(athleteItem =>
+                        athleteItem.atleta[0] === item.id
+                    );
 
-                const athleteImageEchelon = athletesInfo.find(imageItem =>
-                    item.atleta[0] === imageItem.id
-                );
+                    // color
+                    let displayColor;
+                    if (athleteInfo.presente && athleteInfo.atrasado)
+                        displayColor = 'yellow';
+                    else if (athleteInfo.presente)
+                        displayColor = 'green';
+                    else
+                        displayColor = 'red';
 
-                let displayColor;
-                if (item.disponivel)
-                    displayColor = 'green';
-                else
-                    displayColor = 'red';
+                    const athlete = {
+                        presenceId: athleteInfo.id,
+                        id: athleteInfo.atleta[0],
+                        name: athleteInfo.atleta[1],
+                        squad_number: item.numerocamisola,
+                        present: athleteInfo.presente,
+                        late: athleteInfo.atrasado,
+                        image: item.image,
+                        echelon: item.escalao[1],
+                        displayColor: displayColor
+                    };
 
-                const athlete = {
-                    id: item.atleta[0],
-                    name: item.atleta[1],
-                    squad_number: athleteImageEchelon ? athleteImageEchelon.numerocamisola : 0,
-                    available: item.disponivel,
-                    image: athleteImageEchelon ? athleteImageEchelon.image : false,
-                    echelon: athleteImageEchelon ? athleteImageEchelon.escalao[1] : 'error',
-                    displayColor: displayColor
-                };
+                    athletes.push(athlete);
+                });
+            }
+            // orderBy name
+            else {
+                data.forEach(item => {
 
-                athletes.push(athlete);
-            });
+                    const athleteInfo = athletesInfo.find(imageItem =>
+                        item.atleta[0] === imageItem.id
+                    );
+
+                    // color
+                    let displayColor;
+                    if (item.presente && item.atrasado)
+                        displayColor = 'yellow';
+                    else if (item.presente)
+                        displayColor = 'green';
+                    else
+                        displayColor = 'red';
+
+                    const athlete = {
+                        presenceId: item.id,
+                        id: item.atleta[0],
+                        name: item.atleta[1],
+                        squad_number: athleteInfo ? athleteInfo.numerocamisola : 0,
+                        present: item.presente,
+                        late: item.atrasado,
+                        image: athleteInfo ? athleteInfo.image : false,
+                        echelon: athleteInfo ? athleteInfo.escalao[1] : 'error',
+                        displayColor: displayColor
+                    };
+
+                    athletes.push(athlete);
+                });
+            }
 
             this.setState({
                 athletes: athletes.sort((a, b) => (a.squad_number) - (b.squad_number))
@@ -282,118 +325,11 @@ class OpenedGame extends Component {
     };
 
     /**
-     * Close invitations alert.
-     * @returns {Promise<void>}
-     */
-    markPresences() {
-
-        Alert.alert(
-            'Confirmação',
-            'Pretende fechar o período de convocatórias para este jogo?',
-            [
-                {text: 'Cancelar', style: 'cancel'},
-                {
-                    text: 'Confirmar',
-                    onPress: async () => this._markPresences()
-                },
-            ],
-            {cancelable: true},
-        );
-    }
-
-    /**
-     * Close invitations.
-     * @returns {Promise<void>}
-     * @private
-     */
-    async _markPresences() {
-
-        await this.setState({isLoading: true});
-
-        const params = {
-            kwargs: {
-                context: this.props.odoo.context,
-            },
-            model: 'ges.jogo',
-            method: 'marcar_presencas',
-            args: [this.state.game.id]
-        };
-
-        const response = await this.props.odoo.rpc_call('/web/dataset/call_kw', params);
-        if (response.success) {
-
-            // remove game from list
-            this.props.navigation.state.params.removeGame(this.state.game.id);
-
-            await this.setState({isLoading: false, animation: true});
-
-            this.animation.play();
-            setTimeout(() => {this.props.navigation.goBack()}, 1100);
-
-        } else {
-
-            await this.setState({isLoading: false});
-
-            Alert.alert(
-                'Erro',
-                'Não foi possível fechar o período de convocatórias para este jogo.' +
-                ' Por favor, tente mais tarde.',
-                [{text: 'Confirmar', style: 'cancel'}],
-                {cancelable: true},
-            );
-        }
-    }
-
-    /**
-     * Change athlete availability.
-     * @param athleteId
-     */
-    async changeAthleteAvailability(athleteId) {
-
-        const params = {
-            kwargs: {
-                context: this.props.odoo.context,
-            },
-            model: 'ges.evento_desportivo',
-            method: 'atleta_alterar_disponibilidade',
-            args: [
-                this.state.game.eventId,
-                athleteId
-            ],
-        };
-
-        const response = await this.props.odoo.rpc_call('/web/dataset/call_kw', params);
-        if (response.success) {
-
-            const athletes = this.state.athletes.map(item => {
-                let itemAux = item;
-                if(item.id === athleteId) {
-                    itemAux.available = !item.available;
-                }
-
-                // color
-                if (itemAux.available)
-                    itemAux.displayColor = 'green';
-                else
-                    itemAux.displayColor = 'red';
-
-                return itemAux;
-            });
-
-            this.setState({athletes: athletes});
-
-            return {success: true, athletes: athletes};
-        }
-
-        return {success: false, athletes: this.state.athletes};
-    }
-
-    /**
      * When user refresh this screen.
      */
     onRefresh = async () => {
 
-        await this.setState({isRefreshing: true, showMore: false});
+        await this.setState({isRefreshing: true});
         await this.fetchData();
         this.setState({isRefreshing: false});
     };
@@ -585,32 +521,72 @@ class OpenedGame extends Component {
                     <View style={styles.topHeader}>
                         <View style={{zIndex: 500}}>
                             <TouchableOpacity
-                                onPress={() => this.markPresences()}
                                 style={styles.topButton}
+                                //onPress={() => this.closeTraining()}
                             >
                                 <Text style={{color: '#fff', fontWeight: '700', fontSize: 15}}>
-                                    {'FECHAR CONVOCATÓRIA'}
+                                    {'FECHAR JOGO'}
                                 </Text>
                                 <Text style={{color: '#dedede', fontWeight: '400', textAlign: 'center'}}>
-                                    {'Serão registadas as presenças dos atletas disponíveis.'}
+                                    {'O jogo será fechado com as presenças e os atrasos definidos.'}
                                 </Text>
                             </TouchableOpacity>
-                            <TouchableOpacity
-                                onPress={() => {
-                                    this.props.navigation.navigate('ChangeAthletesAvailabilities', {
-                                        athletes: this.state.athletes,
-                                        availabilityFunction: async (id) => await this.changeAthleteAvailability(id)
-                                    });
-                                }}
-                                style={styles.topButton}
-                            >
-                                <Text style={{color: '#fff', fontWeight: '700', fontSize: 15}}>
-                                    {'EDITAR DISPONIBILIDADES'}
-                                </Text>
-                                <Text style={{color: '#dedede', fontWeight: '400', textAlign: 'center'}}>
-                                    {'Alterar a disponibilidade dos atletas convocados.'}
-                                </Text>
-                            </TouchableOpacity>
+                            <View style={styles.registerContainer}>
+                                <TouchableOpacity
+                                    disabled={this.state.athletes && this.state.athletes.length === 0}
+                                    /*
+                                    onPress={() => {
+                                        this.props.navigation.navigate('ChangeAthletesPresences', {
+                                            athletes: this.state.athletes,
+                                            presenceFunction: async (id) => await this.changeAthletePresence(id)
+                                        });
+                                    }}
+                                     */
+                                    style={styles.registerButton}>
+                                    <Text style={{color: '#fff', fontWeight: '700', fontSize: 15}}>
+                                        {'REGISTAR'}
+                                    </Text>
+                                    <Text style={{color: '#fff', fontWeight: '700', fontSize: 15}}>
+                                        {'PRESENÇAS'}
+                                    </Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                    disabled={this.state.athletes && this.state.athletes.length === 0}
+                                    /*onPress={() => {
+                                        this.props.navigation.navigate('ChangeLateAthletes', {
+                                            athletes: this.state.athletes.filter(item => item.present),
+                                            lateFunction: async (id) => await this.changeLateAthlete(id)
+                                        });
+                                    }}*/
+                                    style={styles.registerButton}>
+                                    <Text style={{color: '#fff', fontWeight: '700', fontSize: 15}}>
+                                        {'REGISTAR'}
+                                    </Text>
+                                    <Text style={{color: '#fff', fontWeight: '700', fontSize: 15}}>
+                                        {'ATRASOS'}
+                                    </Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                    disabled={this.state.athletes && this.state.athletes.length === 0}
+                                    /*
+                                    onPress={() => {
+                                        this.props.navigation.navigate('RegisterInjury', {
+                                            eventId: this.state.training.id,
+                                            eventDate: this.state.training.date,
+                                            athletes: this.state.athletes.filter(a => a.present),
+                                            eventType: 'treino'
+                                        });
+                                    }}
+                                     */
+                                    style={styles.registerButton}>
+                                    <Text style={{color: '#fff', fontWeight: '700', fontSize: 15}}>
+                                        {'REGISTAR'}
+                                    </Text>
+                                    <Text style={{color: '#fff', fontWeight: '700', fontSize: 15}}>
+                                        {'LESÃO'}
+                                    </Text>
+                                </TouchableOpacity>
+                            </View>
                         </View>
                         <View style={{zIndex: 499}}>
                             {
@@ -647,6 +623,7 @@ class OpenedGame extends Component {
     }
 }
 
+
 const styles = StyleSheet.create({
     topHeader: {
         flex: 1,
@@ -673,6 +650,23 @@ const styles = StyleSheet.create({
         marginVertical: 5,
         borderRadius: 5
     },
+    registerContainer: {
+        flex: 1,
+        flexDirection: 'row',
+        justifyContent: 'center',
+        paddingLeft: 15,
+        paddingRight: 15
+    },
+    registerButton: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: 'rgba(173, 46, 83, 0.8)',
+        padding: 10,
+        width: '33%',
+        marginHorizontal: 5,
+        marginVertical: 5,
+        borderRadius: 5
+    },
     loading: {
         position: 'absolute',
         left: 0,
@@ -694,4 +688,4 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => ({});
 
-export default connect(mapStateToProps, mapDispatchToProps)(OpenedGame);
+export default connect(mapStateToProps, mapDispatchToProps)(PendingGame);

@@ -9,6 +9,7 @@ import moment from 'moment';
 
 
 class PendingGames extends Component {
+
     constructor(props) {
         super(props);
 
@@ -67,7 +68,13 @@ class PendingGames extends Component {
                 ['id', 'not in', idsFetched],
                 ['state', '=', 'convocatorias_fechadas']
             ],
-            fields: ['id', 'state', 'atletas', 'display_start', 'local', 'escalao', 'duracao', 'convocatorias', 'treinador', 'seccionistas'],
+            fields: [
+                'id', 'evento_desportivo' ,'atletas', 'display_start',
+                'local', 'escalao', 'duracao',
+                'convocatorias','presencas',
+                'treinador', 'seccionistas',
+                'equipa_adversaria', 'competicao', 'state'
+            ],
             limit: limit,
             order: 'display_start DESC'
         };
@@ -115,10 +122,14 @@ class PendingGames extends Component {
                     duration: item.duracao,
                     date: date.date,
                     hour: date.hour,
-                    invitationIds: item.convocatorias,
+                    opponent: item.equipa_adversaria ? item.equipa_adversaria[1] : 'Não definido',
+                    competition: item.competicao ? (item.competicao[1].split('('))[0] : 'Não definida',
                     athleteIds : item.atletas,
+                    invitationIds: item.convocatorias,
+                    availabilityIds: item.presencas,
                     coachIds: item.treinador,
                     secretaryIds: item.seccionistas,
+                    eventId: item.evento_desportivo[0]
                 };
 
                 games.push(game);
@@ -130,6 +141,16 @@ class PendingGames extends Component {
         }
 
         this.setState({isFetching: false});
+    }
+
+    /**
+     * Remove game from current list when user change game state.
+     * @param gameId
+     */
+    removeGame(gameId) {
+
+        const gamesListAux = this.state.gamesList.filter(item => item.id !== gameId);
+        this.setState({gamesList: gamesListAux});
     }
 
     /**
@@ -187,24 +208,23 @@ class PendingGames extends Component {
      * @param index
      * @returns {*}
      */
-    renderItem = ({ item, index }) => (
-        <ManagementListItem
-            item={item}
-            index={index}
-            titleType={'Jogo '}
-            navigateToFunction={() => {
-
-                /*
-                this.props.navigation.navigate(
-                    'OpenedGame',
-                    {
-                        game: item,
-                        removeGame: (id) => this.removeGame(id)
-                    }
-                );
-                 */
-            }} />
-    );
+    renderItem = ({ item, index }) => {
+        return (
+            <ManagementListItem
+                item={item}
+                index={index}
+                titleType={'Jogo '}
+                navigateToFunction={() => {
+                    this.props.navigation.navigate('PendingGame',
+                        {
+                            game: item,
+                            removeGame: (id) => this.removeGame(id)
+                        }
+                    );
+                }}
+            />
+        );
+    };
 
     render() {
         return (

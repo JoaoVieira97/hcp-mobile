@@ -71,6 +71,7 @@ import Summary from "../management/trainings/Summary";
 import HomePendingTraining from "../home/HomePendingTraining";
 import HomePendingGame from "../home/HomePendingGame";
 import {linearGradientHeader, headerTitle, openDrawerButton} from "./HeaderComponents";
+import PendingGame from "../management/games/PendingGame";
 
 
 
@@ -310,6 +311,7 @@ const ManagementStackNavigator = createStackNavigator({
     OpenedGames: {screen: OpenedGames},
     OpenedGame: {screen: OpenedGame},
     PendingGames: {screen: PendingGames},
+    PendingGame: {screen: PendingGame},
     // all
     ChangeAthletesAvailabilities: {screen: ChangeAthletesAvailabilities},
     ChangeAthletesPresences: {screen: ChangeAthletesPresences},
