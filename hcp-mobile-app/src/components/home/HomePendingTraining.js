@@ -119,6 +119,17 @@ class HomePendingTraining extends Component {
             await this.fetchCoaches(this.state.training.coachIds);
             await this.fetchSecretaries(this.state.training.secretaryIds);
         }
+        else {
+            this.props.navigation.goBack();
+            Alert.alert(
+                'Erro',
+                'A consulta não pode ser efetuada devido a restrições de segurança.',
+                [
+                    {text: 'Ok', style: 'cancel',},
+                ],
+                {cancelable: true},
+            );
+        }
     };
 
     /**

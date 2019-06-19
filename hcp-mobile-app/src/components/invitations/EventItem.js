@@ -56,6 +56,25 @@ export default class EventItem extends PureComponent {
         const {event, type} = this.props;
 
         let colorText='#0d0d0d', colorBackground='#ffffff', iconSize=25, iconName;
+        let duration_antecedence;
+
+        if(type === 'Treino') {
+            duration_antecedence = (
+                <Text style={{color: colors.darkGrayColor}}>
+                    {'Duração: ' + event.duration + ' min'}
+                </Text>
+            )
+        }
+        else {
+            duration_antecedence = (
+                <Text style={{color: colors.darkGrayColor}}>
+                    {'Antecedência: ' + event.antecedence + ' h'}
+                </Text>
+            )
+        }
+
+
+
         if(event.isOver === 'finished') {
 
             colorText = '#919391';
@@ -87,9 +106,7 @@ export default class EventItem extends PureComponent {
                         <Text style={{color: colors.darkGrayColor}}>
                             {'Início: ' + event.hours}
                         </Text>
-                        <Text style={{color: colors.darkGrayColor}}>
-                            {'Duração: ' + event.duration + ' min'}
-                        </Text>
+                        {duration_antecedence}
                         <Text numberOfLines={1} ellipsizeMode='tail' style={{color: colors.darkGrayColor}}>
                             {
                                 event.place ?

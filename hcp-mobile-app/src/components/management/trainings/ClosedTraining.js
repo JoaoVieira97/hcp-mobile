@@ -1,12 +1,16 @@
 import React, { Component } from 'react';
 import {FlatList, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import { connect } from 'react-redux';
-import {Ionicons} from "@expo/vector-icons";
+import {Ionicons, MaterialCommunityIcons, MaterialIcons} from "@expo/vector-icons";
 import {ListItem} from "react-native-elements";
 import {colors} from "../../../styles/index.style";
 import Loader from "../../screens/Loader";
 import AthletesGrid from "../AthletesGrid";
 import {headerTitle, closeButton} from "../../navigation/HeaderComponents";
+import getDirections from 'react-native-google-maps-directions';
+
+
+
 
 class ClosedTraining extends Component {
 
@@ -239,26 +243,137 @@ class ClosedTraining extends Component {
     }
 
     /**
+     * Get coordinates of local.
+     */
+    async getCoordinates() {
+
+        this.setState({isLoading: true});
+
+        const params = {
+            ids: [this.state.training.local[0]],
+            fields: ['coordenadas'],
+        };
+        const response = await this.props.odoo.get('ges.local', params);
+        if (response.success && response.data.length > 0) {
+
+            const coordinates = response.data[0].coordenadas;
+
+            if(coordinates !== false) {
+
+                const latitude = parseFloat(coordinates.split(", ")[0]);
+                const longitude = parseFloat(coordinates.split(", ")[1]);
+
+                this.setState({isLoading: false});
+
+                return {
+                    latitude: latitude,
+                    longitude: longitude
+                }
+            }
+        }
+
+        this.setState({isLoading: false});
+        return undefined;
+    }
+
+    /**
+     * Open google maps.
+     * @param coordinates
+     */
+    openGoogleMaps = (coordinates) => {
+
+        navigator.geolocation.getCurrentPosition(
+            position => {
+                const data = {
+                    source: {
+                        latitude: position.coords.latitude,
+                        longitude: position.coords.longitude
+                    },
+                    destination: {
+                        latitude: coordinates.latitude,
+                        longitude: coordinates.longitude
+                    },
+                    params: [
+                        {
+                            key: "travelmode",
+                            value: "driving"
+                        },
+                        {
+                            key: "dir_action",
+                            value: "navigate"
+                        }
+                    ]
+                };
+
+                getDirections(data)
+            },
+            error => {
+                Alert.alert(
+                    'Erro',
+                    'Não foi possível obter as suas coordenadas.',
+                    [
+                        {text: 'Voltar', style: 'cancel',},
+                    ],
+                    {cancelable: true},
+                );
+            },
+            { enableHighAccuracy: true, timeout: 20000, maximumAge: 1000 }
+        );
+    };
+
+    /**
      * Render item of first list.
      * @param item
      * @returns {*}
      */
     renderItemOfList = ({ item }) => {
-        return (
-            <ListItem
-                title={item.name}
-                subtitle={item.subtitle}
-                leftAvatar={
-                    <View style={{width: 25}}>
-                        <Ionicons name={item.icon} size={27} /*style={{paddingBottom: 5}}*/ />
-                    </View>
-                }
-                containerStyle={{
-                    backgroundColor: colors.lightRedColor,
-                    minHeight: 60,
-                }}
-            />
-        );
+
+        if (item.name === 'Local') {
+            return (
+                <ListItem
+                    title={item.name}
+                    subtitle={item.subtitle}
+                    leftAvatar={
+                        <View style={{width: 25}}>
+                            <MaterialCommunityIcons
+                                name={item.icon}
+                                size={27}
+                                color={colors.redColor}
+                            />
+                        </View>
+                    }
+                    containerStyle={{
+                        backgroundColor: colors.lightRedColor,
+                        minHeight: 60,
+                    }}
+                    rightIcon={
+                        <MaterialIcons
+                            name={'keyboard-arrow-right'}
+                            size={25}
+                            color={colors.redColor}
+                        />
+                    }
+                    onPress={() => this.onLocalPress()}
+                />
+            );
+        } else {
+            return (
+                <ListItem
+                    title={item.name}
+                    subtitle={item.subtitle}
+                    leftAvatar={
+                        <View style={{width: 25}}>
+                            <Ionicons name={item.icon} size={27} />
+                        </View>
+                    }
+                    containerStyle={{
+                        backgroundColor: colors.lightRedColor,
+                        minHeight: 60,
+                    }}
+                    disabled={true}
+                />
+            );
+        }
     };
 
     /**
@@ -269,6 +384,53 @@ class ClosedTraining extends Component {
         await this.setState({isRefreshing: true, showMore: false});
         await this.fetchData();
         this.setState({isRefreshing: false});
+    };
+
+    /**
+     * When user press local button.
+     */
+    onLocalPress = () => {
+
+        if(this.state.training.local && this.state.training.local[0]) {
+
+            this.getCoordinates().then(response => {
+
+                if (response !== undefined) {
+
+                    Alert.alert(
+                        'Abrir o Google Maps',
+                        'Pretende abrir o Google Maps para visualizar o local do evento?',
+                        [
+                            {text: 'Cancelar', style: 'cancel',},
+                            {text: 'Sim', onPress: () => {
+                                    this.openGoogleMaps(response);
+                                }},
+                        ],
+                        {cancelable: true},
+                    );
+                }
+                else {
+                    Alert.alert(
+                        'Não existem coordenadas',
+                        'As coordenadas deste evento ainda não foram definidas. Peça ao administrador para as adicionar.',
+                        [
+                            {text: 'Voltar', style: 'cancel',},
+                        ],
+                        {cancelable: true},
+                    );
+                }
+            });
+        }
+        else {
+            Alert.alert(
+                'Local não atribuído',
+                'O local para este evento ainda não foi atribuído.',
+                [
+                    {text: 'Voltar', style: 'cancel',},
+                ],
+                {cancelable: true},
+            );
+        }
     };
 
     render() {
@@ -286,7 +448,7 @@ class ClosedTraining extends Component {
                 this.state.training.duration + ' min',
         }, {
             name: 'Local',
-            icon: 'md-pin',
+            icon: 'google-maps',
             subtitle: this.state.training.local ? this.state.training.local[1] : 'Nenhum local atribuído',
         }, {
             name: 'Treinadores',
