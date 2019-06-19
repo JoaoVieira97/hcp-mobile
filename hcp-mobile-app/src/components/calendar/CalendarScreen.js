@@ -12,6 +12,7 @@ import {MaterialCommunityIcons} from "@expo/vector-icons";
 import { CheckBox } from 'react-native-elements';
 import ConvertTime from "../ConvertTime";
 import _ from 'lodash';
+import Loader from "../screens/Loader";
 
 
 // Locale settings
@@ -264,7 +265,6 @@ class CalendarScreen extends React.Component {
             domain: domain,
             fields: ['evento_ref', 'duracao', 'local', 'display_start', 'display_name', 'escalao'],
             order: 'start_datetime ASC',
-            limit: 6
         };
 
         const response = await this.props.odoo.search_read('ges.evento_desportivo', params);
@@ -412,6 +412,7 @@ class CalendarScreen extends React.Component {
 
         return (
             <View style={{flex: 1}}>
+                <Loader isLoading={this.state.isLoading}/>
                 <View style={styles.topHeader}>
                     <View>
                         <CheckBox

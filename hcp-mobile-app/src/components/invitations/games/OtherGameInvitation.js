@@ -2,7 +2,7 @@ import React, {Component} from 'react';
 import {FlatList, RefreshControl, ScrollView, StyleSheet, View, Alert} from 'react-native';
 import {connect} from 'react-redux';
 import {ListItem} from 'react-native-elements';
-import {Ionicons} from "@expo/vector-icons";
+import {Ionicons, MaterialCommunityIcons, MaterialIcons} from "@expo/vector-icons";
 import getDirections from 'react-native-google-maps-directions';
 import {headerTitle, closeButton} from "../../navigation/HeaderComponents";
 import {colors} from "../../../styles/index.style";
@@ -305,14 +305,24 @@ class OtherGameInvitation extends Component {
                     subtitle={item.subtitle}
                     leftAvatar={
                         <View style={{width: 25}}>
-                            <Ionicons name={item.icon} size={27} />
+                            <MaterialCommunityIcons
+                                name={item.icon}
+                                size={27}
+                                color={colors.redColor}
+                            />
                         </View>
                     }
                     containerStyle={{
                         backgroundColor: colors.lightRedColor,
                         minHeight: 60,
                     }}
-                    chevron={true}
+                    rightIcon={
+                        <MaterialIcons
+                            name={'keyboard-arrow-right'}
+                            size={25}
+                            color={colors.redColor}
+                        />
+                    }
                     onPress={() => this.onLocalPress()}
                 />
             );
@@ -359,7 +369,7 @@ class OtherGameInvitation extends Component {
                 this.state.game.duration + ' min',
         }, {
             name: 'Local',
-            icon: 'md-pin',
+            icon: 'google-maps',
             subtitle: this.state.game.place ? this.state.game.place[1] : 'Nenhum local atribuído',
         }, {
             name: 'Treinadores',
