@@ -44,10 +44,8 @@ const styles = StyleSheet.create({
     athleteContainer: {
         backgroundColor: '#fff',
         paddingVertical: 15,
-        marginBottom: 20,
         justifyContent: 'center',
         alignItems: 'center',
-        //shadow
         shadowColor: "#000",
         shadowOffset: {
             width: 0,

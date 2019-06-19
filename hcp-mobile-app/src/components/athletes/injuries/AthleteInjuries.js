@@ -1,12 +1,9 @@
 import React, {Component} from 'react';
 
-import {FlatList, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
-
+import {FlatList, StyleSheet, Text, View, ScrollView} from 'react-native';
+import {Card} from "react-native-paper";
 import {connect} from 'react-redux';
-import {Ionicons} from "@expo/vector-icons/build/Icons";
 import {colors} from "../../../styles/index.style";
-import {ListItem} from "react-native-elements/src/index";
-import CustomText from "../../CustomText";
 import _ from 'lodash';
 import AthleteInjuriesHeader from "./AthleteInjuriesHeader";
 import {headerTitle, closeButton} from "../../navigation/HeaderComponents";
@@ -141,133 +138,127 @@ class AthleteInjuries extends Component {
     };
 
     /**
-     * PureComponent used for rendering items of FlatList.
+     * PureComponent used for rendering items of ScrollView.
      * @param item
-     * @param index
      * @returns {*}
      */
-    renderItem = ({item, index}) => {
-
-        let icon;
-        if (this.state.type === 'Em diagnóstico')
-            icon = 'md-eye';
-        else if (this.state.type === 'Em tratamento')
-            icon = 'md-hand';
-        else
-            icon = 'md-done-all';
-
+    renderItem = (item) => {
         return (
-            <ListItem
-                title={(item.occurredIn !== 'outro' && item.occurredIn !== false) ?
-                    'Lesão durante um ' + item.occurredIn :
-                    'Lesão'
-                }
-                subtitle={
-                    <View  style={{flex: 1, flexDirection: 'column'}}>
-                        <Text style={{color: colors.darkGrayColor}}>
-                            {'• Ocorreu a:  ' + item.occurredInDate}
-                        </Text>
-                        {(this.state.type === 'Em tratamento' || this.state.type === 'Tratadas') &&
-                            <Text style={{color: colors.darkGrayColor}}>
-                                {'• Data de diagnóstico:  ' + item.diagnostic_date}
-                            </Text>
-                        }
-                        {(this.state.type === 'Tratadas') &&
-                            <Text style={{color: colors.darkGrayColor}}>
-                                {'• Data de conclusão:  ' + item.finishDate}
-                            </Text>
-                        }
-                        {(item.training !== false) &&
-                            <Text style={{color: colors.darkGrayColor}}>
-                                {'• Treino:  \n' + item.training[1]}
-                            </Text>
-                        }
-                        {(item.game !== false) &&
-                            <Text style={{color: colors.darkGrayColor}}>
-                                {'• Jogo:  \n' + item.game[1]}
-                            </Text>
-                        }
-                        {(this.state.type === 'Em diagnóstico' || this.state.type === 'Em tratamento') &&
-                            <Text style={{color: colors.darkGrayColor}}>
-                                {(item.observations !== false) ?
-                                    '• Observações:  \n' + item.observations :
-                                    '• Observações:  não definido'
-                                }
-                            </Text>
-                        }
-                        {(this.state.type === 'Em tratamento' || this.state.type === 'Tratadas') &&
-                            <Text numberOfLines={1} ellipsizeMode='tail' style={{color: colors.darkGrayColor}}>
-                            {(item.injuryType !== false) ?
-                                '• Tipo de lesão:  ' + item.injuryType[1] :
-                                '• Tipo de lesão:  não definido'
-                            }
-                            </Text>
-                        }
-                        {(this.state.type === 'Em tratamento' || this.state.type === 'Tratadas') &&
-                            <Text style={{color: colors.darkGrayColor}}>
-                            {(item.diagnostic !== false) ?
-                                '• Diagnóstico:  \n' + item.diagnostic :
-                                '• Diagnóstico:  não definido'
-                            }
-                            </Text>
-                        }
+            <View key={item.id + item.state} style={{maginHorizontal: 10, marginTop: 10}}>
+            <Card elevation={6}>
+                <Card.Title
+                    title={(item.occurredIn !== 'outro' && item.occurredIn !== false) ?
+                        'Lesão durante um ' + item.occurredIn :
+                        'Lesão'
+                    }
+                />
+                <Card.Content>
+                    <View>
+                        <Text style={{fontSize: 15}}>Ocorreu a:</Text>
+                        <View style={{
+                            borderRadius: 5,
+                            justifyContent: 'center'
+                        }}>
+                            <Text style={{color: colors.darkGrayColor, fontSize: 13}}>{item.occurredInDate}</Text>
+                        </View>
                     </View>
-                }
-                leftAvatar={
-                    <View style={{
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        height: 30,
-                        width: 30
-                    }}>
-                        <Ionicons name={icon} size={27}/>
-                    </View>
-                }
-                //chevron={true}
-                onPress={() => {
-
-                    if(this.props.navigation.state.routeName === 'ProfileInjuriesScreen') {
-
-                        this.props.navigation.navigate(
-                            'ProfileInjuryScreen',
-                            {
-                                athleteId: this.state.athleteId,
-                                athleteName: this.state.athleteName,
-                                athleteImage: this.state.athleteImage,
-                                type: this.state.type,
-                                injury: item
-                            }
-                        );
+                    {(this.state.type === 'Em tratamento' || this.state.type === 'Tratadas') &&
+                        <View>
+                            <Text style={{fontSize: 15}}>Data de diagnóstico:</Text>
+                            <View style={{
+                                borderRadius: 5,
+                                justifyContent: 'center'
+                            }}>
+                                <Text style={{color: colors.darkGrayColor, fontSize: 13}}>{item.diagnostic_date}</Text>
+                            </View>
+                        </View>
                     }
-                    else if(this.props.navigation.state.routeName === 'AthleteInjuriesScreen') {
-
-                        this.props.navigation.navigate(
-                            'AthleteInjuryScreen',
-                            {
-                                athleteId: this.state.athleteId,
-                                athleteName: this.state.athleteName,
-                                athleteImage: this.state.athleteImage,
-                                type: this.state.type,
-                                injury: item
-                            }
-                        );
+                    {(this.state.type === 'Tratadas') &&
+                        <View>
+                            <Text style={{fontSize: 15}}>Data de conclusão:</Text>
+                            <View style={{
+                                borderRadius: 5,
+                                justifyContent: 'center'
+                            }}>
+                                <Text style={{color: colors.darkGrayColor, fontSize: 13}}>{item.finishDate}</Text>
+                            </View>
+                        </View>
                     }
-                    else {
-                        this.props.navigation.navigate(
-                            'ChildInjuryScreen',
-                            {
-                                athleteId: this.state.athleteId,
-                                athleteName: this.state.athleteName,
-                                athleteImage: this.state.athleteImage,
-                                type: this.state.type,
-                                injury: item
-                            }
-                        );
+                    {(item.training !== false) &&
+                        <View>
+                            <Text style={{fontSize: 15}}>Treino:</Text>
+                            <View style={{
+                                borderRadius: 5,
+                                justifyContent: 'center'
+                            }}>
+                                <Text style={{color: colors.darkGrayColor, fontSize: 13}}>{item.training[1]}</Text>
+                            </View>
+                        </View>
                     }
-                }}
-            />
-        );
-    };
+                    {(item.game !== false) &&
+                        <View>
+                            <Text style={{fontSize: 15}}>Jogo:</Text>
+                            <View style={{
+                                borderRadius: 5,
+                                justifyContent: 'center'
+                            }}>
+                                <Text style={{color: colors.darkGrayColor, fontSize: 13}}>{item.game[1]}</Text>
+                            </View>
+                        </View>
+                    }
+                    {(this.state.type === 'Em diagnóstico' || this.state.type === 'Em tratamento') &&
+                        <View>
+                            <Text style={{fontSize: 15}}>Observações:</Text>
+                            <View style={{
+                                borderRadius: 5,
+                                justifyContent: 'center'
+                            }}>
+                                <Text style={{color: colors.darkGrayColor, fontSize: 13}}>
+                                    {(item.observations !== false) ?
+                                        item.observations :
+                                        'não definido'
+                                    }
+                                </Text>
+                            </View>
+                        </View>
+                    }
+                    {(this.state.type === 'Em tratamento' || this.state.type === 'Tratadas') &&
+                        <View>
+                            <Text style={{fontSize: 15}}>Tipo de lesão:</Text>
+                            <View style={{
+                                borderRadius: 5,
+                                justifyContent: 'center'
+                            }}>
+                                <Text style={{color: colors.darkGrayColor, fontSize: 13}}>
+                                    {(item.injuryType !== false) ?
+                                        item.injuryType[1] :
+                                        'não definido'
+                                    }
+                                </Text>
+                            </View>
+                        </View>
+                    }
+                    {(this.state.type === 'Em tratamento' || this.state.type === 'Tratadas') &&
+                        <View>
+                            <Text style={{fontSize: 15}}>Diagnóstico:</Text>
+                            <View style={{
+                                borderRadius: 5,
+                                justifyContent: 'center'
+                            }}>
+                                <Text style={{color: colors.darkGrayColor, fontSize: 13}}>
+                                    {(item.diagnostic !== false) ?
+                                        item.diagnostic :
+                                        'não definido'
+                                    }
+                                </Text>
+                            </View>
+                        </View>
+                    }
+                </Card.Content>
+            </Card>
+            </View>
+        )
+    }
 
     render() {
 
@@ -277,13 +268,13 @@ class AthleteInjuries extends Component {
                     athleteImage={this.state.athleteImage}
                     athleteName={this.state.athleteName}
                 />
-                <FlatList
-                    keyExtractor={item => item.id + item.state}
-                    data={this.state.injuries}
-                    renderItem={this.renderItem}
+                <ScrollView 
+                    contentContainerStyle={{paddingHorizontal: 10, paddingBottom: 20}}
                     refreshing={this.state.isRefreshing}
                     onRefresh={this.handleRefresh}
-                />
+                >
+                    {this.state.injuries.map(item => this.renderItem(item))}
+                </ScrollView>
             </View>
         );
     }
