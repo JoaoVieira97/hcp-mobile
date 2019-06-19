@@ -310,6 +310,7 @@ class AthleteInjuriesTypes extends Component {
                     athleteName={this.state.athleteName}
                 />
                 <FlatList
+                    style={{marginTop: 20}}
                     keyExtractor={item => item.name}
                     data={list}
                     renderItem={this.renderItem}
