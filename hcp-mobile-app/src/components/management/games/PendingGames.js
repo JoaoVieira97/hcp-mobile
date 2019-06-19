@@ -73,7 +73,7 @@ class PendingGames extends Component {
                 'local', 'escalao', 'duracao',
                 'convocatorias','presencas',
                 'treinador', 'seccionistas',
-                'equipa_adversaria', 'competicao', 'state'
+                'equipa_adversaria', 'competicao', 'state', 'antecedencia'
             ],
             limit: limit,
             order: 'display_start DESC'
@@ -124,6 +124,8 @@ class PendingGames extends Component {
                     hour: date.hour,
                     opponent: item.equipa_adversaria ? item.equipa_adversaria[1] : 'Não definido',
                     competition: item.competicao ? (item.competicao[1].split('('))[0] : 'Não definida',
+                    antecedence: !item.antecedencia ? 'Não definida' :
+                                    item.antecedencia === 1 ? item.antecedencia + ' hora' : item.antecedencia + ' horas',
                     athleteIds : item.atletas,
                     invitationIds: item.convocatorias,
                     availabilityIds: item.presencas,

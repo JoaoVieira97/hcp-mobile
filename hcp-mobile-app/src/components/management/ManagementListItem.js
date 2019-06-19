@@ -25,6 +25,25 @@ export default class ManagementListItem extends PureComponent {
      * @returns {*}
      */
     render() {
+
+
+        let duration_antecedence;
+
+        if(this.props.titleType === 'Treino ') {
+            duration_antecedence = (
+                <Text style={{color: colors.darkGrayColor}}>
+                    {'Duração: ' + this.props.item.duration + ' min'}
+                </Text>
+            )
+        }
+        else {
+            duration_antecedence = (
+                <Text style={{color: colors.darkGrayColor}}>
+                    {'Antecedência: ' + this.props.item.antecedence}
+                </Text>
+            )
+        }
+
         return (
             <ListItem
                 title={(
@@ -42,9 +61,7 @@ export default class ManagementListItem extends PureComponent {
                         <Text style={{color: colors.darkGrayColor}}>
                             {'Início: ' + this.props.item.hour}
                         </Text>
-                        <Text style={{color: colors.darkGrayColor}}>
-                            {'Duração: ' + this.props.item.duration + ' min'}
-                        </Text>
+                        {duration_antecedence}
                         <Text numberOfLines={1} ellipsizeMode='tail' style={{color: colors.darkGrayColor}}>
                             {
                                 this.props.item.local ?

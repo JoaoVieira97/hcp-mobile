@@ -487,6 +487,10 @@ class PendingGame extends Component {
                 this.state.game.date + '  às  ' +
                 this.state.game.hour + '\n' +
                 this.state.game.duration + ' min',
+        },{
+            name: 'Antecedência',
+            icon: 'ios-alarm',
+            subtitle: this.state.game.antecedence,
         }, {
             name: 'Local',
             icon: 'google-maps',

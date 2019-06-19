@@ -370,7 +370,7 @@ class OtherGameInvitation extends Component {
         },{
             name: 'Antecedência',
             icon: 'ios-alarm',
-            subtitle: this.state.game.antecedence + ' horas',
+            subtitle: this.state.game.antecedence,
         },{
             name: 'Local',
             icon: 'google-maps',
