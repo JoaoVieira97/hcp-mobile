@@ -51,7 +51,6 @@ import ChildesScreen from "../father/ChildesScreen";
 import ChildScreen from "../father/ChildScreen";
 import AthleteInjuriesTypes from "../athletes/injuries/AthleteInjuriesTypes";
 import AthleteInjuries from "../athletes/injuries/AthleteInjuries";
-import AthleteInjury from "../athletes/injuries/AthleteInjury";
 import OpenedGames from "../management/games/OpenedGames";
 import OpenedGame from "../management/games/OpenedGame";
 import PendingGames from "../management/games/PendingGames";
@@ -334,8 +333,7 @@ const AthletesStackNavigator = createStackNavigator({
     AthletesScreen: {screen: AthletesScreen},
     AthleteScreen: {screen: AthleteScreen},
     AthleteInjuriesTypesScreen: {screen: AthleteInjuriesTypes},
-    AthleteInjuriesScreen:  {screen: AthleteInjuries},
-    AthleteInjuryScreen: {screen: AthleteInjury}
+    AthleteInjuriesScreen:  {screen: AthleteInjuries}
 }, {
     initialRouteName: 'EchelonsScreen',
     defaultNavigationOptions: ({navigation}) => {
@@ -352,8 +350,7 @@ const ProfileStackNavigator = createStackNavigator({
     ProfileScreen: {screen: ProfileScreen},
     ResetPassword: {screen: ResetPassword},
     ProfileInjuriesTypesScreen: {screen: AthleteInjuriesTypes},
-    ProfileInjuriesScreen:  {screen: AthleteInjuries},
-    ProfileInjuryScreen: {screen: AthleteInjury}
+    ProfileInjuriesScreen:  {screen: AthleteInjuries}
 }, {
     initialRouteName: 'ProfileScreen',
     defaultNavigationOptions: ({navigation}) => {
@@ -410,8 +407,7 @@ const ChildrenStackNavigator = createStackNavigator({
     OpenedGameInvitation: {screen: OpenedGameInvitation},
     OtherGameInvitation: {screen: OtherGameInvitation},
     ChildInjuriesTypesScreen: {screen: AthleteInjuriesTypes},
-    ChildInjuriesScreen:  {screen: AthleteInjuries},
-    ChildInjuryScreen: {screen: AthleteInjury},
+    ChildInjuriesScreen:  {screen: AthleteInjuries}
 }, {
     initialRouteName: 'ChildesScreen',
     defaultNavigationOptions: ({navigation}) => {
