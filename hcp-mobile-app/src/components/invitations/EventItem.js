@@ -68,7 +68,7 @@ export default class EventItem extends PureComponent {
         else {
             duration_antecedence = (
                 <Text style={{color: colors.darkGrayColor}}>
-                    {'Antecedência: ' + event.antecedence + ' h'}
+                    {'Antecedência: ' + event.antecedence}
                 </Text>
             )
         }

@@ -95,7 +95,7 @@ class GameInvitations extends Component {
             };
 
             const response = await this.props.odoo.search_read('ges.jogo', params);
-            
+
             if (response.success && response.data.length > 0) {
 
                 let games = [];
@@ -160,7 +160,8 @@ class GameInvitations extends Component {
                         state: item.state,
                         opponent: item.equipa_adversaria ? item.equipa_adversaria[1] : 'Não definido',
                         competition: item.competicao ? (item.competicao[1].split('('))[0] : 'Não definida',
-                        antecedence: item.antecedencia ? item.antecedencia : 'Não definida',
+                        antecedence: !item.antecedencia ? 'Não definida' :
+                                        item.antecedencia === 1 ? item.antecedencia + ' hora' : item.antecedencia + ' horas',
                         athleteIds: item.atletas,
                         invitationIds: item.convocatorias,
                         coachIds: item.treinador,
