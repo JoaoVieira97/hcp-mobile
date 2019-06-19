@@ -30,9 +30,14 @@
       "package": "com.hcp.hcpapp",
       "icon": "./assets/logo.png",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/logo.png",
+        "foregroundImage": "./assets/mobile_logo.png",
         "backgroundColor": "#dbdbdb"
-      }
+      },
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "CAMERA",
+        "VIBRATE"
+      ]
     },
     "notification":{
       "icon": "./assets/logo.png"
