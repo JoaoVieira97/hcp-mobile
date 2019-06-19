@@ -367,7 +367,11 @@ class OtherGameInvitation extends Component {
                 this.state.game.date + '  às  ' +
                 this.state.game.hours + '\n' +
                 this.state.game.duration + ' min',
-        }, {
+        },{
+            name: 'Antecedência',
+            icon: 'ios-alarm',
+            subtitle: this.state.game.antecedence + ' horas',
+        },{
             name: 'Local',
             icon: 'google-maps',
             subtitle: this.state.game.place ? this.state.game.place[1] : 'Nenhum local atribuído',

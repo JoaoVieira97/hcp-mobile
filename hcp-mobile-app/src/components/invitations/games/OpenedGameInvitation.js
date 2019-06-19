@@ -505,13 +505,17 @@ class OpenedGameInvitation extends Component {
             name: 'Escalão e Adversário',
             icon: 'md-shirt',
                 subtitle: this.state.game.echelon[1] + '\n' + this.state.game.opponent,
-        }, {
+        },{
             name: 'Início e Duração',
             icon: 'md-time',
             subtitle:
                 this.state.game.date + '  às  ' +
                 this.state.game.hours + '\n' +
                 this.state.game.duration + ' min',
+        },{
+            name: 'Antecedência',
+            icon: 'ios-alarm',
+            subtitle: this.state.game.antecedence + ' horas',
         }, {
             name: 'Local',
             icon: 'google-maps',
