@@ -123,8 +123,6 @@ class Jogo(models.Model):
                         'title': 'Nova convocatória',
                         'body': msg
                     })
-
-        #print(notifications)
         
         send_notifications.send_notifications(notifications)
 		

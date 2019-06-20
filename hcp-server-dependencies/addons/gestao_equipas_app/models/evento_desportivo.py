@@ -58,8 +58,6 @@ class Evento_Desportivo(models.Model):
                         'title': titulo,
                         'body': nome + ' estará ' + disponibilidade + ' para o ' + nome_evento + ' de dia ' + evento_data + ' às ' + evento_horas + '.'
                     })
-
-            #print(notifications)
             
             send_notifications.send_notifications(notifications)
 

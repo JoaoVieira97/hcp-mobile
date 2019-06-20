@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 from odoo import models, fields, api
-from datetime import timedelta, date, datetime
 
 class Token(models.Model):
     _name = 'ges.token'
