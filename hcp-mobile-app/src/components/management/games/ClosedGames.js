@@ -6,6 +6,7 @@ import {colors} from "../../../styles/index.style";
 import ManagementListItem from "../ManagementListItem";
 import {headerTitle, closeButton} from "../../navigation/HeaderComponents";
 import moment from 'moment';
+import FabButton from "../FabButton";
 
 
 class ClosedGames extends Component {
@@ -19,6 +20,7 @@ class ClosedGames extends Component {
             isRefreshing: false,
             isFetching: false,
             gamesList: [],
+            showFab: false,
         };
     }
 
@@ -29,7 +31,7 @@ class ClosedGames extends Component {
      */
     static navigationOptions = ({navigation}) => ({
         headerTitle: headerTitle(
-            '#ffffff', 'CONVOCATÓRIAS FECHADAS'
+            '#ffffff', 'JOGOS FECHADOS'
         ),
         headerLeft: closeButton(
             '#ffffff', navigation
@@ -213,18 +215,39 @@ class ClosedGames extends Component {
         );
     };
 
+    /**
+     * Check if we need to show the fab.
+     * @param event
+     */
+    handleScroll = (event) => {
+
+        if (event.nativeEvent.contentOffset.y > 250) {
+            this.setState({showFab: true});
+        }
+        else
+            this.setState({showFab: false});
+    };
+
     render() {
         return (
-            <FlatList
-                keyExtractor={item => item.id.toString()}
-                data={this.state.gamesList}
-                renderItem={this.renderItem}
-                refreshing={this.state.isRefreshing}
-                onRefresh={this.handleRefresh}
-                onEndReached={this.handleMoreData}
-                onEndReachedThreshold={0.1}
-                ListFooterComponent={this.renderFooter.bind(this)}
-            />
+            <View>
+                <FlatList
+                    ref={(ref) => { this.flatListRef = ref; }}
+                    onScroll={this.handleScroll}
+                    keyExtractor={item => item.id.toString()}
+                    data={this.state.gamesList}
+                    renderItem={this.renderItem}
+                    refreshing={this.state.isRefreshing}
+                    onRefresh={this.handleRefresh}
+                    onEndReached={this.handleMoreData}
+                    onEndReachedThreshold={0.1}
+                    ListFooterComponent={this.renderFooter.bind(this)}
+                />
+                {
+                    this.state.showFab &&
+                    <FabButton flatListRef={this.flatListRef}/>
+                }
+            </View>
         );
     }
 }

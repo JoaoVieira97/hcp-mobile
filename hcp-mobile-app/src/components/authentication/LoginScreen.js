@@ -118,15 +118,25 @@ class LoginScreen extends React.Component {
                     this.props.navigation.navigate(stackName);
                 }
                 else {
-                    Alert.alert("Erro","Por favor, verifique com o administrador os acessos à aplicação.");
+                    Alert.alert(
+                        "Erro de autenticação",
+                        "Por favor, verifique com o administrador os acessos à aplicação."
+                    );
+                    await AsyncStorage.clear();
                 }
             }
             else if(isSuccess === "fail") {
-                Alert.alert("Erro","As credenciais estão erradas!");
+                Alert.alert(
+                    "Erro de autenticação",
+                    "As suas credenciais estão erradas!"
+                );
                 await AsyncStorage.clear();
             }
             else {
-                Alert.alert("Erro", "A conexão ao servidor foi interrompida.");
+                Alert.alert(
+                    "Erro de conexão",
+                    "Não é possível estabelecer uma conexão com o servidor."
+                );
                 await AsyncStorage.clear();
             }
         }

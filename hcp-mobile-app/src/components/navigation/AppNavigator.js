@@ -73,6 +73,7 @@ import PendingGame from "../management/games/PendingGame";
 import ClosedGames from "../management/games/ClosedGames";
 import ClosedGame from "../management/games/ClosedGame";
 import {linearGradientHeader, headerTitle, openDrawerButton} from "./HeaderComponents";
+import NewOrEditGame from "../management/games/NewOrEditGame";
 
 
 
@@ -316,6 +317,7 @@ const ManagementStackNavigator = createStackNavigator({
     PendingGame: {screen: PendingGame},
     ClosedGames: {screen: ClosedGames},
     ClosedGame: {screen: ClosedGame},
+    NewOrEditGame: {screen: NewOrEditGame},
     // all
     ChangeAthletesAvailabilities: {screen: ChangeAthletesAvailabilities},
     ChangeAthletesPresences: {screen: ChangeAthletesPresences},

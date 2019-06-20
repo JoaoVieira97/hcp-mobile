@@ -95,6 +95,11 @@ class HomeScreen extends React.Component {
 
                 //await this.setState({isLoading: true});
 
+                // change user image if he changed
+                this.props.navigation.setParams({
+                    userAvatar: this.props.user.image
+                });
+
                 if(await this.fetchOwnEvents() === false)
                     await this.fetchOtherEvents();
 

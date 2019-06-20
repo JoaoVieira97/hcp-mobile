@@ -4,9 +4,10 @@ import {View} from "react-native-animatable";
 import {Alert, AsyncStorage, Image, StyleSheet, ActivityIndicator, Dimensions, BackHandler} from "react-native";
 import {colors} from "../../styles/index.style";
 import CustomText from "../CustomText";
+import {connect} from "react-redux";
 
 
-export default class AuthenticationLoading extends React.Component {
+class AuthenticationLoading extends React.Component {
 
     constructor(props) {
         super(props);
@@ -27,21 +28,33 @@ export default class AuthenticationLoading extends React.Component {
             const isSuccess = await auth.userLogin(isAuthenticated);
 
             if(isSuccess === "success") {
-                const stackName = await Authentication.getUserDrawerNavigator();
-                this.props.navigation.navigate(stackName);
+
+                // if user has a valid groups
+                if(this.props.user.groups.length > 0) {
+                    const stackName = await Authentication.getUserDrawerNavigator();
+                    this.props.navigation.navigate(stackName);
+                }
+                else {
+                    Alert.alert(
+                        "Erro de autenticação",
+                        "Por favor, verifique com o administrador os acessos à aplicação."
+                    );
+                    await AsyncStorage.clear();
+                    this.props.navigation.navigate('Authentication');
+                }
             }
             else if(isSuccess === "fail") {
 
                 Alert.alert(
-                    "Erro",
-                    "Ocorreu um erro durante o arranque da aplicação. Por favor, efetue login novamente."
+                    "Erro de autenticação",
+                    "A sua autenticação já não é válida. Por favor, efetue login novamente."
                 );
                 await AsyncStorage.clear();
                 this.props.navigation.navigate('Authentication');
             }
             else {
                 Alert.alert(
-                    "Erro",
+                    "Erro de conexão",
                     "Não é possível estabelecer uma conexão com o servidor.",
                     [
                         {
@@ -114,3 +127,9 @@ const styles = StyleSheet.create({
         letterSpacing: 3
     },
 });
+
+const mapStateToProps = state => ({user: state.user});
+
+const mapDispatchToProps = dispatch => ({});
+
+export default connect(mapStateToProps, mapDispatchToProps)(AuthenticationLoading);

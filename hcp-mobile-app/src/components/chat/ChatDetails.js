@@ -118,8 +118,6 @@ class ChatDetails extends Component {
 
         if (!this.state.isComplete && !this.state.loading){
 
-            console.log('fetching...');
-
             await this.setState({loading: true});
 
             const params = {
@@ -213,9 +211,9 @@ class ChatDetails extends Component {
             <View style={styles.container}>
                 <Loader isLoading={this.state.isLoading}/>
                 <Animatable.View animation={"fadeIn"}>
-                    <Card elevation={6}>
+                    <Card style={{margin: 20}} elevation={6}>
                         <Card.Title
-                            title={'   ' + this.state.channel.name}
+                            title={'  ' + this.state.channel.name}
                             subtitle={(this.state.channel.type === 'channel') ?
                                 '    Canal de conversa de grupo' :
                                 '    Canal de mensagens diretas'
@@ -245,7 +243,7 @@ class ChatDetails extends Component {
                             </View>
                         </Card.Content>
                     </Card>
-                    <View style={{marginTop: 10}}>
+                    <View>
                         <View style={styles.sectionHeader}>
                             <Text style={styles.sectionText}>
                                 {'Utilizadores (' + this.state.partner_ids.length + ')'}
@@ -267,8 +265,7 @@ class ChatDetails extends Component {
 
 const styles = StyleSheet.create({
     container: {
-        flex: 1,
-        padding: 20,
+        flex: 1
     },
     sectionHeader: {
         justifyContent: 'center',
