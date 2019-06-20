@@ -39,7 +39,8 @@ export async function fetchAllCoaches(odoo) {
         return response.data.map(item => ({
             id: item.id,
             name: item.display_name,
-            image: item.image
+            image: item.image,
+            visible: true
         }));
     }
 
@@ -63,7 +64,8 @@ export async function fetchAllSecretaries(odoo){
         return response.data.map(item => ({
             id: item.id,
             name: item.display_name,
-            image: item.image
+            image: item.image,
+            visible: true
         }));
     }
 
@@ -94,24 +96,107 @@ export async function fetchAllEchelons(odoo){
 
 /**
  * Fetch all athletes.
- * @returns {Promise<array>}
+ * @returns {Promise<object>}
  */
 export async function fetchAllAthletes(odoo){
 
     const params = {
-        fields: [ 'id', 'display_name', 'image', 'numerocamisola'],
-        order: 'id ASC',
+        fields: [ 'id', 'display_name', 'image', 'numerocamisola', 'escalao', 'posicao'],
+        order: 'numerocamisola ASC',
     };
 
     const response = await odoo.search_read('ges.atleta', params);
     if(response.success && response.data.length > 0){
 
+        let athletesByEchelon = {};
+
+        for (let i = 0; i < response.data.length; i++) {
+
+            let item = response.data[i];
+            if (!athletesByEchelon[item.escalao[1]]) {
+                athletesByEchelon[item.escalao[1]] = [];
+            }
+
+            athletesByEchelon[item.escalao[1]].push({
+                id: item.id,
+                name: item.display_name,
+                image: item.image,
+                squadNumber: item.numerocamisola,
+                position: item.posicao,
+                visible: true
+            });
+        }
+
+        return athletesByEchelon;
+    }
+    return null;
+}
+
+/**
+ * Fetch all opponent teams.
+ * @returns {Promise<array>}
+ */
+export async function fetchAllTeams(odoo){
+
+    const params = {
+        fields: [ 'id', 'nome'],
+        order: 'nome ASC',
+    };
+
+    const response = await odoo.search_read('ges.equipa_adversaria', params);
+    if(response.success && response.data.length > 0){
+
         return response.data.map(item => ({
             id: item.id,
-            name: item.display_name,
-            image: item.image,
-            squadNumber: item.numerocamisola,
+            name: item.nome
         }));
     }
+
+    return [];
+}
+
+/**
+ * Fetch all competitions.
+ * @returns {Promise<array>}
+ */
+export async function fetchAllCompetitions(odoo){
+
+    const params = {
+        fields: [ 'id', 'designacao'],
+        order: 'designacao ASC',
+    };
+
+    const response = await odoo.search_read('ges.competicao', params);
+    if(response.success && response.data.length > 0){
+
+        return response.data.map(item => ({
+            id: item.id,
+            name: item.designacao
+        }));
+    }
+
+    return [];
+}
+
+/**
+ * Fetch all seasons.
+ * @returns {Promise<array>}
+ */
+export async function fetchAllSeasons(odoo) {
+
+    const params = {
+        fields: [ 'id', 'name'],
+        order: 'name ASC',
+    };
+
+    const response = await odoo.search_read('ges.epoca', params);
+    if(response.success && response.data.length > 0){
+
+        return response.data.map(item => ({
+            id: item.id,
+            name: item.name
+        }));
+    }
+
     return [];
 }

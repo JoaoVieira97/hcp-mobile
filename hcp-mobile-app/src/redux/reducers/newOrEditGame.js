@@ -1,35 +1,28 @@
 const INITIAL_STATE = {
 
-    // step information
-    stepID: 0,
-    totalSteps: 5,
-    readySteps: [false, false, false, false, false],
-
     // all information
     allLocals: [],
     allCoaches: [],
     allSecretaries: [],
     allEchelons: [],
-    allAthletes: [],
+    allAthletes: {},
     allTeams: [],
     allCompetitions: [],
     allSeasons: [],
 
     // game raw information
-    rawStartTime: '',
-    rawEndTime: '',
-    rawHoursNotice: 0, // horas de antecedencia
+    rawStartTime: "Selecione o horário de início...",
+    rawEndTime: "Selecione o horário de fim...",
+    rawHoursNotice: 1.5, // horas de antecedencia
     rawLocalID: undefined,
-    rawHomeAdvantage: false, // em casa ou fora
+    rawHomeAdvantage: 's', // em casa ou fora
     rawEchelonID: undefined,
     rawOpponentID: undefined,
+    rawCompetitionID: undefined,
+    rawSeasonID: undefined,
     rawCoachesIDs: [],
     rawSecretariesIDs: [],
     rawAthletesIDs: [],
-
-    // game temp information
-    tempStartTime: '',
-    tempEndTime: '',
 };
 
 
@@ -40,34 +33,6 @@ export default function newOrEditGameReducer (state = INITIAL_STATE, action) {
         case 'GAME_RESET':
             return {
                 ...INITIAL_STATE
-            };
-
-        case 'GAME_SET_STEP_ID':
-            return {
-                ...state,
-                stepID: action.stepID
-            };
-
-        case 'GAME_SET_STEP_READY':
-            return {
-                ...state,
-                readySteps: state.readySteps.map((item, index) => {
-                    if(index === state.stepID)
-                        return action.ready;
-                    return item;
-                })
-            };
-
-        case 'GAME_INCREASE_STEP':
-            return {
-                ...state,
-                stepID: state.stepID + 1
-            };
-
-        case 'GAME_DECREASE_STEP':
-            return {
-                ...state,
-                stepID: state.stepID - 1
             };
 
         case 'GAME_SET_ALL_INFORMATION':
@@ -81,6 +46,114 @@ export default function newOrEditGameReducer (state = INITIAL_STATE, action) {
                 allTeams: action.allTeams,
                 allCompetitions: action.allCompetitions,
                 allSeasons: action.allSeasons,
+            };
+
+        case 'GAME_SET_COMPETITION':
+            return {
+                ...state,
+                rawCompetitionID: action.id
+            };
+
+        case 'GAME_SET_SEASON':
+            return {
+                ...state,
+                rawSeasonID: action.id
+            };
+
+        case 'GAME_SET_OPPONENT':
+            return {
+                ...state,
+                rawOpponentID: action.id
+            };
+
+        case 'GAME_SET_HOME':
+            return {
+                ...state,
+                rawHomeAdvantage: action.value
+            };
+
+        case 'GAME_SET_LOCAL':
+            return {
+                ...state,
+                rawLocalID: action.id
+            };
+
+        case 'GAME_SET_HOURS_NOTICE':
+            return {
+                ...state,
+                rawHoursNotice: action.hours
+            };
+
+        case 'GAME_SET_START_TIME':
+            return {
+                ...state,
+                rawStartTime: action.startTime
+            };
+
+        case 'GAME_SET_END_TIME':
+            return {
+                ...state,
+                rawEndTime: action.endTime
+            };
+
+        case 'GAME_SET_ALL_COACHES':
+            return {
+                ...state,
+                allCoaches: action.allCoaches
+            };
+
+        case 'GAME_ADD_COACH':
+            return {
+                ...state,
+                allCoaches: state.allCoaches.map(item => {
+                    if (item.id === action.id)
+                        item.visible = false;
+
+                    return item;
+                }),
+                rawCoachesIDs: [...state.rawCoachesIDs, action.id]
+            };
+
+        case 'GAME_REMOVE_COACH':
+            return {
+                ...state,
+                allCoaches: state.allCoaches.map(item => {
+                    if (item.id === action.id)
+                        item.visible = true;
+
+                    return item;
+                }),
+                rawCoachesIDs: state.rawCoachesIDs.filter(item => item !== action.id)
+            };
+
+        case 'GAME_SET_ALL_SECRETARIES':
+            return {
+                ...state,
+                allSecretaries: action.allSecretaries
+            };
+
+        case 'GAME_ADD_SECRETARY':
+            return {
+                ...state,
+                allSecretaries: state.allSecretaries.map(item => {
+                    if (item.id === action.id)
+                        item.visible = false;
+
+                    return item;
+                }),
+                rawSecretariesIDs: [...state.rawSecretariesIDs, action.id]
+            };
+
+        case 'GAME_REMOVE_SECRETARY':
+            return {
+                ...state,
+                allSecretaries: state.allSecretaries.map(item => {
+                    if (item.id === action.id)
+                        item.visible = true;
+
+                    return item;
+                }),
+                rawSecretariesIDs: state.rawSecretariesIDs.filter(item => item !== action.id)
             };
 
         default:

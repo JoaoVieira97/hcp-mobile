@@ -10,18 +10,17 @@ import {
 import {AsyncStorage} from 'react-native';
 import Odoo from "react-native-odoo-promise-based";
 
-/*
 const HOST      =   '89.26.252.108';
 const PORT      =   80;
 const DATABASE  =   'hcp';
 const PROTOCOL  =   'http';
-*/
 
+/*
 const HOST      =   'erp.hcpenafiel.pt';
 const PORT      =   443;
 const DATABASE  =   'hcp-prod';
 const PROTOCOL  =   'https';
-
+ */
 
 export default class Authentication {
 
