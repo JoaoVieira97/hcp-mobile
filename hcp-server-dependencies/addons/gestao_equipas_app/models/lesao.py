@@ -37,8 +37,6 @@ class Lesao(models.Model):
                         'title': 'Lesão registada',
                         'body': 'Foi adicionada uma nova lesão relacionada com ' + atleta.user_id.name + '.'
                     })
-
-        #print(notifications)
         
         send_notifications.send_notifications(notifications)
 
@@ -74,8 +72,6 @@ class Lesao(models.Model):
                         'title': 'Lesão diagnosticada',
                         'body': 'Foi marcada como diagnosticada uma lesão relacionada com ' + atleta.user_id.name + '.'
                     })
-
-        #print(notifications)
         
         send_notifications.send_notifications(notifications)
 
@@ -109,7 +105,5 @@ class Lesao(models.Model):
                         'title': 'Lesão tratada',
                         'body': 'Foi marcada como tratada uma lesão relacionada com ' + atleta.user_id.name + '.'
                     })
-
-        #print(notifications)
         
         send_notifications.send_notifications(notifications)

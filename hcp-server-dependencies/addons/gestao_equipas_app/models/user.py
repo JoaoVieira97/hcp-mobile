@@ -41,15 +41,6 @@ class User(models.Model):
                 })]
             })
 
-        list = []
-        for token in self.tokens:
-            info = {
-                'device': token.device,
-                'token': token.token,
-            }
-            list.append(info)
-        return list
-
     @api.multi
     def remove_token(self, device):
         for token in self.tokens:
