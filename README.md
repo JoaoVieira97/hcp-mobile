@@ -2,7 +2,7 @@
 
 # "Hóquei Clube Penafiel" Mobile Application
 
-Software Labs Project 2019/20, Computer and Software Engineering Course @ University of Minho, Braga - Portugal
+Software Labs Project 2018/19, Computer and Software Engineering Course @ University of Minho, Braga - Portugal
 
 This mobile app is being developed using [React Native](https://facebook.github.io/react-native/) and [Redux](https://redux.js.org/introduction/getting-started).
 
