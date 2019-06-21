@@ -21,6 +21,8 @@ import AthletesGrid from "../AthletesGrid";
 import * as Animatable from "react-native-animatable";
 import {headerTitle, closeButton} from "../../navigation/HeaderComponents";
 import getDirections from 'react-native-google-maps-directions';
+import ConvertTime from "../../ConvertTime";
+import moment from 'moment';
 
 
 
@@ -46,29 +48,44 @@ class OpenedTraining extends React.Component {
      * @param navigation
      * @returns {{headerRight: *, headerLeft: *, headerTitle: *}}
      */
-    static navigationOptions = ({navigation}) => ({
-        headerTitle: headerTitle(
-            '#ffffff', 'TREINO'
-        ),
-        headerLeft: closeButton(
-            '#ffffff', navigation
-        ),
-        headerRight:
-            <TouchableOpacity style={{
-                width:42,
-                height:42,
-                alignItems:'center',
-                justifyContent:'center',
-                marginRight: 10}} onPress = {() => {navigation.navigate('EditOpenedTraining')}
-            }>
-                <Ionicons
-                    name="md-create"
-                    size={25}
-                    color={'#ffffff'} />
-            </TouchableOpacity>
-    });
+    static navigationOptions = ({navigation}) => {
+
+        const { params } = navigation.state;
+
+        return {
+            headerTitle: headerTitle(
+                '#ffffff', 'TREINO'
+            ),
+            headerLeft: closeButton(
+                '#ffffff', navigation
+            ),
+            headerRight:
+                <TouchableOpacity style={{
+                    width:42,
+                    height:42,
+                    alignItems:'center',
+                    justifyContent:'center',
+                    marginRight: 10}} onPress = {() => {
+                    navigation.navigate('NewOrEditTraining', {
+                        trainingID: params.trainingID,
+                        reloadInfo: params.reloadInfo
+                    })
+                }
+                }>
+                    <Ionicons
+                        name="md-create"
+                        size={25}
+                        color={'#ffffff'} />
+                </TouchableOpacity>
+        }
+    };
 
     async componentWillMount() {
+
+        this.props.navigation.setParams({
+            trainingID: this.props.navigation.state.params.training.id,
+            reloadInfo: () => this.reloadInfo()
+        });
 
         await this.setState({
             training: this.props.navigation.state.params.training
@@ -77,8 +94,77 @@ class OpenedTraining extends React.Component {
 
     async componentDidMount() {
 
+        const date = moment().format();
+        await this.setState({date: date});
+
         await this.fetchData();
         await this.setState({isLoading: false});
+    }
+
+    async getTrainingInformation() {
+
+        const params = {
+            ids: [this.state.training.id],
+            fields: [
+                'id', 'start_datetime', 'stop_datetime', 'duracao',
+                'atletas', 'treinador', 'seccionistas',
+                'local', 'escalao', 'convocatorias', 'evento_desportivo'
+            ],
+        };
+
+        const response = await this.props.odoo.get('ges.treino', params);
+        if(response.success && response.data.length > 0) {
+
+            const item = response.data[0];
+            const convertTime = new ConvertTime();
+
+            convertTime.setDate(item.start_datetime);
+            const date = convertTime.getTimeObject();
+
+            /**
+             diff = difference in ms between actual date and training's date
+             oneDay = one day in ms
+             gameDayMidNight = gameDay + '00:00:00' -> To verify Hoje or Amanha
+             twoDaysLimit = actualDate + 2 days + '00:00:00' -> To verify Amanha
+             (se a data do jogo nao atual ultrapassar estes 2 dias de limite, data=Amanha)
+             */
+            const diff = moment(convertTime.getDate()).diff(moment(this.state.date));
+            const oneDay = 24 * 60 * 60 * 1000;
+            const gameDayMidNight = (convertTime.getDate().split('T'))[0] + 'T00:00:00';
+            const twoDaysLimit = (moment(this.state.date).add(2, 'days').format()
+                .split('T'))[0] + 'T00:00:00';
+
+            if(diff >=0){
+                if(diff < oneDay) {
+                    if(moment(this.state.date).isAfter(gameDayMidNight)) date.date = 'Hoje';
+                    else date.date = 'Amanhã';
+                }
+                else if(diff < 2*oneDay && !moment(convertTime.getDate()).isAfter(twoDaysLimit)) {
+                    date.date = 'Amanhã';
+                }
+            }
+
+            const training = {
+                id: item.id,
+                local: item.local,
+                echelon: item.escalao,
+                duration: item.duracao,
+                date: date.date,
+                hour: date.hour,
+                invitationIds: item.convocatorias,
+                athleteIds : item.atletas,
+                coachIds: item.treinador,
+                secretaryIds: item.seccionistas,
+                eventId: item.evento_desportivo[0]
+            };
+
+            await this.setState({training: training});
+        }
+    };
+
+    async reloadInfo() {
+        await this.getTrainingInformation();
+        await this.onRefresh();
     }
 
     /**
