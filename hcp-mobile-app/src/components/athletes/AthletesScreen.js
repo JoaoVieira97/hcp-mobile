@@ -206,15 +206,13 @@ class AthletesScreen extends Component {
                                 color={colors.redColor}
                             />
                         );
-                    /*
                     else return (
                         <MaterialCommunityIcons
-                            name={'human-handsup'}
+                            name={'hockey-sticks'}
                             size={27}
                             color={colors.redColor}
                         />
                     )
-                     */
                 }}
                 leftAvatar={this.leftAvatar(item.image, item.squadNumber.toString())}
                 chevron={true}
