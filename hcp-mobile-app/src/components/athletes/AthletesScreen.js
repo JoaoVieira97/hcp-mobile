@@ -6,6 +6,8 @@ import _ from 'lodash';
 import CustomText from "../CustomText";
 import moment from 'moment';
 import {headerTitle, closeButton} from "../navigation/HeaderComponents";
+import {MaterialCommunityIcons, MaterialIcons} from "@expo/vector-icons";
+import {colors} from "../../styles/index.style";
 
 
 class AthletesScreen extends Component {
@@ -186,17 +188,42 @@ class AthletesScreen extends Component {
         )
     };
 
-    renderItem =  ({item}) => {
+    renderItem =  ({item, index}) => {
+
+        let color = item.position !== 'GR' ?'#fff' : '#efefef';
+        let text = item.position === 'GR' ? item.age + ' | Guarda-Redes' : item.age;
+
         return (
             <ListItem
                 title={item.name}
-                subtitle={item.age}
-                leftElement={this.renderPosition(item)}
+                subtitle={text}
+                leftElement={() => {
+                    if (item.position === 'GR')
+                        return (
+                            <MaterialCommunityIcons
+                                name={'hand'}
+                                size={25}
+                                color={colors.redColor}
+                            />
+                        );
+                    /*
+                    else return (
+                        <MaterialCommunityIcons
+                            name={'human-handsup'}
+                            size={27}
+                            color={colors.redColor}
+                        />
+                    )
+                     */
+                }}
                 leftAvatar={this.leftAvatar(item.image, item.squadNumber.toString())}
                 chevron={true}
                 onPress={() => (
                     this.props.navigation.navigate('AthleteScreen', {athlete: item})
                 )}
+                containerStyle={{
+                    backgroundColor: color
+                }}
             />
         );
     };

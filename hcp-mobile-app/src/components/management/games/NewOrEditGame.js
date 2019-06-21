@@ -34,7 +34,7 @@ class NewOrEditGame extends Component {
             isLoading: true,
             stepID: 0,
             totalSteps: 5,
-            disabledSteps: [true, true, true, true, true],
+            disabledSteps: [true, true, true, false, true],
         }
     }
 
@@ -260,19 +260,22 @@ class NewOrEditGame extends Component {
         return (
             <View style={{flex: 1}}>
                 <Loader isLoading={this.state.isLoading}/>
-                <Wizard
-                    cancel={this.resetData.bind(this)}
-                    totalSteps={this.state.totalSteps}
-                    currentStep={this.state.stepID}
-                    isNextDisabled={this.state.disabledSteps[this.state.stepID]}
-                    onNextHandler={() => this.increaseStep()}
-                    onPreviousHandler={() => this.decreaseStep()}
-                    onSubmitHandler={() => this.onSubmitHandler()}
-                >
-                    {
-                        steps.map(item => item.component)
-                    }
-                </Wizard>
+                {
+                    !this.state.isLoading &&
+                    <Wizard
+                        cancel={this.resetData.bind(this)}
+                        totalSteps={this.state.totalSteps}
+                        currentStep={this.state.stepID}
+                        isNextDisabled={this.state.disabledSteps[this.state.stepID]}
+                        onNextHandler={() => this.increaseStep()}
+                        onPreviousHandler={() => this.decreaseStep()}
+                        onSubmitHandler={() => this.onSubmitHandler()}
+                    >
+                        {
+                            steps.map(item => item.component)
+                        }
+                    </Wizard>
+                }
             </View>
         );
     }

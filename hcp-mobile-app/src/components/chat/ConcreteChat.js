@@ -91,12 +91,16 @@ class ConcreteChat extends Component {
         this.setState({isLoading: false});
 
         this.interval = setInterval( async () => {
-
             await this.getNewMessages();
-
         }, 1500);
 
         this.subscriptions = [
+            this.props.navigation.addListener('willFocus', async () => {
+
+                this.interval = setInterval( async () => {
+                    await this.getNewMessages();
+                }, 1500);
+            }),
             this.props.navigation.addListener('willBlur', () => {
 
                 clearInterval(this.interval);
@@ -106,8 +110,8 @@ class ConcreteChat extends Component {
 
     componentWillUnmount() {
 
-        this.subscriptions.forEach(sub => sub.remove());
         clearInterval(this.interval);
+        this.subscriptions.forEach(sub => sub.remove())
     }
 
     /**

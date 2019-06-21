@@ -84,7 +84,7 @@ class OpenedTraining extends React.Component {
 
         this.props.navigation.setParams({
             trainingID: this.props.navigation.state.params.training.id,
-            reloadInfo: () => this.reloadInfo()
+            reloadInfo: () => this.onRefresh()
         });
 
         await this.setState({
@@ -161,11 +161,6 @@ class OpenedTraining extends React.Component {
             await this.setState({training: training});
         }
     };
-
-    async reloadInfo() {
-        await this.getTrainingInformation();
-        await this.onRefresh();
-    }
 
     /**
      * Fetch all needed data.
@@ -559,6 +554,7 @@ class OpenedTraining extends React.Component {
     onRefresh = async () => {
 
         await this.setState({isRefreshing: true, showMore: false});
+        await this.getTrainingInformation();
         await this.fetchData();
         this.setState({isRefreshing: false});
     };
