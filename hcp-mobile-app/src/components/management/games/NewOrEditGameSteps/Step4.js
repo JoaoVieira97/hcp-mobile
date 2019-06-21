@@ -179,7 +179,7 @@ class Step4 extends Component {
                                         data={this.props.newOrEditGame.rawSecretariesIDs}
                                         renderItem={this.renderItem}
                                         ListEmptyComponent={() => (
-                                            <Text>Nenhum treinador selecionado.</Text>
+                                            <Text>Nenhum seccionista selecionado.</Text>
                                         )}
                                     />
                                 </View>

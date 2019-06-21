@@ -87,7 +87,7 @@ class Step3 extends Component {
         if (coachesFiltered.length > 0) {
             return (
                 <ListItem
-                    title={coachesFiltered[0].name + coachesFiltered[0].name + coachesFiltered[0].name + coachesFiltered[0].name}
+                    title={coachesFiltered[0].name}
                     leftAvatar={() => {
                         if(coachesFiltered[0].image){
                             return (

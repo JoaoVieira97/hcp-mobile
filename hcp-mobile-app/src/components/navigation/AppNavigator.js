@@ -324,7 +324,7 @@ const ManagementStackNavigator = createStackNavigator({
     ChangeLateAthletes: {screen: ChangeLateAthletes},
     RegisterInjury: {screen: RegisterInjury}
 }, {
-    initialRouteName: 'NewOrEditGame',
+    initialRouteName: 'ManagementNavigator',
     defaultNavigationOptions: ({navigation}) => {
         return {
             headerTitle: headerTitle('#fff', 'GESTÃO'),
@@ -593,7 +593,7 @@ const CoachAndSecretaryDrawerNavigator = createDrawerNavigator({
     ChatStack: drawerNavigatorFullStacks['ChatStack']
 }, {
     ...drawerNavigatorDefaultSettings,
-    initialRouteName: 'ManagementStack',
+    initialRouteName: 'HomeStack',
     order: ['HomeStack', 'CalendarStack', 'ManagementStack', 'AthletesStack', 'ProfileStack', 'ChatStack'],
 });
 

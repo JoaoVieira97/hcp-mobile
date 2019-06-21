@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
 import {Alert, TouchableOpacity, View, Text} from 'react-native';
 import {connect} from 'react-redux';
-import {headerTitle} from "../../navigation/HeaderComponents";
+import {headerTitle, closeButton} from "../../navigation/HeaderComponents";
 import {Ionicons} from "@expo/vector-icons";
 import Loader from "../../screens/Loader";
 import {
@@ -43,40 +43,22 @@ class NewOrEditGame extends Component {
         headerTitle: headerTitle(
             '#ffffff', 'CRIAR JOGO'
         ),
-        headerLeft:
-            <TouchableOpacity
-                style={{
-                    width: 42,
-                    height: 42,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    marginLeft: 5
-                }}
-                //onPress = {() => navigation.cancelTraining()}
-            >
-                <Ionicons
-                    name="md-arrow-back"
-                    size={28}
-                    color={'#ffffff'}/>
-            </TouchableOpacity>,
+        headerLeft: closeButton(
+            '#ffffff', navigation
+        )
     });
 
-    async componentDidMount() {
+    componentWillMount() {
 
-        // Define go back function
-        // Used to cancel training
-        this.props.navigation.cancelGame = () => this.cancelGame();
+        this.resetData();
+    }
+
+    async componentDidMount() {
 
         // get all information needed for creating new game
         await this.fetchAllInformation();
         this.setState({isLoading: false});
     }
-
-    cancelGame = () => {
-
-        this.props.navigation.goBack();
-        this.props.resetGame();
-    };
 
     increaseStep = () => {
         this.setState(state => ({stepID: state.stepID + 1}));
@@ -97,6 +79,13 @@ class NewOrEditGame extends Component {
                 })
             })
         );
+    };
+
+    /**
+     * Clean redux store.
+     */
+    resetData = () => {
+        this.props.resetGame();
     };
 
     /**
@@ -165,13 +154,72 @@ class NewOrEditGame extends Component {
                     'Impossível obter algumas informações',
                     error,
                     [
-                        {text: 'Voltar', onPress: () => this.cancelGame()},
+                        {text: 'Voltar', onPress: () => this.resetData()},
                     ],
                     {cancelable: false},
                 );
             });
         }
     };
+
+    /**
+     * When user submit all values
+     * @returns {Promise<void>}
+     */
+    onSubmitHandler = async () => {
+
+        this.setState({isLoading: true});
+
+        const startDate = this.props.newOrEditGame.rawStartTime.toISOString().split('T');
+        const endDate = this.props.newOrEditGame.rawEndTime.toISOString().split('T');
+
+        const newGame = {
+            start: startDate[0] + ' ' + startDate[1].slice(0,8),
+            stop: endDate[0] + ' ' + endDate[1].slice(0,8),
+            antecedencia: this.props.newOrEditGame.rawHoursNotice,
+            competicao: this.props.newOrEditGame.rawCompetitionID,
+            equipa_adversaria: this.props.newOrEditGame.rawOpponentID,
+            epoca: this.props.newOrEditGame.rawSeasonID,
+            em_casa: this.props.newOrEditGame.rawHomeAdvantage,
+            escalao: this.props.newOrEditGame.rawEchelonID,
+            local: this.props.newOrEditGame.rawLocalID,
+            treinador: [[6,0, this.props.newOrEditGame.rawCoachesIDs]],
+            seccionistas: [[6,0, this.props.newOrEditGame.rawSecretariesIDs]],
+            atletas: [[6,0, this.props.newOrEditGame.rawAthletesIDs]],
+        };
+
+        let alertMessage;
+        const response = await this.props.odoo.create('ges.jogo', newGame);
+        console.log();
+        if(response.success) {
+
+            alertMessage = {
+                'title': 'Sucesso',
+                'message': 'O jogo foi criado com sucesso. As pessoas envolvidas serão notificadas.'
+            };
+        }
+        else {
+            alertMessage = {
+                'title': 'Erro',
+                'message': 'Ocorreu um erro ao criar este jogo. Por favor, tente mais tarde.'
+            };
+        }
+
+        await this.setState({isLoading: false});
+
+        Alert.alert(
+            alertMessage.title,
+            alertMessage.message,
+            [
+                {text: 'OK', onPress: () => {
+                        this.resetData();
+                        this.props.navigation.goBack();
+                }},
+            ],
+            {cancelable: false},
+        );
+    };
+
 
     render() {
 
@@ -203,22 +251,26 @@ class NewOrEditGame extends Component {
                     setStepDisabled={(disabled) => this.setStepDisabled(disabled)}
                 />
             )
-        }, {
-            component: (<Step5 key={'step5'}/>)
-        }
-        ];
+        },{
+            component: (
+                <Step5
+                    key={'step5'}
+                    setStepDisabled={(disabled) => this.setStepDisabled(disabled)}
+                />
+            )
+        }];
 
         return (
             <View style={{flex: 1}}>
                 <Loader isLoading={this.state.isLoading}/>
                 <Wizard
-                    cancel={this.cancelGame.bind(this)}
+                    cancel={this.resetData.bind(this)}
                     totalSteps={this.state.totalSteps}
                     currentStep={this.state.stepID}
                     isNextDisabled={this.state.disabledSteps[this.state.stepID]}
                     onNextHandler={() => this.increaseStep()}
                     onPreviousHandler={() => this.decreaseStep()}
-                    onSubmitHandler={() => console.log("Submit")}
+                    onSubmitHandler={() => this.onSubmitHandler()}
                 >
                     {
                         steps.map(item => item.component)

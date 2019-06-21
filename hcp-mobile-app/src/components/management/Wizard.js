@@ -39,7 +39,7 @@ export default class Wizard extends Component {
                             </Button>
                         </View>
                         <View style={{flex: 1}}>
-                            {this.props.totalSteps === this.props.currentStep ? (
+                            {this.props.totalSteps === this.props.currentStep + 1 ? (
                                 <Button
                                     color={colors.redColor}
                                     mode="contained"

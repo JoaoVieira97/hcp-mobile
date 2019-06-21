@@ -119,3 +119,31 @@ export function removeSecretary(id) {
         id: id
     }
 }
+
+export function setEchelon(id) {
+    return {
+        type: 'GAME_SET_ECHELON',
+        id: id
+    }
+}
+
+export function setAthletes(ids) {
+    return {
+        type: 'GAME_SET_ATHLETES',
+        ids: ids
+    }
+}
+
+export function addAthlete(id) {
+    return {
+        type: 'GAME_ADD_ATHLETE',
+        id: id
+    }
+}
+
+export function removeAthlete(id) {
+    return {
+        type: 'GAME_REMOVE_ATHLETE',
+        id: id
+    }
+}

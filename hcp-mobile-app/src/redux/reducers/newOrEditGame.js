@@ -156,6 +156,30 @@ export default function newOrEditGameReducer (state = INITIAL_STATE, action) {
                 rawSecretariesIDs: state.rawSecretariesIDs.filter(item => item !== action.id)
             };
 
+        case 'GAME_SET_ECHELON':
+            return {
+                ...state,
+                rawEchelonID: action.id
+            };
+
+        case 'GAME_SET_ATHLETES':
+            return {
+                ...state,
+                rawAthletesIDs: action.ids
+            };
+
+        case 'GAME_ADD_ATHLETE':
+            return {
+                ...state,
+                rawAthletesIDs: [...state.rawAthletesIDs, action.id]
+            };
+
+        case 'GAME_REMOVE_ATHLETE':
+            return {
+                ...state,
+                rawAthletesIDs: state.rawAthletesIDs.filter(item => item !== action.id)
+            };
+
         default:
             return state;
     }

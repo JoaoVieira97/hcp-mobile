@@ -113,17 +113,21 @@ export async function fetchAllAthletes(odoo){
         for (let i = 0; i < response.data.length; i++) {
 
             let item = response.data[i];
-            if (!athletesByEchelon[item.escalao[1]]) {
-                athletesByEchelon[item.escalao[1]] = [];
+            if (!athletesByEchelon[item.escalao[0]]) {
+                athletesByEchelon[item.escalao[0]] = {
+                    "echelonName": item.escalao[1],
+                    "athletes": []
+                };
             }
 
-            athletesByEchelon[item.escalao[1]].push({
+            athletesByEchelon[item.escalao[0]].athletes.push({
                 id: item.id,
                 name: item.display_name,
                 image: item.image,
                 squadNumber: item.numerocamisola,
                 position: item.posicao,
-                visible: true
+                visible: true,
+                echelon: item.escalao[1]
             });
         }
 
