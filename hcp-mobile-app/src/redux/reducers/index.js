@@ -2,7 +2,7 @@ import {combineReducers} from 'redux';
 
 import odoo from './odoo';
 import user from './user';
-import newTraining from './newTraining';
+import newOrEditTraining from './newOrEditTraining';
 import newOrEditGame from './newOrEditGame';
 
 
@@ -10,6 +10,6 @@ import newOrEditGame from './newOrEditGame';
 export default combineReducers({
     odoo,
     user,
-    newTraining,
+    newOrEditTraining,
     newOrEditGame
 });

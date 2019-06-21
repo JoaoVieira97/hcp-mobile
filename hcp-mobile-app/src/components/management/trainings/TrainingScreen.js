@@ -225,7 +225,7 @@ class TrainingScreen extends Component {
                 icon: 'md-add',
                 subtitle: false,
                 value: -1,
-                onPress: 'NewTraining'
+                onPress: 'NewOrEditTraining'
             }, ...list];
         }
 

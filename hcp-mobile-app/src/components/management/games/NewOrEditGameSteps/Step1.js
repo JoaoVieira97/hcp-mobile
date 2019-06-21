@@ -88,19 +88,22 @@ class Step1 extends Component {
         const competitions = this.props.newOrEditGame.allCompetitions.map(item => ({
             label: item.name,
             value: item.id,
-            key: item.id + item.name
+            key: item.id + item.name,
+            color: '#000'
         }));
 
         const seasons = this.props.newOrEditGame.allSeasons.map(item => ({
             label: item.name,
             value: item.id,
-            key: item.id + item.name
+            key: item.id + item.name,
+            color: '#000'
         }));
 
         const teams = this.props.newOrEditGame.allTeams.map(item => ({
             label: item.name,
             value: item.id,
-            key: item.id + item.name
+            key: item.id + item.name,
+            color: '#000'
         }));
 
 

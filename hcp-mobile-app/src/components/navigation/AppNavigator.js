@@ -32,7 +32,7 @@ import TrainingScreen from "../management/trainings/TrainingScreen";
 import GameScreen from "../management/games/GameScreen";
 import AthletesScreen from "../athletes/AthletesScreen";
 import AthleteScreen from '../athletes/AthleteScreen';
-import NewTraining from '../management/trainings/NewTraining';
+import NewOrEditTraining from '../management/trainings/NewOrEditTraining';
 import OpenedTrainings from "../management/trainings/OpenedTrainings";
 import PendingTrainings from "../management/trainings/PendingTrainings";
 import OpenedTraining from "../management/trainings/OpenedTraining";
@@ -300,7 +300,7 @@ const ManagementNavigator = createMaterialTopTabNavigator({
 const ManagementStackNavigator = createStackNavigator({
     ManagementNavigator: {screen: ManagementNavigator},
     // trainings
-    NewTraining: {screen: NewTraining},
+    NewOrEditTraining: {screen: NewOrEditTraining},
     OpenedTrainings: {screen: OpenedTrainings},
     OpenedTraining: {screen: OpenedTraining},
     EditOpenedTraining: {screen: EditOpenedTraining},
@@ -311,20 +311,20 @@ const ManagementStackNavigator = createStackNavigator({
     AddSummary: {screen: AddSummary},
     Summary: {screen: Summary},
     // games
+    NewOrEditGame: {screen: NewOrEditGame},
     OpenedGames: {screen: OpenedGames},
     OpenedGame: {screen: OpenedGame},
     PendingGames: {screen: PendingGames},
     PendingGame: {screen: PendingGame},
     ClosedGames: {screen: ClosedGames},
     ClosedGame: {screen: ClosedGame},
-    NewOrEditGame: {screen: NewOrEditGame},
     // all
     ChangeAthletesAvailabilities: {screen: ChangeAthletesAvailabilities},
     ChangeAthletesPresences: {screen: ChangeAthletesPresences},
     ChangeLateAthletes: {screen: ChangeLateAthletes},
     RegisterInjury: {screen: RegisterInjury}
 }, {
-    initialRouteName: 'ManagementNavigator',
+    initialRouteName: 'NewOrEditTraining',
     defaultNavigationOptions: ({navigation}) => {
         return {
             headerTitle: headerTitle('#fff', 'GESTÃO'),
@@ -593,7 +593,7 @@ const CoachAndSecretaryDrawerNavigator = createDrawerNavigator({
     ChatStack: drawerNavigatorFullStacks['ChatStack']
 }, {
     ...drawerNavigatorDefaultSettings,
-    initialRouteName: 'HomeStack',
+    initialRouteName: 'ManagementStack',
     order: ['HomeStack', 'CalendarStack', 'ManagementStack', 'AthletesStack', 'ProfileStack', 'ChatStack'],
 });
 

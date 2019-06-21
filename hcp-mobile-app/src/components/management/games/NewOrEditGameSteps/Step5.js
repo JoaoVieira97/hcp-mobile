@@ -141,7 +141,8 @@ class Step5 extends Component {
         const echelons = this.props.newOrEditGame.allEchelons.map(item => ({
             label: item.name,
             value: item.id,
-            key: item.id + item.name
+            key: item.id + item.name,
+            color: '#000'
         }));
 
         let firstTitle;

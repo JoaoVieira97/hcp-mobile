@@ -7,14 +7,13 @@ import * as Animatable from "react-native-animatable";
 import {Card} from "react-native-paper";
 import {Ionicons} from "@expo/vector-icons";
 import RNPickerSelect from "react-native-picker-select";
-import Loader from "../../../screens/Loader";
 import {
-    setAllSecretaries,
-    addSecretary,
-    removeSecretary
-} from "../../../../redux/actions/newOrEditGame";
+    setEchelon,
+    setAthletes,
+    addAthlete,
+    removeAthlete
+} from "../../../../redux/actions/newOrEditTraining";
 import {Avatar, ListItem} from "react-native-elements";
-
 
 
 class Step4 extends Component {
@@ -23,33 +22,26 @@ class Step4 extends Component {
         super(props);
 
         this.state = {
-            isLoading: true,
-            secretaries: false,
+            echelon: false,
+            athletes: false,
         }
     }
 
-    componentDidMount() {
+    async componentDidMount() {
 
-        if(this.props.newOrEditGame.rawSecretariesIDs.length > 0) {
-
-            this.props.setStepDisabled(false);
-            this.setState({secretaries: true});
-
-            const allSecretaries = this.props.newOrEditGame.allSecretaries.map(item => {
-                if(this.props.newOrEditGame.rawSecretariesIDs.includes(item.id)) {
-                    item.visible = false;
-                }
-                return item;
-            });
-            this.props.setAllSecretaries(allSecretaries);
+        if(this.props.newOrEditTraining.rawEchelonID) {
+            await this.setState({echelon: true});
+        }
+        if(this.props.newOrEditTraining.rawAthletesIDs.length > 0) {
+            await this.setState({athletes: true});
         }
 
-        this.setState({isLoading: false});
+        this.isStepReady();
     }
 
     isStepReady = () => {
 
-        if(this.state.secretaries) {
+        if(this.state.echelon && this.state.athletes && this.props.newOrEditTraining.rawAthletesIDs.length > 0) {
             this.props.setStepDisabled(false);
         }
         else {
@@ -57,23 +49,31 @@ class Step4 extends Component {
         }
     };
 
-    handleSecretaryPicked = async (value) => {
+    handleEchelonPicked = async (value) => {
 
         if(value !== null) {
-            this.props.addSecretary(value);
-            await this.setState({secretaries: true});
+
+            this.props.setEchelon(value);
+            await this.setState({echelon: true});
+
+            const athletes = this.props.newOrEditTraining.allAthletes[value];
+            if(athletes) {
+                this.props.setAthletes(athletes.athletes.map(item => item.id));
+
+                await this.setState({athletes: true});
+            }
         }
 
         this.isStepReady();
     };
 
-    handleRemoveSecretary = async (value) => {
+    handleRemoveAthlete = async (value) => {
 
-        if(this.props.newOrEditGame.rawSecretariesIDs.length === 1){
-            await this.setState({secretaries: false});
+        if(this.props.newOrEditTraining.rawAthletesIDs.length === 1){
+            await this.setState({athletes: false});
         }
 
-        this.props.removeSecretary(value);
+        this.props.removeAthlete(value);
         this.isStepReady();
     };
 
@@ -83,18 +83,24 @@ class Step4 extends Component {
      */
     renderItem = ({ item }) => {
 
-        const secretariesFiltered = this.props.newOrEditGame.allSecretaries.filter(secretary => secretary.id === item);
-        if (secretariesFiltered.length > 0) {
+        let athletes = []; let echelonID;
+        for (echelonID in this.props.newOrEditTraining.allAthletes) {
+            athletes = [...athletes, ...this.props.newOrEditTraining.allAthletes[echelonID].athletes];
+        }
+
+        const athletesFiltered = athletes.filter(a => a.id === item);
+        if (athletesFiltered.length > 0) {
             return (
                 <ListItem
-                    title={secretariesFiltered[0].name}
+                    title={athletesFiltered[0].name}
+                    subtitle={athletesFiltered[0].echelon}
                     leftAvatar={() => {
-                        if(secretariesFiltered[0].image){
+                        if(athletesFiltered[0].image){
                             return (
                                 <Avatar
                                     rounded
                                     source={{
-                                        uri: `data:image/png;base64,${secretariesFiltered[0].image}`,
+                                        uri: `data:image/png;base64,${athletesFiltered[0].image}`,
                                     }}
                                     size="small"
                                 />
@@ -112,7 +118,7 @@ class Step4 extends Component {
                     rightAvatar={() => (
                         <TouchableOpacity
                             onPress={async () => {
-                                await this.handleRemoveSecretary(item);
+                                await this.handleRemoveAthlete(item);
                             }}
                             style={{
                                 alignItems: 'center',
@@ -132,16 +138,14 @@ class Step4 extends Component {
 
     render() {
 
-        const secretariesFiltered = this.props.newOrEditGame.allSecretaries.filter(item => item.visible);
-        const secretaries = secretariesFiltered.map(item => ({
+        const echelons = this.props.newOrEditTraining.allEchelons.map(item => ({
             label: item.name,
             value: item.id,
-            key: item.id + item.name,
-            color: '#000'
+            key: item.id + item.name
         }));
 
         let firstTitle;
-        const size = this.props.newOrEditGame.rawSecretariesIDs.length;
+        const size = this.props.newOrEditTraining.rawAthletesIDs.length;
         if (size === 1)
             firstTitle = (
                 <Text style={{fontSize: 18, fontWeight: '400'}}>
@@ -158,46 +162,54 @@ class Step4 extends Component {
 
         return (
             <React.Fragment>
-                <Loader isLoading={this.state.isLoading} />
                 <Animatable.View style={{margin: 20}} animation={"fadeIn"}>
                     <Card elevation={6}>
                         <Card.Title
-                            title="Seccionistas"
-                            subtitle="Adicione seccionistas a este jogo."
+                            title="Atletas"
+                            subtitle="Adicione atletas a este treino."
                             left={(props) =>
-                                <Ionicons name="md-clipboard" size={20} color={'#000'} {...props} />
+                                <Ionicons name="md-done-all" size={20} color={'#000'} {...props} />
                             }
                         />
                         <Card.Content>
                             <View>
+                                <View>
+                                    <Text style={styles.contentTitle}>Escalão</Text>
+                                    <View style={styles.pickerContainer}>
+                                        <RNPickerSelect
+                                            placeholder={{
+                                                label: 'Selecione um escalão...',
+                                                value: null,
+                                                color: colors.darkGrayColor,
+                                            }}
+                                            items={echelons}
+                                            onValueChange={this.handleEchelonPicked.bind(this)}
+                                            value={this.props.newOrEditTraining.rawEchelonID}
+                                        />
+                                    </View>
+                                </View>
+                                <View style={{marginTop: 15}}>
+                                    <TouchableOpacity
+                                        //onPress={this.showDateTimeEndPicker.bind(this)}
+                                        style={styles.buttonContainer}
+                                    >
+                                        <Text style={{fontSize: 16, textAlign: 'center'}}>ADICIONAR OUTROS ATLETAS</Text>
+                                    </TouchableOpacity>
+                                </View>
                                 <View style={{
                                     borderBottomWidth: 1,
-                                    borderBottomColor: '#000'
+                                    borderBottomColor: '#000',
+                                    marginTop: 15
                                 }}>
                                     {firstTitle}
                                     <FlatList
                                         keyExtractor={item => item.toString()}
-                                        data={this.props.newOrEditGame.rawSecretariesIDs}
+                                        data={this.props.newOrEditTraining.rawAthletesIDs}
                                         renderItem={this.renderItem}
                                         ListEmptyComponent={() => (
-                                            <Text>Nenhum seccionista selecionado.</Text>
+                                            <Text>Nenhum atleta selecionado.</Text>
                                         )}
                                     />
-                                </View>
-                                <View style={{marginTop: 15}}>
-                                    <Text style={styles.contentTitle}>Adicionar</Text>
-                                    <View style={styles.pickerContainer}>
-                                        <RNPickerSelect
-                                            placeholder={{
-                                                label: 'Selecione um seccionista...',
-                                                value: null,
-                                                color: colors.darkGrayColor,
-                                            }}
-                                            items={secretaries}
-                                            onValueChange={this.handleSecretaryPicked.bind(this)}
-                                            value={null}
-                                        />
-                                    </View>
                                 </View>
                             </View>
                         </Card.Content>
@@ -217,6 +229,12 @@ const styles = StyleSheet.create({
     pickerContainer: {
         borderRadius: 5,
         backgroundColor: '#f2f2f2',
+    },
+    buttonContainer: {
+        borderRadius: 5,
+        backgroundColor: colors.lightRedColor,
+        padding: 15,
+        justifyContent: 'center'
     }
 });
 
@@ -226,18 +244,21 @@ Step4.propTypes = {
 
 const mapStateToProps = state => ({
 
-    newOrEditGame: state.newOrEditGame
+    newOrEditTraining: state.newOrEditTraining
 });
 
 const mapDispatchToProps = dispatch => ({
-    setAllSecretaries: (allSecretaries) => {
-        dispatch(setAllSecretaries(allSecretaries))
+    setEchelon: (id) => {
+        dispatch(setEchelon(id));
     },
-    addSecretary: (id) => {
-        dispatch(addSecretary(id))
+    setAthletes: (ids) => {
+        dispatch(setAthletes(ids))
     },
-    removeSecretary: (id) => {
-        dispatch(removeSecretary(id))
+    addAthlete: (id) => {
+        dispatch(addAthlete(id))
+    },
+    removeAthlete: (id) => {
+        dispatch(removeAthlete(id))
     }
 });
 

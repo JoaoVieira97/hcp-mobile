@@ -4,28 +4,25 @@ import {connect} from 'react-redux';
 import {headerTitle, closeButton} from "../../navigation/HeaderComponents";
 import Loader from "../../screens/Loader";
 import {
-    resetGame,
+    resetTraining,
     setAllInformation
-} from "../../../redux/actions/newOrEditGame";
+} from "../../../redux/actions/newOrEditTraining";
 import {
     fetchAllLocals,
     fetchAllCoaches,
     fetchAllSecretaries,
     fetchAllEchelons,
-    fetchAllAthletes,
-    fetchAllTeams,
-    fetchAllCompetitions,
-    fetchAllSeasons
+    fetchAllAthletes
 } from "../fetchFunctionsNewGameTraining";
 import Wizard from "../Wizard";
-import Step1 from "./NewOrEditGameSteps/Step1";
-import Step2 from "./NewOrEditGameSteps/Step2";
-import Step3 from "./NewOrEditGameSteps/Step3";
-import Step4 from "./NewOrEditGameSteps/Step4";
-import Step5 from "./NewOrEditGameSteps/Step5";
+import Step1 from "./NewOrEditTrainingSteps/Step1";
+import Step2 from "./NewOrEditTrainingSteps/Step2";
+import Step3 from "./NewOrEditTrainingSteps/Step3";
+import Step4 from "./NewOrEditTrainingSteps/Step4";
 
 
-class NewOrEditGame extends Component {
+
+class NewOrEditTraining extends Component {
 
     constructor(props) {
         super(props);
@@ -33,20 +30,20 @@ class NewOrEditGame extends Component {
         this.state = {
             isLoading: true,
             stepID: 0,
-            totalSteps: 5,
-            disabledSteps: [true, true, true, true, true],
+            totalSteps: 4,
+            disabledSteps: [true, true, false, true],
         }
     }
 
     static navigationOptions = ({navigation}) => ({
         headerTitle: headerTitle(
-            '#ffffff', 'CRIAR JOGO'
+            '#ffffff', 'CRIAR TREINO'
         ),
         headerLeft: closeButton(
             '#ffffff', navigation
         )
     });
-
+    
     componentWillMount() {
 
         this.resetData();
@@ -54,7 +51,7 @@ class NewOrEditGame extends Component {
 
     async componentDidMount() {
 
-        // get all information needed for creating new game
+        // get all information needed for creating new training
         await this.fetchAllInformation();
         this.setState({isLoading: false});
     }
@@ -83,11 +80,11 @@ class NewOrEditGame extends Component {
      * Clean redux store.
      */
     resetData = () => {
-        this.props.resetGame();
+        this.props.resetTraining();
     };
 
     /**
-     * Get all information that is needed to create or edit a game.
+     * Get all information that is needed to create or edit a training.
      * @returns {Promise<void>}
      */
     fetchAllInformation = async () => {
@@ -95,8 +92,7 @@ class NewOrEditGame extends Component {
         let error = false;
 
         let allLocals, allCoaches, allSecretaries,
-            allEchelons, allAthletes, allTeams,
-            allCompetitions, allSeasons;
+            allEchelons, allAthletes;
 
         allLocals = await fetchAllLocals(this.props.odoo);
         if (allLocals.length > 0) {
@@ -111,22 +107,7 @@ class NewOrEditGame extends Component {
                     if (allEchelons.length > 0) {
 
                         allAthletes = await fetchAllAthletes(this.props.odoo);
-                        if (allAthletes != null) {
-
-                            allTeams = await fetchAllTeams(this.props.odoo);
-                            if (allTeams.length > 0) {
-
-                                allCompetitions = await fetchAllCompetitions(this.props.odoo);
-                                if (allCompetitions.length > 0) {
-
-                                    allSeasons = await fetchAllSeasons(this.props.odoo);
-                                    if (allSeasons.length === 0)
-                                        error = 'Não foi possível obter informações sobre as épocas.'
-                                } else
-                                    error = 'Não foi possível obter informações sobre as competições.'
-                            } else
-                                error = 'Não foi possível obter informações sobre as equipas adversárias.'
-                        } else
+                        if (allAthletes === null)
                             error = 'Não foi possível obter informações sobre os atletas.'
                     } else
                         error = 'Não foi possível obter informações sobre os escalões.'
@@ -141,8 +122,7 @@ class NewOrEditGame extends Component {
 
             this.props.setAllInformation(
                 allLocals, allCoaches, allSecretaries,
-                allEchelons, allAthletes, allTeams,
-                allCompetitions, allSeasons
+                allEchelons, allAthletes
             );
         } else {
             this.setState({
@@ -168,37 +148,33 @@ class NewOrEditGame extends Component {
 
         this.setState({isLoading: true});
 
-        const startDate = this.props.newOrEditGame.rawStartTime.toISOString().split('T');
-        const endDate = this.props.newOrEditGame.rawEndTime.toISOString().split('T');
+        const startDate = this.props.newOrEditTraining.rawStartTime.toISOString().split('T');
+        const endDate = this.props.newOrEditTraining.rawEndTime.toISOString().split('T');
 
-        const newGame = {
+        const newTraining = {
             start: startDate[0] + ' ' + startDate[1].slice(0,8),
             stop: endDate[0] + ' ' + endDate[1].slice(0,8),
-            antecedencia: this.props.newOrEditGame.rawHoursNotice,
-            competicao: this.props.newOrEditGame.rawCompetitionID,
-            equipa_adversaria: this.props.newOrEditGame.rawOpponentID,
-            epoca: this.props.newOrEditGame.rawSeasonID,
-            em_casa: this.props.newOrEditGame.rawHomeAdvantage,
-            escalao: this.props.newOrEditGame.rawEchelonID,
-            local: this.props.newOrEditGame.rawLocalID,
-            treinador: [[6,0, this.props.newOrEditGame.rawCoachesIDs]],
-            seccionistas: [[6,0, this.props.newOrEditGame.rawSecretariesIDs]],
-            atletas: [[6,0, this.props.newOrEditGame.rawAthletesIDs]],
+            epoca: this.props.newOrEditTraining.rawSeasonID,
+            escalao: this.props.newOrEditTraining.rawEchelonID,
+            local: this.props.newOrEditTraining.rawLocalID,
+            treinador: [[6,0, this.props.newOrEditTraining.rawCoachesIDs]],
+            seccionistas: [[6,0, this.props.newOrEditTraining.rawSecretariesIDs]],
+            atletas: [[6,0, this.props.newOrEditTraining.rawAthletesIDs]],
         };
 
         let alertMessage;
-        const response = await this.props.odoo.create('ges.jogo', newGame);
+        const response = await this.props.odoo.create('ges.treino', newTraining);
         if(response.success) {
 
             alertMessage = {
                 'title': 'Sucesso',
-                'message': 'O jogo foi criado com sucesso. As pessoas envolvidas serão notificadas.'
+                'message': 'O treino foi criado com sucesso. As pessoas envolvidas serão notificadas.'
             };
         }
         else {
             alertMessage = {
                 'title': 'Erro',
-                'message': 'Ocorreu um erro ao criar este jogo. Por favor, tente mais tarde.'
+                'message': 'Ocorreu um erro ao criar este treino. Por favor, tente mais tarde.'
             };
         }
 
@@ -211,7 +187,7 @@ class NewOrEditGame extends Component {
                 {text: 'OK', onPress: () => {
                         this.resetData();
                         this.props.navigation.goBack();
-                }},
+                    }},
             ],
             {cancelable: false},
         );
@@ -248,13 +224,6 @@ class NewOrEditGame extends Component {
                     setStepDisabled={(disabled) => this.setStepDisabled(disabled)}
                 />
             )
-        },{
-            component: (
-                <Step5
-                    key={'step5'}
-                    setStepDisabled={(disabled) => this.setStepDisabled(disabled)}
-                />
-            )
         }];
 
         return (
@@ -280,24 +249,22 @@ class NewOrEditGame extends Component {
 
 const mapStateToProps = state => ({
     odoo: state.odoo.odoo,
-    newOrEditGame: state.newOrEditGame
+    newOrEditTraining: state.newOrEditTraining
 });
 
 const mapDispatchToProps = dispatch => ({
-    resetGame: () => {
-        dispatch(resetGame());
+    resetTraining: () => {
+        dispatch(resetTraining());
     },
     setAllInformation: (
         allLocals, allCoaches, allSecretaries,
-        allEchelons, allAthletes, allTeams,
-        allCompetitions, allSeasons
+        allEchelons, allAthletes
     ) => {
         dispatch(setAllInformation(
             allLocals, allCoaches, allSecretaries,
-            allEchelons, allAthletes, allTeams,
-            allCompetitions, allSeasons
+            allEchelons, allAthletes
         ));
     }
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(NewOrEditGame);
+export default connect(mapStateToProps, mapDispatchToProps)(NewOrEditTraining);

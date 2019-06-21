@@ -9,39 +9,39 @@ import {Ionicons} from "@expo/vector-icons";
 import RNPickerSelect from "react-native-picker-select";
 import Loader from "../../../screens/Loader";
 import {
-    setAllSecretaries,
-    addSecretary,
-    removeSecretary
-} from "../../../../redux/actions/newOrEditGame";
+    setAllCoaches,
+    addCoach,
+    removeCoach
+} from "../../../../redux/actions/newOrEditTraining";
 import {Avatar, ListItem} from "react-native-elements";
 
 
 
-class Step4 extends Component {
+class Step2 extends Component {
 
     constructor(props) {
         super(props);
 
         this.state = {
             isLoading: true,
-            secretaries: false,
+            coaches: false,
         }
     }
 
     componentDidMount() {
 
-        if(this.props.newOrEditGame.rawSecretariesIDs.length > 0) {
+        if(this.props.newOrEditTraining.rawCoachesIDs.length > 0) {
 
             this.props.setStepDisabled(false);
-            this.setState({secretaries: true});
+            this.setState({coaches: true});
 
-            const allSecretaries = this.props.newOrEditGame.allSecretaries.map(item => {
-                if(this.props.newOrEditGame.rawSecretariesIDs.includes(item.id)) {
+            const allCoaches = this.props.newOrEditTraining.allCoaches.map(item => {
+                if(this.props.newOrEditTraining.rawCoachesIDs.includes(item.id)) {
                     item.visible = false;
                 }
                 return item;
             });
-            this.props.setAllSecretaries(allSecretaries);
+            this.props.setAllCoaches(allCoaches);
         }
 
         this.setState({isLoading: false});
@@ -49,7 +49,7 @@ class Step4 extends Component {
 
     isStepReady = () => {
 
-        if(this.state.secretaries) {
+        if(this.state.coaches) {
             this.props.setStepDisabled(false);
         }
         else {
@@ -57,23 +57,23 @@ class Step4 extends Component {
         }
     };
 
-    handleSecretaryPicked = async (value) => {
+    handleCoachPicked = async (value) => {
 
         if(value !== null) {
-            this.props.addSecretary(value);
-            await this.setState({secretaries: true});
+            this.props.addCoach(value);
+            await this.setState({coaches: true});
         }
 
         this.isStepReady();
     };
 
-    handleRemoveSecretary = async (value) => {
+    handleRemoveCoach = async (value) => {
 
-        if(this.props.newOrEditGame.rawSecretariesIDs.length === 1){
-            await this.setState({secretaries: false});
+        if(this.props.newOrEditTraining.rawCoachesIDs.length === 1){
+            await this.setState({coaches: false});
         }
 
-        this.props.removeSecretary(value);
+        this.props.removeCoach(value);
         this.isStepReady();
     };
 
@@ -83,18 +83,18 @@ class Step4 extends Component {
      */
     renderItem = ({ item }) => {
 
-        const secretariesFiltered = this.props.newOrEditGame.allSecretaries.filter(secretary => secretary.id === item);
-        if (secretariesFiltered.length > 0) {
+        const coachesFiltered = this.props.newOrEditTraining.allCoaches.filter(coach => coach.id === item);
+        if (coachesFiltered.length > 0) {
             return (
                 <ListItem
-                    title={secretariesFiltered[0].name}
+                    title={coachesFiltered[0].name}
                     leftAvatar={() => {
-                        if(secretariesFiltered[0].image){
+                        if(coachesFiltered[0].image){
                             return (
                                 <Avatar
                                     rounded
                                     source={{
-                                        uri: `data:image/png;base64,${secretariesFiltered[0].image}`,
+                                        uri: `data:image/png;base64,${coachesFiltered[0].image}`,
                                     }}
                                     size="small"
                                 />
@@ -112,7 +112,7 @@ class Step4 extends Component {
                     rightAvatar={() => (
                         <TouchableOpacity
                             onPress={async () => {
-                                await this.handleRemoveSecretary(item);
+                                await this.handleRemoveCoach(item);
                             }}
                             style={{
                                 alignItems: 'center',
@@ -132,8 +132,8 @@ class Step4 extends Component {
 
     render() {
 
-        const secretariesFiltered = this.props.newOrEditGame.allSecretaries.filter(item => item.visible);
-        const secretaries = secretariesFiltered.map(item => ({
+        const coachesFiltered = this.props.newOrEditTraining.allCoaches.filter(item => item.visible);
+        const coaches = coachesFiltered.map(item => ({
             label: item.name,
             value: item.id,
             key: item.id + item.name,
@@ -141,7 +141,7 @@ class Step4 extends Component {
         }));
 
         let firstTitle;
-        const size = this.props.newOrEditGame.rawSecretariesIDs.length;
+        const size = this.props.newOrEditTraining.rawCoachesIDs.length;
         if (size === 1)
             firstTitle = (
                 <Text style={{fontSize: 18, fontWeight: '400'}}>
@@ -162,10 +162,10 @@ class Step4 extends Component {
                 <Animatable.View style={{margin: 20}} animation={"fadeIn"}>
                     <Card elevation={6}>
                         <Card.Title
-                            title="Seccionistas"
-                            subtitle="Adicione seccionistas a este jogo."
+                            title="Treinadores"
+                            subtitle="Adicione treinadores a este treino."
                             left={(props) =>
-                                <Ionicons name="md-clipboard" size={20} color={'#000'} {...props} />
+                                <Ionicons name="md-contacts" size={20} color={'#000'} {...props} />
                             }
                         />
                         <Card.Content>
@@ -177,10 +177,10 @@ class Step4 extends Component {
                                     {firstTitle}
                                     <FlatList
                                         keyExtractor={item => item.toString()}
-                                        data={this.props.newOrEditGame.rawSecretariesIDs}
+                                        data={this.props.newOrEditTraining.rawCoachesIDs}
                                         renderItem={this.renderItem}
                                         ListEmptyComponent={() => (
-                                            <Text>Nenhum seccionista selecionado.</Text>
+                                            <Text>Nenhum treinador selecionado.</Text>
                                         )}
                                     />
                                 </View>
@@ -189,12 +189,12 @@ class Step4 extends Component {
                                     <View style={styles.pickerContainer}>
                                         <RNPickerSelect
                                             placeholder={{
-                                                label: 'Selecione um seccionista...',
+                                                label: 'Selecione um treinador...',
                                                 value: null,
                                                 color: colors.darkGrayColor,
                                             }}
-                                            items={secretaries}
-                                            onValueChange={this.handleSecretaryPicked.bind(this)}
+                                            items={coaches}
+                                            onValueChange={this.handleCoachPicked.bind(this)}
                                             value={null}
                                         />
                                     </View>
@@ -220,25 +220,25 @@ const styles = StyleSheet.create({
     }
 });
 
-Step4.propTypes = {
+Step2.propTypes = {
     setStepDisabled: PropTypes.func.isRequired
 };
 
 const mapStateToProps = state => ({
 
-    newOrEditGame: state.newOrEditGame
+    newOrEditTraining: state.newOrEditTraining
 });
 
 const mapDispatchToProps = dispatch => ({
-    setAllSecretaries: (allSecretaries) => {
-        dispatch(setAllSecretaries(allSecretaries))
+    setAllCoaches: (allCoaches) => {
+        dispatch(setAllCoaches(allCoaches))
     },
-    addSecretary: (id) => {
-        dispatch(addSecretary(id))
+    addCoach: (id) => {
+        dispatch(addCoach(id))
     },
-    removeSecretary: (id) => {
-        dispatch(removeSecretary(id))
+    removeCoach: (id) => {
+        dispatch(removeCoach(id))
     }
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(Step4);
+export default connect(mapStateToProps, mapDispatchToProps)(Step2);

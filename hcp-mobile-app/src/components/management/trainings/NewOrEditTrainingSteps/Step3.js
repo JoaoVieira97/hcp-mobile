@@ -12,12 +12,12 @@ import {
     setAllSecretaries,
     addSecretary,
     removeSecretary
-} from "../../../../redux/actions/newOrEditGame";
+} from "../../../../redux/actions/newOrEditTraining";
 import {Avatar, ListItem} from "react-native-elements";
 
 
 
-class Step4 extends Component {
+class Step3 extends Component {
 
     constructor(props) {
         super(props);
@@ -30,13 +30,13 @@ class Step4 extends Component {
 
     componentDidMount() {
 
-        if(this.props.newOrEditGame.rawSecretariesIDs.length > 0) {
+        if(this.props.newOrEditTraining.rawSecretariesIDs.length > 0) {
 
             this.props.setStepDisabled(false);
             this.setState({secretaries: true});
 
-            const allSecretaries = this.props.newOrEditGame.allSecretaries.map(item => {
-                if(this.props.newOrEditGame.rawSecretariesIDs.includes(item.id)) {
+            const allSecretaries = this.props.newOrEditTraining.allSecretaries.map(item => {
+                if(this.props.newOrEditTraining.rawSecretariesIDs.includes(item.id)) {
                     item.visible = false;
                 }
                 return item;
@@ -69,7 +69,7 @@ class Step4 extends Component {
 
     handleRemoveSecretary = async (value) => {
 
-        if(this.props.newOrEditGame.rawSecretariesIDs.length === 1){
+        if(this.props.newOrEditTraining.rawSecretariesIDs.length === 1){
             await this.setState({secretaries: false});
         }
 
@@ -83,7 +83,7 @@ class Step4 extends Component {
      */
     renderItem = ({ item }) => {
 
-        const secretariesFiltered = this.props.newOrEditGame.allSecretaries.filter(secretary => secretary.id === item);
+        const secretariesFiltered = this.props.newOrEditTraining.allSecretaries.filter(secretary => secretary.id === item);
         if (secretariesFiltered.length > 0) {
             return (
                 <ListItem
@@ -132,16 +132,15 @@ class Step4 extends Component {
 
     render() {
 
-        const secretariesFiltered = this.props.newOrEditGame.allSecretaries.filter(item => item.visible);
+        const secretariesFiltered = this.props.newOrEditTraining.allSecretaries.filter(item => item.visible);
         const secretaries = secretariesFiltered.map(item => ({
             label: item.name,
             value: item.id,
-            key: item.id + item.name,
-            color: '#000'
+            key: item.id + item.name
         }));
 
         let firstTitle;
-        const size = this.props.newOrEditGame.rawSecretariesIDs.length;
+        const size = this.props.newOrEditTraining.rawSecretariesIDs.length;
         if (size === 1)
             firstTitle = (
                 <Text style={{fontSize: 18, fontWeight: '400'}}>
@@ -163,7 +162,7 @@ class Step4 extends Component {
                     <Card elevation={6}>
                         <Card.Title
                             title="Seccionistas"
-                            subtitle="Adicione seccionistas a este jogo."
+                            subtitle="Adicione seccionistas a este treino."
                             left={(props) =>
                                 <Ionicons name="md-clipboard" size={20} color={'#000'} {...props} />
                             }
@@ -177,7 +176,7 @@ class Step4 extends Component {
                                     {firstTitle}
                                     <FlatList
                                         keyExtractor={item => item.toString()}
-                                        data={this.props.newOrEditGame.rawSecretariesIDs}
+                                        data={this.props.newOrEditTraining.rawSecretariesIDs}
                                         renderItem={this.renderItem}
                                         ListEmptyComponent={() => (
                                             <Text>Nenhum seccionista selecionado.</Text>
@@ -220,13 +219,13 @@ const styles = StyleSheet.create({
     }
 });
 
-Step4.propTypes = {
+Step3.propTypes = {
     setStepDisabled: PropTypes.func.isRequired
 };
 
 const mapStateToProps = state => ({
 
-    newOrEditGame: state.newOrEditGame
+    newOrEditTraining: state.newOrEditTraining
 });
 
 const mapDispatchToProps = dispatch => ({
@@ -241,4 +240,4 @@ const mapDispatchToProps = dispatch => ({
     }
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(Step4);
+export default connect(mapStateToProps, mapDispatchToProps)(Step3);

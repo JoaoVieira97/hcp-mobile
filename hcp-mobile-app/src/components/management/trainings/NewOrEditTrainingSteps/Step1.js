@@ -10,12 +10,10 @@ import RNPickerSelect from 'react-native-picker-select';
 import DateTimePicker from "react-native-modal-datetime-picker";
 import ConvertTime from "../../../ConvertTime";
 import {
-    setHomeAdvantage,
     setLocalID,
     setStartTime,
-    setEndTime,
-    setHoursNotice
-} from "../../../../redux/actions/newOrEditGame";
+    setEndTime
+} from "../../../../redux/actions/newOrEditTraining";
 
 
 // NO REMOVE
@@ -23,7 +21,7 @@ const startText = "Selecione o horário de início...";
 const endText = "Selecione o horário de fim...";
 
 
-class Step2 extends Component {
+class Step1 extends Component {
 
     constructor(props) {
         super(props);
@@ -33,7 +31,6 @@ class Step2 extends Component {
         this.state = {
             startTime: false,
             endTime: false,
-            homeAdvantage: true,
             local: false,
 
             isDateTimeStartPickerVisible: false,
@@ -45,15 +42,14 @@ class Step2 extends Component {
     componentDidMount() {
 
         if(
-            this.props.newOrEditGame.rawStartTime !== startText &&
-            this.props.newOrEditGame.rawEndTime !== endText &&
-            this.props.newOrEditGame.rawLocalID !== undefined
+            this.props.newOrEditTraining.rawStartTime !== startText &&
+            this.props.newOrEditTraining.rawEndTime !== endText &&
+            this.props.newOrEditTraining.rawLocalID !== undefined
         ) {
             this.props.setStepDisabled(false);
             this.setState({
                 startTime: true,
                 endTime: true,
-                homeAdvantage: true,
                 local: true,
             });
         }
@@ -61,7 +57,7 @@ class Step2 extends Component {
 
     isStepReady = () => {
 
-        if(this.state.startTime && this.state.endTime && this.state.homeAdvantage && this.state.local) {
+        if(this.state.startTime && this.state.endTime && this.state.local) {
             this.props.setStepDisabled(false);
         }
         else {
@@ -116,10 +112,10 @@ class Step2 extends Component {
 
     handleDateEndPicked = (date) => {
 
-        if((this.props.newOrEditGame.rawStartTime === startText)) {
+        if((this.props.newOrEditTraining.rawStartTime === startText)) {
             Alert.alert('Erro', 'Por favor, defina em primeiro o horário de início.');
         }
-        else if (date.getTime() > this.props.newOrEditGame.rawStartTime) {
+        else if (date.getTime() > this.props.newOrEditTraining.rawStartTime) {
 
             this.props.setEndTime(new Date(date));
             this.setState({endTime: true});
@@ -132,16 +128,6 @@ class Step2 extends Component {
         this.hideDateTimeEndPicker();
     };
 
-    handleHomePicked = async (value) => {
-
-        if(value !== null) {
-            this.props.setHomeAdvantage(value);
-            await this.setState({homeAdvantage: true});
-        }
-
-        this.isStepReady();
-    };
-
     handleLocalPicked = async (value) => {
 
         if(value !== null) {
@@ -152,57 +138,14 @@ class Step2 extends Component {
         this.isStepReady();
     };
 
-    handleHoursNoticePicked = async (value) => {
-
-        if(value !== null) {
-            this.props.setHoursNotice(value);
-        }
-
-        this.isStepReady();
-    };
-
     render() {
 
-        const locals = this.props.newOrEditGame.allLocals.map(item => ({
+        const locals = this.props.newOrEditTraining.allLocals.map(item => ({
             label: item.name,
             value: item.id,
             key: item.id + item.name,
             color: '#000'
         }));
-
-        const homeAdvantage = [{
-                label: 'Sim',
-                value: 's',
-                key: 's'
-            }, {
-                label: 'Não',
-                value: 'n',
-                key: 'n'
-            }
-        ];
-
-        const hoursNotice = [
-            {
-                label: '0.5 horas',
-                value: 0.5,
-                key: '0.5'
-            },
-            {
-                label: '1 hora',
-                value: 1.0,
-                key: '1.0'
-            },
-            {
-                label: '1.5 horas',
-                value: 1.5,
-                key: '1.5'
-            },
-            {
-                label: '2 horas',
-                value: 2.0,
-                key: '2.0'
-            }
-        ];
 
         return (
             <Animatable.View style={{margin: 20}} animation={"fadeIn"}>
@@ -223,17 +166,17 @@ class Step2 extends Component {
                             >
                                 <Text style={{fontSize: 16}}>
                                     {
-                                        this.props.newOrEditGame.rawStartTime === startText ?
-                                            this.props.newOrEditGame.rawStartTime :
-                                            this.parsingDate(this.props.newOrEditGame.rawStartTime.toISOString())
+                                        this.props.newOrEditTraining.rawStartTime === startText ?
+                                            this.props.newOrEditTraining.rawStartTime :
+                                            this.parsingDate(this.props.newOrEditTraining.rawStartTime.toISOString())
                                     }
                                 </Text>
                             </TouchableOpacity>
                             <DateTimePicker
                                 date={
-                                    this.props.newOrEditGame.rawStartTime === startText ?
+                                    this.props.newOrEditTraining.rawStartTime === startText ?
                                         this.state.todayRaw :
-                                        this.props.newOrEditGame.rawStartTime
+                                        this.props.newOrEditTraining.rawStartTime
                                 }
                                 mode={'datetime'}
                                 cancelTextIOS={'Cancelar'}
@@ -253,46 +196,31 @@ class Step2 extends Component {
                             >
                                 <Text style={{fontSize: 16}}>
                                     {
-                                        this.props.newOrEditGame.rawEndTime === endText ?
-                                            this.props.newOrEditGame.rawEndTime :
-                                            this.parsingDate(this.props.newOrEditGame.rawEndTime.toISOString())
+                                        this.props.newOrEditTraining.rawEndTime === endText ?
+                                            this.props.newOrEditTraining.rawEndTime :
+                                            this.parsingDate(this.props.newOrEditTraining.rawEndTime.toISOString())
                                     }
                                 </Text>
                             </TouchableOpacity>
                             <DateTimePicker
                                 date={
-                                    this.props.newOrEditGame.rawEndTime === endText ?
+                                    this.props.newOrEditTraining.rawEndTime === endText ?
                                         this.state.todayRaw :
-                                        this.props.newOrEditGame.rawEndTime
+                                        this.props.newOrEditTraining.rawEndTime
                                 }
                                 mode={'datetime'}
                                 cancelTextIOS={'Cancelar'}
                                 confirmTextIOS={'Ok'}
                                 minimumDate={
-                                    this.props.newOrEditGame.rawStartTime === startText ?
+                                    this.props.newOrEditTraining.rawStartTime === startText ?
                                         this.state.todayRaw :
-                                        this.props.newOrEditGame.rawStartTime
+                                        this.props.newOrEditTraining.rawStartTime
                                 }
                                 is24Hour={true}
                                 isVisible={this.state.isDateTimeEndPickerVisible}
                                 onConfirm={this.handleDateEndPicked}
                                 onCancel={this.hideDateTimeEndPicker}
                             />
-                        </View>
-                        <View style={{marginTop: 10}}>
-                            <Text style={styles.contentTitle}>Em casa</Text>
-                            <View style={styles.pickerContainer}>
-                                <RNPickerSelect
-                                    placeholder={{
-                                        label: 'Selecione um valor...',
-                                        value: null,
-                                        color: colors.darkGrayColor,
-                                    }}
-                                    items={homeAdvantage}
-                                    onValueChange={this.handleHomePicked.bind(this)}
-                                    value={this.props.newOrEditGame.rawHomeAdvantage}
-                                />
-                            </View>
                         </View>
                         <View style={{marginTop: 10}}>
                             <Text style={styles.contentTitle}>Local</Text>
@@ -305,22 +233,7 @@ class Step2 extends Component {
                                     }}
                                     items={locals}
                                     onValueChange={this.handleLocalPicked.bind(this)}
-                                    value={this.props.newOrEditGame.rawLocalID}
-                                />
-                            </View>
-                        </View>
-                        <View style={{marginTop: 10}}>
-                            <Text style={styles.contentTitle}>Antecedência</Text>
-                            <View style={styles.pickerContainer}>
-                                <RNPickerSelect
-                                    placeholder={{
-                                        label: 'Selecione um valor...',
-                                        value: null,
-                                        color: colors.darkGrayColor,
-                                    }}
-                                    items={hoursNotice}
-                                    onValueChange={this.handleHoursNoticePicked.bind(this)}
-                                    value={this.props.newOrEditGame.rawHoursNotice}
+                                    value={this.props.newOrEditTraining.rawLocalID}
                                 />
                             </View>
                         </View>
@@ -349,19 +262,16 @@ const styles = StyleSheet.create({
     }
 });
 
-Step2.propTypes = {
+Step1.propTypes = {
     setStepDisabled: PropTypes.func.isRequired
 };
 
 const mapStateToProps = state => ({
 
-    newOrEditGame: state.newOrEditGame
+    newOrEditTraining: state.newOrEditTraining
 });
 
 const mapDispatchToProps = dispatch => ({
-    setHomeAdvantage: (value) => {
-        dispatch(setHomeAdvantage(value));
-    },
     setLocalID: (id) => {
         dispatch(setLocalID(id))
     },
@@ -370,10 +280,7 @@ const mapDispatchToProps = dispatch => ({
     },
     setEndTime: (endTime) => {
         dispatch(setEndTime(endTime))
-    },
-    setHoursNotice: (hours) => {
-        dispatch(setHoursNotice(hours))
-    },
+    }
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(Step2);
+export default connect(mapStateToProps, mapDispatchToProps)(Step1);

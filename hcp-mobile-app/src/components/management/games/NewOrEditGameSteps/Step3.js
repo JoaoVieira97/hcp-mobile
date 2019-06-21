@@ -136,7 +136,8 @@ class Step3 extends Component {
         const coaches = coachesFiltered.map(item => ({
             label: item.name,
             value: item.id,
-            key: item.id + item.name
+            key: item.id + item.name,
+            color: '#000'
         }));
 
         let firstTitle;
