@@ -36,7 +36,6 @@ import NewOrEditTraining from '../management/trainings/NewOrEditTraining';
 import OpenedTrainings from "../management/trainings/OpenedTrainings";
 import PendingTrainings from "../management/trainings/PendingTrainings";
 import OpenedTraining from "../management/trainings/OpenedTraining";
-import EditOpenedTraining from "../management/trainings/EditOpenedTraining";
 import CustomText from "../CustomText";
 import ResetPassword from "../profile/ResetPassword";
 import ChannelsScreen from "../chat/ChannelsScreen";
@@ -303,7 +302,6 @@ const ManagementStackNavigator = createStackNavigator({
     NewOrEditTraining: {screen: NewOrEditTraining},
     OpenedTrainings: {screen: OpenedTrainings},
     OpenedTraining: {screen: OpenedTraining},
-    EditOpenedTraining: {screen: EditOpenedTraining},
     PendingTrainings: {screen: PendingTrainings},
     PendingTraining: {screen: PendingTraining},
     ClosedTrainings: {screen: ClosedTrainings},
@@ -593,7 +591,7 @@ const CoachAndSecretaryDrawerNavigator = createDrawerNavigator({
     ChatStack: drawerNavigatorFullStacks['ChatStack']
 }, {
     ...drawerNavigatorDefaultSettings,
-    initialRouteName: 'HomeStack',
+    initialRouteName: 'ManagementStack',
     order: ['HomeStack', 'CalendarStack', 'ManagementStack', 'AthletesStack', 'ProfileStack', 'ChatStack'],
 });
 

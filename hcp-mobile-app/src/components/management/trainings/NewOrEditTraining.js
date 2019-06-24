@@ -88,8 +88,10 @@ class NewOrEditTraining extends Component {
         if(response.success && response.data.length > 0) {
 
             const data = response.data[0];
-            this.props.setLocalID(data.local[0]);
-            this.props.setEchelon(data.escalao[0]);
+            if(data.local)
+                this.props.setLocalID(data.local[0]);
+            if(data.escalao)
+                this.props.setEchelon(data.escalao[0]);
             this.props.setAthletes(data.atletas);
             this.props.setStartTime(
                 new Date(data.start_datetime.split(' ')[0] +
@@ -232,7 +234,7 @@ class NewOrEditTraining extends Component {
             if(this.state.isToUpdate) {
                 Alert.alert(
                     'Sucesso',
-                    'O treino editado com sucesso.',
+                    'O treino foi editado com sucesso.',
                     [
                         {text: 'OK', onPress: () => {
                                 this.resetData();

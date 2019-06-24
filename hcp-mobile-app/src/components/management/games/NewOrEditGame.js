@@ -5,7 +5,18 @@ import {headerTitle, closeButton} from "../../navigation/HeaderComponents";
 import Loader from "../../screens/Loader";
 import {
     resetGame,
-    setAllInformation
+    setAllInformation,
+    setStartTime,
+    setEchelon,
+    setLocalID,
+    setEndTime,
+    setAthletes,
+    addSecretary,
+    addCoach,
+    setSeasonID,
+    setOpponentID,
+    setHoursNotice,
+    setCompetitionID
 } from "../../../redux/actions/newOrEditGame";
 import {
     fetchAllLocals,
@@ -32,6 +43,7 @@ class NewOrEditGame extends Component {
 
         this.state = {
             isLoading: true,
+            isToUpdate: false,
             stepID: 0,
             totalSteps: 5,
             disabledSteps: [true, true, true, false, true],
@@ -40,7 +52,8 @@ class NewOrEditGame extends Component {
 
     static navigationOptions = ({navigation}) => ({
         headerTitle: headerTitle(
-            '#ffffff', 'CRIAR JOGO'
+            '#ffffff',
+            navigation.getParam('gameID') !== undefined ? 'EDITAR JOGO' : 'CRIAR JOGO'
         ),
         headerLeft: closeButton(
             '#ffffff', navigation
@@ -49,15 +62,72 @@ class NewOrEditGame extends Component {
 
     componentWillMount() {
 
+        // clean redux storage
         this.resetData();
     }
 
     async componentDidMount() {
 
-        // get all information needed for creating new game
+        // check if is to edit training
+        if(this.props.navigation.getParam('gameID') !== undefined) {
+
+            await this.setState({isToUpdate: true});
+            await this.getGameInformation(this.props.navigation.state.params.gameID);
+        }
+
+        // get all information needed for creating new training
         await this.fetchAllInformation();
         this.setState({isLoading: false});
     }
+
+    getGameInformation = async (id) => {
+
+        const params = {
+            ids: [id],
+            fields: [
+                'id', 'start_datetime', 'stop_datetime',
+                'atletas', 'treinador', 'seccionistas',
+                'local', 'escalao', 'em_casa', 'epoca',
+                'equipa_adversaria', 'competicao', 'antecedencia'
+            ],
+        };
+
+        const response = await this.props.odoo.get('ges.jogo', params);
+        if(response.success && response.data.length > 0) {
+
+            const data = response.data[0];
+            if(data.local)
+                this.props.setLocalID(data.local[0]);
+            if(data.escalao)
+                this.props.setEchelon(data.escalao[0]);
+            this.props.setAthletes(data.atletas);
+            this.props.setStartTime(
+                new Date(data.start_datetime.split(' ')[0] +
+                    'T' + data.start_datetime.split(' ')[1]
+                )
+            );
+            this.props.setEndTime(
+                new Date(data.stop_datetime.split(' ')[0] +
+                    'T' + data.stop_datetime.split(' ')[1])
+            );
+
+            if(data.epoca)
+                this.props.setSeasonID(data.epoca[0]);
+            if(data.equipa_adversaria)
+                this.props.setOpponentID(data.equipa_adversaria[0]);
+            if(data.antecedencia)
+                this.props.setHoursNotice(data.antecedencia);
+            if(data.competicao)
+                this.props.setCompetitionID(data.competicao[0]);
+
+            data.seccionistas.map(id =>
+                this.props.addSecretary(id)
+            );
+            data.treinador.map(id =>
+                this.props.addCoach(id)
+            );
+        }
+    };
 
     increaseStep = () => {
         this.setState(state => ({stepID: state.stepID + 1}));
@@ -187,19 +257,53 @@ class NewOrEditGame extends Component {
         };
 
         let alertMessage;
-        const response = await this.props.odoo.create('ges.jogo', newGame);
+        let response;
+        if(this.state.isToUpdate) {
+            response = await this.props.odoo.update(
+                'ges.jogo',
+                [this.props.navigation.state.params.gameID],
+                newGame
+            );
+        }
+        else
+            response = await this.props.odoo.create('ges.jogo', newGame);
+
         if(response.success) {
 
-            alertMessage = {
-                'title': 'Sucesso',
-                'message': 'O jogo foi criado com sucesso. As pessoas envolvidas serão notificadas.'
-            };
+            if(this.state.isToUpdate) {
+                Alert.alert(
+                    'Sucesso',
+                    'O jogo foi editado com sucesso.',
+                    [
+                        {text: 'OK', onPress: () => {
+                                this.resetData();
+                                this.props.navigation.state.params.reloadInfo();
+                                this.props.navigation.goBack();
+                            }},
+                    ],
+                    {cancelable: false},
+                );
+                await this.setState({isLoading: false});
+                return;
+            }
+            else
+                alertMessage = {
+                    'title': 'Sucesso',
+                    'message': 'O jogo foi criado com sucesso. As pessoas envolvidas serão notificadas.'
+                };
         }
         else {
-            alertMessage = {
-                'title': 'Erro',
-                'message': 'Ocorreu um erro ao criar este jogo. Por favor, tente mais tarde.'
-            };
+            if(this.state.isToUpdate) {
+                alertMessage = {
+                    'title': 'Erro',
+                    'message': 'Ocorreu um erro editar este jogo.'
+                };
+            }
+            else
+                alertMessage = {
+                    'title': 'Erro',
+                    'message': 'Ocorreu um erro ao criar este jogo. Por favor, tente mais tarde.'
+                };
         }
 
         await this.setState({isLoading: false});
@@ -211,7 +315,7 @@ class NewOrEditGame extends Component {
                 {text: 'OK', onPress: () => {
                         this.resetData();
                         this.props.navigation.goBack();
-                }},
+                    }},
             ],
             {cancelable: false},
         );
@@ -300,6 +404,39 @@ const mapDispatchToProps = dispatch => ({
             allEchelons, allAthletes, allTeams,
             allCompetitions, allSeasons
         ));
+    },
+    setAthletes: (ids) => {
+        dispatch(setAthletes(ids))
+    },
+    setStartTime: (date) => {
+        dispatch(setStartTime(date))
+    },
+    setEndTime: (date) => {
+        dispatch(setEndTime(date))
+    },
+    addCoach: (id) => {
+        dispatch(addCoach(id))
+    },
+    addSecretary: (id) => {
+        dispatch(addSecretary(id))
+    },
+    setEchelon: (id) => {
+        dispatch(setEchelon(id))
+    },
+    setLocalID: (id) => {
+        dispatch(setLocalID(id))
+    },
+    setSeasonID: (id) => {
+        dispatch(setSeasonID(id))
+    },
+    setOpponentID: (id) => {
+        dispatch(setOpponentID(id))
+    },
+    setHoursNotice: (hours) => {
+        dispatch(setHoursNotice(hours))
+    },
+    setCompetitionID: (id) => {
+        dispatch(setCompetitionID(id))
     }
 });
 

@@ -24,7 +24,8 @@ class Step3 extends Component {
 
         this.state = {
             isLoading: true,
-            secretaries: false,
+            secretaries: true
+            //secretaries: false,
         }
     }
 
@@ -61,7 +62,7 @@ class Step3 extends Component {
 
         if(value !== null) {
             this.props.addSecretary(value);
-            await this.setState({secretaries: true});
+            //await this.setState({secretaries: true});
         }
 
         this.isStepReady();
@@ -69,9 +70,11 @@ class Step3 extends Component {
 
     handleRemoveSecretary = async (value) => {
 
+        /*
         if(this.props.newOrEditTraining.rawSecretariesIDs.length === 1){
             await this.setState({secretaries: false});
         }
+         */
 
         this.props.removeSecretary(value);
         this.isStepReady();

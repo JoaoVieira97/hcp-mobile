@@ -26,20 +26,19 @@ class Step1 extends Component {
         }
     }
 
-    componentDidMount() {
+    async componentDidMount() {
 
-        if(
-            this.props.newOrEditGame.rawCompetitionID !== undefined &&
-            this.props.newOrEditGame.rawSeasonID !== undefined &&
-            this.props.newOrEditGame.rawOpponentID !== undefined
-        ) {
+        if(this.props.newOrEditGame.rawCompetitionID !== undefined)
+            await this.setState({competition: true});
+
+        if(this.props.newOrEditGame.rawSeasonID !== undefined)
+            await this.setState({season: true});
+
+        if(this.props.newOrEditGame.rawOpponentID !== undefined)
+            await this.setState({team: true});
+
+        if(this.state.competition && this.state.season && this.state.team)
             this.props.setStepDisabled(false);
-            this.setState({
-                competition: true,
-                season: true,
-                team: true,
-            });
-        }
     }
 
     isStepReady = () => {

@@ -71,6 +71,7 @@ class Step4 extends Component {
 
         if(this.props.newOrEditTraining.rawAthletesIDs.length === 1){
             await this.setState({athletes: false});
+            this.props.setEchelon(null);
         }
 
         this.props.removeAthlete(value);

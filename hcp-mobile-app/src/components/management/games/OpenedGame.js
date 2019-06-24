@@ -10,6 +10,8 @@ import Loader from "../../screens/Loader";
 import AthletesGrid from "../../management/AthletesGrid";
 import * as Animatable from "react-native-animatable";
 import {DangerZone} from "expo";
+import ConvertTime from "../../ConvertTime";
+import moment from 'moment';
 const { Lottie } = DangerZone;
 
 
@@ -32,16 +34,43 @@ class OpenedGame extends Component {
         }
     }
 
-    static navigationOptions = ({navigation}) => ({
-        headerTitle: headerTitle(
-            '#ffffff', 'JOGO'
-        ),
-        headerLeft: closeButton(
-            '#ffffff', navigation
-        )
-    });
+    static navigationOptions = ({navigation}) => {
+
+        const { params } = navigation.state;
+
+        return {
+            headerTitle: headerTitle(
+                '#ffffff', 'JOGO'
+            ),
+            headerLeft: closeButton(
+                '#ffffff', navigation
+            ),
+            headerRight:
+                <TouchableOpacity style={{
+                    width:42,
+                    height:42,
+                    alignItems:'center',
+                    justifyContent:'center',
+                    marginRight: 10}} onPress = {() => {
+                    navigation.navigate('NewOrEditGame', {
+                        gameID: params.gameID,
+                        reloadInfo: params.reloadInfo
+                    })
+                }
+                }>
+                    <Ionicons
+                        name="md-create"
+                        size={25}
+                        color={'#ffffff'} />
+                </TouchableOpacity>
+    }};
 
     async componentWillMount() {
+
+        this.props.navigation.setParams({
+            gameID: this.props.navigation.state.params.game.id,
+            reloadInfo: () => this.onRefresh()
+        });
 
         await this.setState({
             game: this.props.navigation.getParam('game'),
@@ -53,6 +82,71 @@ class OpenedGame extends Component {
         await this.fetchData();
         await this.setState({isLoading: false});
     }
+
+    async getGameInformation() {
+
+        const params = {
+            ids: [this.state.game.id],
+            fields: ['id', 'evento_desportivo' ,'atletas', 'display_start',
+                'local', 'escalao', 'duracao',
+                'convocatorias','treinador', 'seccionistas',
+                'equipa_adversaria', 'competicao', 'state', 'antecedencia'
+            ],
+        };
+
+        const response = await this.props.odoo.get('ges.jogo', params);
+        if(response.success && response.data.length > 0) {
+
+            const item = response.data[0];
+            const convertTime = new ConvertTime();
+
+            convertTime.setDate(item.display_start);
+            const date = convertTime.getTimeObject();
+
+            /**
+             diff = difference in ms between actual date and games's date
+             oneDay = one day in ms
+             gameDayMidNight = gameDay + '00:00:00' -> To verify Hoje or Amanha
+             twoDaysLimit = actualDate + 2 days + '00:00:00' -> To verify Amanha
+             (se a data do jogo nao atual ultrapassar estes 2 dias de limite, data=Amanha)
+             */
+            const diff = moment(convertTime.getDate()).diff(moment(this.state.date));
+            const oneDay = 24 * 60 * 60 * 1000;
+            const gameDayMidNight = (convertTime.getDate().split('T'))[0] + 'T00:00:00';
+            const twoDaysLimit = (moment(this.state.date).add(2, 'days').format()
+                .split('T'))[0] + 'T00:00:00';
+
+            if(diff >=0){
+                if(diff < oneDay) {
+                    if(moment(this.state.date).isAfter(gameDayMidNight)) date.date = 'Hoje';
+                    else date.date = 'Amanhã';
+                }
+                else if(diff < 2*oneDay && !moment(convertTime.getDate()).isAfter(twoDaysLimit)) {
+                    date.date = 'Amanhã';
+                }
+            }
+
+            const game = {
+                id: item.id,
+                local: item.local,
+                echelon: item.escalao,
+                duration: item.duracao,
+                date: date.date,
+                hour: date.hour,
+                opponent: item.equipa_adversaria ? item.equipa_adversaria[1] : 'Não definido',
+                competition: item.competicao ? (item.competicao[1].split('('))[0] : 'Não definida',
+                antecedence: !item.antecedencia ? 'Não definida' :
+                    item.antecedencia === 1 ? item.antecedencia + ' hora' : item.antecedencia + ' horas',
+                athleteIds : item.atletas,
+                invitationIds: item.convocatorias,
+                coachIds: item.treinador,
+                secretaryIds: item.seccionistas,
+                eventId: item.evento_desportivo[0]
+            };
+
+            await this.setState({game: game});
+        }
+    };
 
     /**
      * Fetch all needed data.
@@ -394,6 +488,7 @@ class OpenedGame extends Component {
     onRefresh = async () => {
 
         await this.setState({isRefreshing: true, showMore: false});
+        await this.getGameInformation();
         await this.fetchData();
         this.setState({isRefreshing: false});
     };

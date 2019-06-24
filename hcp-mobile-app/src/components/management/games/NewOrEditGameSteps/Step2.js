@@ -42,20 +42,19 @@ class Step2 extends Component {
         }
     }
 
-    componentDidMount() {
+    async componentDidMount() {
 
-        if(
-            this.props.newOrEditGame.rawStartTime !== startText &&
-            this.props.newOrEditGame.rawEndTime !== endText &&
-            this.props.newOrEditGame.rawLocalID !== undefined
-        ) {
+        if(this.props.newOrEditGame.rawStartTime !== startText)
+            await this.setState({startTime: true});
+
+        if(this.props.newOrEditGame.rawEndTime !== endText)
+            await this.setState({endTime: true});
+
+        if(this.props.newOrEditGame.rawLocalID !== undefined)
+            await this.setState({local: true});
+
+        if(this.state.startTime && this.state.endTime && this.state.local) {
             this.props.setStepDisabled(false);
-            this.setState({
-                startTime: true,
-                endTime: true,
-                homeAdvantage: true,
-                local: true,
-            });
         }
     }
 

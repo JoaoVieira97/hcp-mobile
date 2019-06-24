@@ -36,7 +36,8 @@
       "permissions": [
         "ACCESS_FINE_LOCATION",
         "CAMERA",
-        "VIBRATE"
+        "VIBRATE",
+        "com.google.android.c2dm.permission.RECEIVE"
       ]
     },
     "notification":{

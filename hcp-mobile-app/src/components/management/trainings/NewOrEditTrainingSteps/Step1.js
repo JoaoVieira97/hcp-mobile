@@ -39,19 +39,19 @@ class Step1 extends Component {
         }
     }
 
-    componentDidMount() {
+    async componentDidMount() {
 
-        if(
-            this.props.newOrEditTraining.rawStartTime !== startText &&
-            this.props.newOrEditTraining.rawEndTime !== endText &&
-            this.props.newOrEditTraining.rawLocalID !== undefined
-        ) {
+        if(this.props.newOrEditTraining.rawStartTime !== startText)
+            await this.setState({startTime: true});
+
+        if(this.props.newOrEditTraining.rawEndTime !== endText)
+            await this.setState({endTime: true});
+
+        if(this.props.newOrEditTraining.rawLocalID !== undefined)
+            await this.setState({local: true});
+
+        if(this.state.startTime && this.state.endTime && this.state.local) {
             this.props.setStepDisabled(false);
-            this.setState({
-                startTime: true,
-                endTime: true,
-                local: true,
-            });
         }
     }
 
