@@ -70,11 +70,21 @@ class Step4 extends Component {
     handleRemoveAthlete = async (value) => {
 
         if(this.props.newOrEditTraining.rawAthletesIDs.length === 1){
-            await this.setState({athletes: false});
+            await this.setState({athletes: false, echelon: false});
             this.props.setEchelon(null);
         }
 
         this.props.removeAthlete(value);
+        this.isStepReady();
+    };
+
+    handleAddAthlete = async (value) => {
+
+        if(this.props.newOrEditTraining.rawAthletesIDs.length === 0){
+            await this.setState({athletes: true});
+        }
+
+        this.props.addAthlete(value);
         this.isStepReady();
     };
 
@@ -189,14 +199,22 @@ class Step4 extends Component {
                                         />
                                     </View>
                                 </View>
-                                <View style={{marginTop: 15}}>
-                                    <TouchableOpacity
-                                        //onPress={this.showDateTimeEndPicker.bind(this)}
-                                        style={styles.buttonContainer}
-                                    >
-                                        <Text style={{fontSize: 16, textAlign: 'center'}}>ADICIONAR OUTROS ATLETAS</Text>
-                                    </TouchableOpacity>
-                                </View>
+                                {
+                                    this.state.echelon &&
+                                    <View style={{marginTop: 15}}>
+                                        <TouchableOpacity
+                                            onPress={() =>
+                                                this.props.navigation.navigate('AddAthletes', {
+                                                    addAthlete: (id) => this.handleAddAthlete(id),
+                                                    removeAthlete: (id) => this.handleRemoveAthlete(id)
+                                                })
+                                            }
+                                            style={styles.buttonContainer}
+                                        >
+                                            <Text style={{fontSize: 16, textAlign: 'center'}}>ADICIONAR OUTROS ATLETAS</Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                }
                                 <View style={{
                                     borderBottomWidth: 1,
                                     borderBottomColor: '#000',
@@ -240,7 +258,8 @@ const styles = StyleSheet.create({
 });
 
 Step4.propTypes = {
-    setStepDisabled: PropTypes.func.isRequired
+    setStepDisabled: PropTypes.func.isRequired,
+    navigation: PropTypes.object.isRequired
 };
 
 const mapStateToProps = state => ({

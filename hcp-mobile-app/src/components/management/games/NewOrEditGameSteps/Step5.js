@@ -67,21 +67,31 @@ class Step5 extends Component {
         this.isStepReady();
     };
 
-        handleRemoveAthlete = async (value) => {
+    handleRemoveAthlete = async (value) => {
 
-            if(this.props.newOrEditGame.rawAthletesIDs.length === 1){
-                await this.setState({athletes: false});
-                this.props.setEchelon(null);
-            }
+        if(this.props.newOrEditGame.rawAthletesIDs.length === 1){
+            await this.setState({athletes: false, echelon: false});
+            this.props.setEchelon(null);
+        }
 
-            this.props.removeAthlete(value);
-            this.isStepReady();
-        };
+        this.props.removeAthlete(value);
+        this.isStepReady();
+    };
 
-        /**
-         * Render list item.
-         * @param {Object} item
-         */
+    handleAddAthlete = async (value) => {
+
+        if(this.props.newOrEditGame.rawAthletesIDs.length === 0){
+            await this.setState({athletes: true});
+        }
+
+        this.props.addAthlete(value);
+        this.isStepReady();
+    };
+
+    /**
+     * Render list item.
+     * @param {Object} item
+     */
     renderItem = ({ item }) => {
 
         let athletes = []; let echelonID;
@@ -190,14 +200,22 @@ class Step5 extends Component {
                                         />
                                     </View>
                                 </View>
-                                <View style={{marginTop: 15}}>
-                                    <TouchableOpacity
-                                        //onPress={this.showDateTimeEndPicker.bind(this)}
-                                        style={styles.buttonContainer}
-                                    >
-                                        <Text style={{fontSize: 16, textAlign: 'center'}}>ADICIONAR OUTROS ATLETAS</Text>
-                                    </TouchableOpacity>
-                                </View>
+                                {
+                                    this.state.echelon &&
+                                    <View style={{marginTop: 15}}>
+                                        <TouchableOpacity
+                                            onPress={() =>
+                                                this.props.navigation.navigate('AddAthletes', {
+                                                    addAthlete: (id) => this.handleAddAthlete(id),
+                                                    removeAthlete: (id) => this.handleRemoveAthlete(id)
+                                                })
+                                            }
+                                            style={styles.buttonContainer}
+                                        >
+                                            <Text style={{fontSize: 16, textAlign: 'center'}}>ADICIONAR OUTROS ATLETAS</Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                }
                                 <View style={{
                                     borderBottomWidth: 1,
                                     borderBottomColor: '#000',
@@ -241,7 +259,8 @@ const styles = StyleSheet.create({
 });
 
 Step5.propTypes = {
-    setStepDisabled: PropTypes.func.isRequired
+    setStepDisabled: PropTypes.func.isRequired,
+    navigation: PropTypes.object.isRequired
 };
 
 const mapStateToProps = state => ({

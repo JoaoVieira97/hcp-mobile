@@ -357,6 +357,7 @@ class NewOrEditGame extends Component {
                 <Step5
                     key={'step5'}
                     setStepDisabled={(disabled) => this.setStepDisabled(disabled)}
+                    navigation={this.props.navigation}
                 />
             )
         }];

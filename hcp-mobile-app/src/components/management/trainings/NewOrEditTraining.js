@@ -311,6 +311,7 @@ class NewOrEditTraining extends Component {
                 <Step4
                     key={'step4'}
                     setStepDisabled={(disabled) => this.setStepDisabled(disabled)}
+                    navigation={this.props.navigation}
                 />
             )
         }];

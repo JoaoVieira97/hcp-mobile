@@ -73,6 +73,7 @@ import ClosedGames from "../management/games/ClosedGames";
 import ClosedGame from "../management/games/ClosedGame";
 import {linearGradientHeader, headerTitle, openDrawerButton} from "./HeaderComponents";
 import NewOrEditGame from "../management/games/NewOrEditGame";
+import AddAthletes from "../management/AddAthletes";
 
 
 
@@ -320,7 +321,8 @@ const ManagementStackNavigator = createStackNavigator({
     ChangeAthletesAvailabilities: {screen: ChangeAthletesAvailabilities},
     ChangeAthletesPresences: {screen: ChangeAthletesPresences},
     ChangeLateAthletes: {screen: ChangeLateAthletes},
-    RegisterInjury: {screen: RegisterInjury}
+    RegisterInjury: {screen: RegisterInjury},
+    AddAthletes: {screen: AddAthletes},
 }, {
     initialRouteName: 'ManagementNavigator',
     defaultNavigationOptions: ({navigation}) => {
@@ -591,7 +593,7 @@ const CoachAndSecretaryDrawerNavigator = createDrawerNavigator({
     ChatStack: drawerNavigatorFullStacks['ChatStack']
 }, {
     ...drawerNavigatorDefaultSettings,
-    initialRouteName: 'ManagementStack',
+    initialRouteName: 'HomeStack',
     order: ['HomeStack', 'CalendarStack', 'ManagementStack', 'AthletesStack', 'ProfileStack', 'ChatStack'],
 });
 
