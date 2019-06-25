@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import {FlatList, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+import {FlatList, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View, Alert} from 'react-native';
 import { connect } from 'react-redux';
 import {Ionicons, MaterialCommunityIcons, MaterialIcons} from "@expo/vector-icons";
 import {ListItem} from "react-native-elements";

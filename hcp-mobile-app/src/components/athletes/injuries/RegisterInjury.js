@@ -27,7 +27,7 @@ class RegisterInjury extends Component {
             eventId: undefined,
             eventType: undefined,
             athletes: [],
-            text: ''
+            text: '',
         }
     }
 
@@ -49,12 +49,51 @@ class RegisterInjury extends Component {
 
         await this.setState({
             eventId: this.props.navigation.state.params.eventId,
-            eventDate: this.props.navigation.state.params.eventDate,
+            //eventDate: this.props.navigation.state.params.eventDate,
             eventType: this.props.navigation.state.params.eventType,
             athletes: this.props.navigation.state.params.athletes,
             isLoading: false
         });
+
+        // check event type
+        if (this.state.eventType === 'treino')
+            await this.getTrainingDate(this.state.eventId);
+        else
+            await this.getGameDate(this.state.eventId);
+
     }
+
+    getTrainingDate = async (id) => {
+
+        const params = {
+            ids: [id],
+            fields: [
+                'id', 'start_datetime'
+            ],
+        };
+
+        const response = await this.props.odoo.get('ges.treino', params);
+        if(response.success) {
+
+            this.setState({eventDate: response.data[0].start_datetime});
+        }
+    };
+
+    getGameDate = async (id) => {
+
+        const params = {
+            ids: [id],
+            fields: [
+                'id', 'start_datetime'
+            ],
+        };
+
+        const response = await this.props.odoo.get('ges.jogo', params);
+        if(response.success) {
+
+            this.setState({eventDate: response.data[0].start_datetime});
+        }
+    };
 
     /**
      * Handler for athlete.

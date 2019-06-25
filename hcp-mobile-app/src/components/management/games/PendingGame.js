@@ -86,7 +86,6 @@ class PendingGame extends Component {
         };
 
         const response = await this.props.odoo.search_read('ges.linha_presenca', params);
-        console.log(response);
         if(response.success && response.data.length > 0) {
 
             const data = response.data;
