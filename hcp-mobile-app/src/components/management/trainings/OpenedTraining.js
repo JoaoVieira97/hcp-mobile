@@ -40,6 +40,8 @@ class OpenedTraining extends React.Component {
             secretaries: ['A carregar...'],
             athletes: [],
             showMore: false,
+
+            isCoach: false,
         };
     }
 
@@ -60,6 +62,7 @@ class OpenedTraining extends React.Component {
                 '#ffffff', navigation
             ),
             headerRight:
+                params.trainingID &&
                 <TouchableOpacity style={{
                     width:42,
                     height:42,
@@ -82,17 +85,27 @@ class OpenedTraining extends React.Component {
 
     async componentWillMount() {
 
-        this.props.navigation.setParams({
-            trainingID: this.props.navigation.state.params.training.id,
-            reloadInfo: () => this.onRefresh()
-        });
+        for (let i = 0; i < this.props.user.groups.length; i++) {
+            const group = this.props.user.groups[i];
+            if (group.name === 'Treinador') {
+                await this.setState({isCoach: true});
+                break;
+            }
+        }
+
+        if(this.state.isCoach) {
+            this.props.navigation.setParams({
+                trainingID: this.props.navigation.state.params.training.id,
+                reloadInfo: () => this.onRefresh()
+            });
+        }
+    }
+
+    async componentDidMount() {
 
         await this.setState({
             training: this.props.navigation.state.params.training
         });
-    }
-
-    async componentDidMount() {
 
         const date = moment().format();
         await this.setState({date: date});
@@ -611,7 +624,7 @@ class OpenedTraining extends React.Component {
         const list = [{
             name: 'Escalão',
             icon: 'md-shirt',
-            subtitle: this.state.training.echelon[1],
+            subtitle: this.state.training.echelon ? this.state.training.echelon[1] : 'Não definido',
         }, {
             name: 'Início e duração',
             icon: 'md-time',
@@ -767,6 +780,7 @@ const styles = StyleSheet.create({
 const mapStateToProps = state => ({
 
     odoo: state.odoo.odoo,
+    user: state.user
 });
 
 const mapDispatchToProps = dispatch => ({});

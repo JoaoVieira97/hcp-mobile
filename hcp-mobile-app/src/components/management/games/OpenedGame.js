@@ -31,6 +31,8 @@ class OpenedGame extends Component {
             coaches: ["A carregar..."],
             secretaries: ["A carregar..."],
             athletes: [],
+
+            isCoach: false,
         }
     }
 
@@ -46,6 +48,7 @@ class OpenedGame extends Component {
                 '#ffffff', navigation
             ),
             headerRight:
+                params.gameID &&
                 <TouchableOpacity style={{
                     width:42,
                     height:42,
@@ -67,17 +70,27 @@ class OpenedGame extends Component {
 
     async componentWillMount() {
 
-        this.props.navigation.setParams({
-            gameID: this.props.navigation.state.params.game.id,
-            reloadInfo: () => this.onRefresh()
-        });
+        for (let i = 0; i < this.props.user.groups.length; i++) {
+            const group = this.props.user.groups[i];
+            if (group.name === 'Treinador') {
+                await this.setState({isCoach: true});
+                break;
+            }
+        }
+
+        if(this.state.isCoach) {
+            this.props.navigation.setParams({
+                gameID: this.props.navigation.state.params.game.id,
+                reloadInfo: () => this.onRefresh()
+            });
+        }
+    }
+
+    async componentDidMount() {
 
         await this.setState({
             game: this.props.navigation.getParam('game'),
         });
-    }
-
-    async componentDidMount() {
 
         await this.fetchData();
         await this.setState({isLoading: false});
@@ -95,6 +108,7 @@ class OpenedGame extends Component {
         };
 
         const response = await this.props.odoo.get('ges.jogo', params);
+        console.log(response);
         if(response.success && response.data.length > 0) {
 
             const item = response.data[0];
@@ -634,26 +648,26 @@ class OpenedGame extends Component {
         const list = [{
             name: 'Competição',
             icon: 'md-trophy',
-            subtitle: this.state.game.competition,
+            subtitle: this.state.game ? this.state.game.competition : 'Não definido',
         },{
             name: 'Escalão e Adversário',
             icon: 'md-shirt',
-            subtitle: this.state.game.echelon[1] + '\n' + this.state.game.opponent,
+            subtitle: this.state.game ? this.state.game.echelon[1] + '\n' + this.state.game.opponent : 'Não definido',
         },{
             name: 'Início e Duração',
             icon: 'md-time',
-            subtitle:
+            subtitle: this.state.game ?
                 this.state.game.date + '  às  ' +
                 this.state.game.hour + '\n' +
-                this.state.game.duration + ' min',
+                this.state.game.duration + ' min' : 'Não definido',
         },{
             name: 'Antecedência',
             icon: 'ios-alarm',
-            subtitle: this.state.game.antecedence,
+            subtitle: this.state.game ? this.state.game.antecedence : 'Não definida',
         }, {
             name: 'Local',
             icon: 'google-maps',
-            subtitle: this.state.game.local ? this.state.game.local[1] : 'Nenhum local atribuído',
+            subtitle: this.state.game ? this.state.game.local[1] : 'Nenhum local atribuído',
         }, {
             name: 'Treinadores',
             icon: 'md-people',
