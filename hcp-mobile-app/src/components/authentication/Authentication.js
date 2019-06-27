@@ -75,8 +75,8 @@ export default class Authentication {
         // is already authenticated
         if(auxUsername !== null && auxPassword !== null) {
 
-            await this._odooInstance(auxUsername, auxPassword);
-            return await this._authentication();
+            const odoo = this._odooInstance(auxUsername, auxPassword);
+            return await this._authentication(odoo);
         }
         // is login request
         else {
@@ -87,8 +87,8 @@ export default class Authentication {
                 result = await Authentication.set('password', password);
                 if(result) {
 
-                    await this._odooInstance(username, password);
-                    return await this._authentication();
+                    const odoo = this._odooInstance(username, password);
+                    return await this._authentication(odoo);
                 }
             }
 
@@ -101,9 +101,8 @@ export default class Authentication {
      * @param username
      * @param password
      * @private
-     * @returns {Promise<void>}
      */
-    async _odooInstance(username, password) {
+    _odooInstance(username, password) {
 
         // create a new Instance
         const odoo = new Odoo({
@@ -116,7 +115,8 @@ export default class Authentication {
         });
 
         // save odoo data on store
-        await store.dispatch(setOdooInstance(odoo));
+        store.dispatch(setOdooInstance(odoo));
+        return odoo;
     }
 
     /**
@@ -124,18 +124,18 @@ export default class Authentication {
      * @private
      * @returns {Promise<string>}
      */
-    async _authentication() {
+    async _authentication(odoo) {
 
-        const response = await store.getState().odoo.odoo.connect();
+        const response = await odoo.connect();
         if (response.success && response.data) {
             if (response.data.uid) {
 
-                await await store.dispatch(setUserData(
+                await store.dispatch(setUserData(
                     response.data.uid.toString(),
                     response.data.name.toString()
                 ));
 
-                await this._getUserData();
+                await this._getUserData(odoo);
                 return "success";
             }
             return "fail";
@@ -204,14 +204,14 @@ export default class Authentication {
      * @private
      * @returns {Promise<void>}
      */
-    async _getUserData() {
+    async _getUserData(odoo) {
 
         const params = {
             ids: [store.getState().user.id],
             fields: ['image', 'groups_id', 'partner_id'],
         };
 
-        const response = await store.getState().odoo.odoo.get('res.users', params);
+        const response = await odoo.get('res.users', params);
         if(response.success && response.data.length > 0) {
 
             // set user partner id
