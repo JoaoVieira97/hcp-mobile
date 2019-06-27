@@ -110,7 +110,15 @@ class LoginScreen extends React.Component {
                 isPasswordDisabled: false
             });
 
-            if(isSuccess === "success") {
+            if(isSuccess === "app-error") {
+
+                Alert.alert(
+                    "Erro da aplicação",
+                    "Ocorreu um erro inesperado. Recomendamos que limpe a cache da aplicação."
+                );
+                await AsyncStorage.clear();
+            }
+            else if(isSuccess === "success") {
 
                 // if user has a valid groups
                 if(this.props.user.groups.length > 0) {

@@ -416,6 +416,7 @@ class ProfileScreen extends Component {
                                 icon="lock"
                                 color={'#fff'}
                                 mode="contained"
+                                disabled={true}
                                 contentStyle={{height: 55}}
                                 onPress={() => {
                                     this.props.navigation.navigate('ResetPassword');

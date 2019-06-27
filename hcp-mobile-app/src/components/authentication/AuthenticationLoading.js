@@ -27,7 +27,16 @@ class AuthenticationLoading extends React.Component {
         if (isAuthenticated) {
             const isSuccess = await auth.userLogin(isAuthenticated);
 
-            if(isSuccess === "success") {
+            if(isSuccess === "app-error") {
+
+                Alert.alert(
+                    "Erro da aplicação",
+                    "Ocorreu um erro inesperado. Recomendamos que limpe a cache da aplicação."
+                );
+                this.props.navigation.navigate('Authentication');
+                await AsyncStorage.clear();
+            }
+            else if(isSuccess === "success") {
 
                 // if user has a valid groups
                 if(this.props.user.groups.length > 0) {

@@ -1,30 +1,45 @@
 import React from 'react';
 import store from '../../redux/store';
 import {setOdooInstance} from "../../redux/actions/odoo";
-import {
-    setPartnerId,
-    setUserData,
-    setUserGroups,
-    setUserImage
-} from "../../redux/actions/user";
-import {AsyncStorage} from 'react-native';
+import {setPartnerId, setUserData, setUserGroups, setUserImage} from "../../redux/actions/user";
+import {Alert, AsyncStorage} from 'react-native';
 import Odoo from "react-native-odoo-promise-based";
 
-/*
 const HOST      =   '89.26.252.108';
 const PORT      =   80;
 const DATABASE  =   'hcp';
 const PROTOCOL  =   'http';
-*/
 
+/*
 const HOST      =   'erp.hcpenafiel.pt';
 const PORT      =   443;
 const DATABASE  =   'hcp-prod';
 const PROTOCOL  =   'https';
-
+*/
 
 
 export default class Authentication {
+
+     static async set(key, value) {
+        try {
+            await AsyncStorage.setItem(key, value);
+        } catch (error) {
+            //Alert.alert('SET', error.message);
+            return false;
+        }
+
+        return true;
+    };
+
+    static async get(key) {
+        try {
+            return await AsyncStorage.getItem(key);
+        } catch (error) {
+            //Alert.alert('GET', error.message);
+            return null;
+        }
+    };
+
 
     /**
      * Check if an user is already authenticated.
@@ -32,19 +47,21 @@ export default class Authentication {
      */
     async checkIfUserIsAuthenticated() {
 
-        let username = null;
-        let password = null;
+        const username = await Authentication.get('username');
+        const password = await Authentication.get('password');
 
-        await AsyncStorage.multiGet(['username', 'password']).then((data) => {
-            username = data[0][1];
-            password = data[1][1];
-        });
+        //Alert.alert('login', username + ' + ' + password);
 
-        return !!(username && password);
+        return username !== null && password !== null;
     }
 
     /**
      * User authentication.
+     * Returns:
+     * - success (right credentials)
+     * - fail (wrong credentials)
+     * - error (no connection)
+     * - app-error (async storage error)
      * @param isAuthenticated
      * @param username
      * @param password
@@ -52,22 +69,83 @@ export default class Authentication {
      */
     async userLogin(isAuthenticated, username=null, password=null) {
 
-        if(isAuthenticated) {
-            await AsyncStorage.multiGet(['username', 'password']).then((data) => {
-                username = data[0][1];
-                password = data[1][1];
-            });
+        const auxUsername = await Authentication.get('username');
+        const auxPassword = await Authentication.get('password');
+
+        // is already authenticated
+        if(auxUsername !== null && auxPassword !== null) {
+
+            await this._odooInstance(auxUsername, auxPassword);
+            return await this._authentication();
+        }
+        // is login request
+        else {
+
+            let result = await Authentication.set('username', username);
+            if(result) {
+
+                result = await Authentication.set('password', password);
+                if(result) {
+
+                    await this._odooInstance(username, password);
+                    return await this._authentication();
+                }
+            }
+
+            return 'app-error'
+        }
+    }
+
+    /**
+     * Create Odoo instance.
+     * @param username
+     * @param password
+     * @private
+     * @returns {Promise<void>}
+     */
+    async _odooInstance(username, password) {
+
+        // create a new Instance
+        const odoo = new Odoo({
+            host: HOST,
+            port: PORT,
+            database: DATABASE,
+            username: username,
+            password: password,
+            protocol: PROTOCOL
+        });
+
+        // save odoo data on store
+        await store.dispatch(setOdooInstance(odoo));
+    }
+
+    /**
+     * User authentication.
+     * @private
+     * @returns {Promise<string>}
+     */
+    async _authentication() {
+
+        const response = await store.getState().odoo.odoo.connect();
+        if (response.success && response.data) {
+            if (response.data.uid) {
+
+                await await store.dispatch(setUserData(
+                    response.data.uid.toString(),
+                    response.data.name.toString()
+                ));
+
+                await this._getUserData();
+                return "success";
+            }
+            return "fail";
         }
 
-        if(username && password) {
-
-            // create an Odoo instance
-            await this._odooInstance(username, password);
-
-            // do authentication
-            return await this._authentication(username, password);
+        if(response.error && response.error.message === 'Odoo Server Error') {
+            return "fail";
         }
-        return "fail";
+
+        return "error";
     }
 
     /**
@@ -120,68 +198,6 @@ export default class Authentication {
 
         return 'AppStack';
     };
-
-    /**
-     * Create Odoo instance.
-     * @param username
-     * @param password
-     * @private
-     * @returns {Promise<void>}
-     */
-    async _odooInstance(username, password) {
-
-        // create a new Instance
-        const odoo = new Odoo({
-            host: HOST,
-            port: PORT,
-            database: DATABASE,
-            username: username,
-            password: password,
-            protocol: PROTOCOL
-        });
-
-        // save odoo data on store
-        await store.dispatch(setOdooInstance(odoo));
-    }
-
-    /**
-     * User authentication.
-     * @param username
-     * @param password
-     * @private
-     * @returns {Promise<string>}
-     */
-    async _authentication(username, password) {
-
-        const response = await store.getState().odoo.odoo.connect();
-        if (response.success && response.data) {
-            if (response.data.uid) {
-
-                // save data on redux store
-                await await store.dispatch(setUserData(
-                    response.data.uid.toString(),
-                    response.data.name.toString()
-                ));
-
-                // save data on async storage
-                await AsyncStorage.multiSet([
-                    ["username", username],
-                    ["password", password]
-                ]);
-
-                // get user data (image, groups...)
-                await this._getUserData();
-                return "success";
-            }
-            return "fail";
-        }
-        if(response.error && response.error.code === 200) {
-            return "fail";
-        }
-        else {
-            return "error";
-        }
-    }
 
     /**
      * Get user important information like user groups and partner id.
