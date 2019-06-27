@@ -4,6 +4,9 @@ import {setOdooInstance} from "../../redux/actions/odoo";
 import {setPartnerId, setUserData, setUserGroups, setUserImage} from "../../redux/actions/user";
 import {Alert, AsyncStorage} from 'react-native';
 import Odoo from "react-native-odoo-promise-based";
+import { SQLite } from 'expo';
+
+const db = SQLite.openDatabase('db.db');
 
 const HOST      =   '89.26.252.108';
 const PORT      =   80;
@@ -17,10 +20,69 @@ const DATABASE  =   'hcp-prod';
 const PROTOCOL  =   'https';
 */
 
+const CREATEDB  = 'create table if not exists hcp (id integer primary key autoincrement, username text, password text);';
+const SELECT    = 'select * from hcp where id=1';
+const INSERT    = 'insert into hcp (id, username, password) values (1, ?, ?)';
+const DELETE    = 'delete from hcp where id>0';
+const UPDATE    = 'update hcp set username=? and password=? where id=1';
+
 
 export default class Authentication {
 
-     static async set(key, value) {
+    // SQLite
+    // -------------------------------------------------------------------------------
+    createDB = async (sql, params = []) => {
+        return new Promise(
+            (resolve, reject) => {
+                db.transaction(tx => {
+                    tx.executeSql(sql, params, () => resolve(true), reject)
+                })
+            }
+        )
+    };
+    selectDB = async (sql, params = []) => {
+        return new Promise(
+            (resolve, reject) => {
+                db.transaction(tx => {
+                    tx.executeSql(
+                        sql,
+                        params,
+                        (_, { rows }) => {
+                            if(rows.length > 0)
+                                resolve(rows._array);
+                            else
+                                resolve(false)
+                        },
+                        reject
+                    )
+                })
+            }
+        )
+    };
+    insertDB = async (sql, params = []) => {
+        return new Promise(
+            (resolve, reject) => {
+                db.transaction(tx => {
+                    tx.executeSql(sql, params, () => resolve(true), reject)
+                })
+            }
+        )
+    };
+    deleteDB = async (sql, params = []) => {
+        return new Promise(
+            (resolve, reject) => {
+                db.transaction(tx => {
+                    tx.executeSql(sql, params, () => resolve(true), reject)
+                })
+            }
+        )
+    };
+    // -------------------------------------------------------------------------------
+
+
+    // AsyncStorage
+    // -------------------------------------------------------------------------------
+    static async set(key, value) {
         try {
             await AsyncStorage.setItem(key, value);
         } catch (error) {
@@ -30,15 +92,16 @@ export default class Authentication {
 
         return true;
     };
-
     static async get(key) {
         try {
-            return await AsyncStorage.getItem(key);
+            const value = await AsyncStorage.getItem(key);
+            return value;
         } catch (error) {
             //Alert.alert('GET', error.message);
             return null;
         }
     };
+    // -------------------------------------------------------------------------------
 
 
     /**
@@ -47,12 +110,35 @@ export default class Authentication {
      */
     async checkIfUserIsAuthenticated() {
 
-        const username = await Authentication.get('username');
-        const password = await Authentication.get('password');
+        try {
+            const create = await this.createDB(CREATEDB);
+            if(create) {
 
-        //Alert.alert('login', username + ' + ' + password);
+                const select = await this.selectDB(SELECT);
+                if(select) {
+                    //console.log(select);
+                    return true;
+                }
+            }
+        } catch (e) {
+            return false;
+        }
 
-        return username !== null && password !== null;
+        return false;
+    }
+
+    /**
+     * Delete all data from user from database.
+     * @returns {Promise<void>}
+     */
+    async userLogout() {
+
+        try {
+            await this.deleteDB(DELETE);
+        }
+        catch (e) {
+            //console.log(e);
+        }
     }
 
     /**
@@ -69,31 +155,31 @@ export default class Authentication {
      */
     async userLogin(isAuthenticated, username=null, password=null) {
 
-        const auxUsername = await Authentication.get('username');
-        const auxPassword = await Authentication.get('password');
+        try {
+            if(isAuthenticated) {
+                const select = await this.selectDB(SELECT);
+                if(select) {
 
-        // is already authenticated
-        if(auxUsername !== null && auxPassword !== null) {
+                    const data = select[0];
 
-            const odoo = this._odooInstance(auxUsername, auxPassword);
-            return await this._authentication(odoo);
-        }
-        // is login request
-        else {
-
-            let result = await Authentication.set('username', username);
-            if(result) {
-
-                result = await Authentication.set('password', password);
-                if(result) {
+                    const odoo = this._odooInstance(data.username, data.password);
+                    return await this._authentication(odoo);
+                }
+            }
+            else {
+                const insert = await this.insertDB(INSERT, [username, password]);
+                if(insert) {
 
                     const odoo = this._odooInstance(username, password);
                     return await this._authentication(odoo);
                 }
             }
 
-            return 'app-error'
+        } catch (e) {
+            return 'app-error';
         }
+
+        return 'app-error';
     }
 
     /**

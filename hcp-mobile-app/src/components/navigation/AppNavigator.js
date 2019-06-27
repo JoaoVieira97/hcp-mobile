@@ -74,6 +74,7 @@ import ClosedGame from "../management/games/ClosedGame";
 import {linearGradientHeader, headerTitle, openDrawerButton} from "./HeaderComponents";
 import NewOrEditGame from "../management/games/NewOrEditGame";
 import AddAthletes from "../management/AddAthletes";
+import Authentication from "../authentication/Authentication";
 
 
 
@@ -154,7 +155,10 @@ const CustomDrawerContentComponent = (props) => {
             params
         );
 
-        await AsyncStorage.clear();
+        //await AsyncStorage.clear();
+        const auth = new Authentication();
+        await auth.userLogout();
+
         props.navigation.navigate('Authentication');
 
     }

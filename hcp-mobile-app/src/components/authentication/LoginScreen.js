@@ -116,7 +116,8 @@ class LoginScreen extends React.Component {
                     "Erro da aplicação",
                     "Ocorreu um erro inesperado. Recomendamos que limpe a cache da aplicação."
                 );
-                await AsyncStorage.clear();
+                //await AsyncStorage.clear();
+                await auth.userLogout();
             }
             else if(isSuccess === "success") {
 
@@ -130,7 +131,8 @@ class LoginScreen extends React.Component {
                         "Erro de autenticação",
                         "Por favor, verifique com o administrador os acessos à aplicação."
                     );
-                    await AsyncStorage.clear();
+                    //await AsyncStorage.clear();
+                    await auth.userLogout();
                 }
             }
             else if(isSuccess === "fail") {
@@ -138,14 +140,16 @@ class LoginScreen extends React.Component {
                     "Erro de autenticação",
                     "As suas credenciais estão erradas!"
                 );
-                await AsyncStorage.clear();
+                //await AsyncStorage.clear();
+                await auth.userLogout();
             }
             else {
                 Alert.alert(
                     "Erro de conexão",
                     "Não é possível estabelecer uma conexão com o servidor."
                 );
-                await AsyncStorage.clear();
+                //await AsyncStorage.clear();
+                await auth.userLogout();
             }
         }
         else {

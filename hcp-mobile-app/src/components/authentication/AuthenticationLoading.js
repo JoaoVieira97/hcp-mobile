@@ -34,7 +34,8 @@ class AuthenticationLoading extends React.Component {
                     "Ocorreu um erro inesperado. Recomendamos que limpe a cache da aplicação."
                 );
                 this.props.navigation.navigate('Authentication');
-                await AsyncStorage.clear();
+                //await AsyncStorage.clear();
+                await auth.userLogout();
             }
             else if(isSuccess === "success") {
 
@@ -48,7 +49,8 @@ class AuthenticationLoading extends React.Component {
                         "Erro de autenticação",
                         "Por favor, verifique com o administrador os acessos à aplicação."
                     );
-                    await AsyncStorage.clear();
+                    //await AsyncStorage.clear();
+                    await auth.userLogout();
                     this.props.navigation.navigate('Authentication');
                 }
             }
@@ -58,7 +60,8 @@ class AuthenticationLoading extends React.Component {
                     "Erro de autenticação",
                     "A sua autenticação já não é válida. Por favor, efetue login novamente."
                 );
-                await AsyncStorage.clear();
+                //await AsyncStorage.clear();
+                await auth.userLogout();
                 this.props.navigation.navigate('Authentication');
             }
             else {
@@ -84,7 +87,8 @@ class AuthenticationLoading extends React.Component {
             }
         }
         else {
-            await AsyncStorage.clear();
+            //await AsyncStorage.clear();
+            await auth.userLogout();
             this.props.navigation.navigate('Authentication');
         }
     }
